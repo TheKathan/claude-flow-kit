@@ -28,7 +28,7 @@ env:
 
 jobs:
   test-installer:
-    runs-on: [self-hosted, coopnet]
+    runs-on: [self-hosted, coopnet-runner]
     strategy:
       fail-fast: false
       matrix:
