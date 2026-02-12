@@ -21,25 +21,18 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  DEPLOY_HOST: coopnet
+  DEPLOY_USER: coop
+  LOCAL_REGISTRY: localhost:5000
+
 jobs:
   test-installer:
-    runs-on: ${{ matrix.os }}
+    runs-on: [self-hosted, coopnet]
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - os: ubuntu-latest
-            python-version: '3.8'
-          - os: ubuntu-latest
-            python-version: '3.12'
-          - os: macos-latest
-            python-version: '3.9'
-          - os: macos-latest
-            python-version: '3.12'
-          - os: windows-latest
-            python-version: '3.8'
-          - os: windows-latest
-            python-version: '3.11'
+        python-version: ['3.8', '3.11', '3.12']
 
     steps:
       - name: Checkout repository
@@ -62,17 +55,17 @@ jobs:
           cd test-install-backend
 
           # Create input file for non-interactive testing
-          cat > input.txt << 'EOF'
-          test-project
-          Test project description
-          https://github.com/test/test-project
-          1
-          1
-          n
-          n
-          n
-          main
-          EOF
+          cat > input.txt <<'EOF'
+test-project
+Test project description
+https://github.com/test/test-project
+1
+1
+n
+n
+n
+main
+EOF
 
           # Run installer with input
           python ../install.py < input.txt || echo "Installer completed"
@@ -84,17 +77,17 @@ jobs:
           cd test-install-frontend
 
           # Create input file for non-interactive testing
-          cat > input.txt << 'EOF'
-          test-frontend-project
-          Test frontend project
-          https://github.com/test/test-frontend
-          n
-          1
-          1
-          n
-          n
-          main
-          EOF
+          cat > input.txt <<'EOF'
+test-frontend-project
+Test frontend project
+https://github.com/test/test-frontend
+n
+1
+1
+n
+n
+main
+EOF
 
           # Run installer with input
           python ../install.py < input.txt || echo "Installer completed"
