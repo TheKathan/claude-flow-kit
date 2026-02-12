@@ -46,17 +46,17 @@ jobs:
           cd test-install-backend
 
           # Create input file for non-interactive testing
-          cat > input.txt <<'EOF'
-test-project
-Test project description
-https://github.com/test/test-project
-1
-1
-n
-n
-n
-main
-EOF
+          cat > input.txt <<'HEREDOC'
+          test-project
+          Test project description
+          https://github.com/test/test-project
+          1
+          1
+          n
+          n
+          n
+          main
+          HEREDOC
 
           # Run installer with input
           python ../install.py < input.txt || echo "Installer completed"
@@ -68,17 +68,17 @@ EOF
           cd test-install-frontend
 
           # Create input file for non-interactive testing
-          cat > input.txt <<'EOF'
-test-frontend-project
-Test frontend project
-https://github.com/test/test-frontend
-n
-1
-1
-n
-n
-main
-EOF
+          cat > input.txt <<'HEREDOC'
+          test-frontend-project
+          Test frontend project
+          https://github.com/test/test-frontend
+          n
+          1
+          1
+          n
+          n
+          main
+          HEREDOC
 
           # Run installer with input
           python ../install.py < input.txt || echo "Installer completed"
