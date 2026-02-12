@@ -58,90 +58,27 @@ python setup_claude.py
 
 ### What Gets Installed
 
-Based on your selections, the installer downloads:
+Based on your selections, the installer creates:
 
-- **CLAUDE.md** - Navigation hub with links to your selected workflows
-- **Workflow files** - Only for selected languages/frameworks
-- **Development guides** - Coding standards for your tech stack
-- **Agent configurations** - Merged config for your components
-- **Common documentation** - Architecture, deployment, troubleshooting
-- **Testing guide** - Testing standards and practices
+- **CLAUDE.md** - Navigation hub for your project
+- **Workflow files** - Language-specific development guides
+- **Agent configurations** - AI agents for your tech stack
+- **Documentation templates** - Ready to customize
+- **Worktree scripts** - Automated workflow management
+
+That's it! You get only what you need - no clutter.
 
 ### After Installation
 
-Edit `.agents/config.json` to:
-- Adjust file watch patterns for your project structure
-- Modify model selections (haiku/sonnet/opus)
-- Configure workflow gates and thresholds
-- Add/remove agents based on your needs
-
-1. **Review Configuration** - Check `.agents/config.json` for merged agent settings
-2. **Customize Documentation** - Update files in `.claude/` folder with your project details
-3. **Review Workflow** - Read your selected workflow file in `docs/`
-4. **Commit Files** - Add Claude Code files to your repository
+1. Review your selected workflow in `docs/`
+2. Customize documentation in `.claude/`
+3. Start building with Claude Code agents
 
 ```bash
 git add CLAUDE.md .claude/ .agents/ docs/ scripts/
 git commit -m "Add Claude Code configuration
 
-- Add AI agent workflow
-- Add documentation structure
-- Add quality gates
-
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
-```
-
-## 📁 Repository Structure
-
-```
-claude-flow-kit/
-├── README.md                           # This file
-├── install.py                          # Downloadable installer
-├── setup_claude.py                     # Local setup script
-├── CLAUDE.md                           # Navigation hub template
-│
-├── docs/                               # Workflow documentation
-│   ├── WORKFLOW_BACKEND_PYTHON.md      # Python/FastAPI workflow
-│   ├── WORKFLOW_BACKEND_DOTNET.md      # .NET/ASP.NET Core workflow
-│   ├── WORKFLOW_BACKEND_NODEJS.md      # Node.js/Express workflow
-│   ├── WORKFLOW_BACKEND_GO.md          # Go workflow
-│   ├── WORKFLOW_FRONTEND_REACT.md      # React/Next.js workflow
-│   ├── WORKFLOW_FRONTEND_VUE.md        # Vue/Nuxt workflow
-│   ├── WORKFLOW_FRONTEND_ANGULAR.md    # Angular workflow
-│   ├── WORKFLOW_INFRASTRUCTURE_TERRAFORM.md  # Terraform workflow
-│   └── TESTING_GUIDE.md                # Testing standards
-│
-├── .claude/                            # Development guides
-│   ├── PYTHON_GUIDE.md                 # Python coding standards
-│   ├── DOTNET_GUIDE.md                 # .NET coding standards
-│   ├── NODEJS_GUIDE.md                 # Node.js coding standards
-│   ├── GO_GUIDE.md                     # Go coding standards
-│   ├── REACT_GUIDE.md                  # React coding standards
-│   ├── VUE_GUIDE.md                    # Vue coding standards
-│   ├── ANGULAR_GUIDE.md                # Angular coding standards
-│   ├── TERRAFORM_GUIDE.md              # Terraform best practices
-│   ├── ARCHITECTURE.md                 # Architecture template
-│   ├── DEVELOPMENT.md                  # Development practices
-│   ├── DOCKER_GUIDE.md                 # Docker guide
-│   └── ... (other docs)
-│
-├── .agents/                            # Agent configurations
-│   ├── config_backend_python.json      # Python agent config
-│   ├── config_backend_dotnet.json      # .NET agent config
-│   ├── config_backend_nodejs.json      # Node.js agent config
-│   ├── config_backend_go.json          # Go agent config
-│   ├── config_frontend_react.json      # React agent config
-│   ├── config_frontend_vue.json        # Vue agent config
-│   ├── config_frontend_angular.json    # Angular agent config
-│   └── config_infrastructure_terraform.json  # Terraform agent config
-│
-└── scripts/                            # Worktree management
-    ├── worktree_create.py              # Create isolated worktree
-    ├── worktree_merge.py               # Merge to current branch
-    ├── worktree_cleanup.py             # Cleanup worktree
-    ├── worktree_create_pr.py           # Create PR to main
-    ├── worktree_check_pr_status.py     # Check PR status
-    └── worktree_poll_pr.py             # Poll PR until merged
 ```
 
 ## 🤖 Available Agents
@@ -216,77 +153,6 @@ Step 13: worktree-manager                   → Cleanup worktree + Docker
 - **Architecture-First (14 steps)** - New services (35-50 min)
 
 See your language-specific workflow file in `docs/` for detailed commands.
-
-## 🎛️ Customization Guide
-
-### Component Selection
-
-The installer automatically configures your project based on selections:
-
-- **Backend-only**: Select Python/Node.js/.NET/Go, skip frontend and infrastructure
-- **Frontend-only**: Skip backend, select React/Vue/Angular
-- **Full-stack**: Select both backend and frontend
-- **Infrastructure-only**: Skip backend/frontend, select Terraform
-- **Any combination**: All components are optional
-
-### Adding More Languages/Frameworks
-
-To extend the template:
-
-1. **Create workflow file**: `docs/WORKFLOW_{TYPE}_{LANG}.md`
-2. **Create development guide**: `.claude/{LANG}_GUIDE.md`
-3. **Create agent config**: `.agents/config_{type}_{lang}.json`
-4. **Update installer**: Add detection logic to `install.py`
-
-### Customizing Existing Configs
-
-Edit `.agents/config.json` after installation:
-- Adjust file watch patterns for your project structure
-- Modify model selections (haiku/sonnet/opus)
-- Configure workflow gates and thresholds
-- Add/remove agents based on your needs
-
-### Model Cost Optimization
-
-The template uses optimized model selection:
-- **haiku** - integration-tester (mechanical tasks, 60% cost savings)
-- **sonnet** - developers, reviewers, managers (balanced quality/cost)
-- **opus** - software-architect, merge-conflict-resolver (complex reasoning)
-
-Adjust in `.agents/config.json` under each agent's `model` field.
-
-### Workflow Gate Configuration
-
-Edit `.agents/config.json` → `gates` section:
-```json
-{
-  "test_runner": {
-    "min_coverage": 80,        // Lower to 70 if needed
-    "allow_failures": 0,       // Set to 1-2 for flexibility
-    "blocking": true           // Set to false to make optional
-  }
-}
-```
-
-## 📚 Documentation Best Practices
-
-### CLAUDE.md - Navigation Hub
-- Keep concise (200-300 lines max)
-- Focus on quick navigation
-- Link to detailed docs in `.claude/` and `docs/`
-- Update as project evolves
-
-### .claude/ Folder - Focused Guides
-- One topic per file
-- 100-300 lines each
-- Actionable information
-- Examples and commands
-
-### docs/ Folder - Detailed Documentation
-- In-depth explanations
-- Implementation details
-- Phase documentation
-- Complex workflows
 
 ## 🔧 Troubleshooting
 
