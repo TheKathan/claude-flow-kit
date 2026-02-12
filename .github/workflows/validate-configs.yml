@@ -48,7 +48,7 @@ jobs:
           import sys
           from pathlib import Path
 
-          required_fields = ["name", "prompt", "model"]
+          required_fields = ["type", "description", "model"]
           errors = []
 
           for config_file in Path(".agents").glob("config*.json"):
@@ -60,12 +60,15 @@ jobs:
                   agents = data
               elif isinstance(data, dict) and "agents" in data:
                   agents = data["agents"]
+                  # If agents is a dict, convert to list of agent objects
+                  if isinstance(agents, dict):
+                      agents = list(agents.values())
               else:
                   print(f"⚠ {config_file}: Unknown format")
                   continue
 
               for agent in agents:
-                  agent_name = agent.get("name", "unnamed")
+                  agent_name = agent.get("name", agent.get("type", "unnamed"))
                   missing = [f for f in required_fields if f not in agent]
                   if missing:
                       error = f"✗ {config_file} - Agent '{agent_name}' missing: {', '.join(missing)}"
@@ -100,12 +103,15 @@ jobs:
                   agents = data
               elif isinstance(data, dict) and "agents" in data:
                   agents = data["agents"]
+                  # If agents is a dict, convert to list of agent objects
+                  if isinstance(agents, dict):
+                      agents = list(agents.values())
               else:
                   continue
 
               for agent in agents:
                   model = agent.get("model", "")
-                  agent_name = agent.get("name", "unnamed")
+                  agent_name = agent.get("type", "unnamed")
 
                   if model not in valid_models:
                       error = f"✗ {config_file} - Agent '{agent_name}' has invalid model: '{model}'"
@@ -138,11 +144,15 @@ jobs:
                   agents = data
               elif isinstance(data, dict) and "agents" in data:
                   agents = data["agents"]
+                  # If agents is a dict, get the keys (agent names)
+                  if isinstance(agents, dict):
+                      all_agent_names.extend(agents.keys())
+                      continue
               else:
                   continue
 
               for agent in agents:
-                  all_agent_names.append(agent.get("name", "unnamed"))
+                  all_agent_names.append(agent.get("type", "unnamed"))
 
           duplicates = [name for name, count in Counter(all_agent_names).items() if count > 1]
 
