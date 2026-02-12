@@ -26,7 +26,7 @@ env:
 
 jobs:
   test-scripts:
-    runs-on: [self-hosted, coopnet-runner]
+    runs-on: [self-hosted, Linux, ARM64]
     strategy:
       matrix:
         python-version: ['3.8', '3.11']
