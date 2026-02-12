@@ -31,6 +31,7 @@
     },
     "integration-tester": {
       "type": "integration-tester",
+      "description": "Execute tests and enforce quality gates",
       "model": "haiku",
       "tools": ["Bash", "Read"],
       "preferences": {

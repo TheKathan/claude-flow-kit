@@ -10,16 +10,19 @@
     },
     "vue-test-specialist": {
       "type": "test-specialist",
+      "description": "Frontend test specialist using Vitest",
       "model": "sonnet",
       "tools": ["Read", "Edit", "Write", "Bash"]
     },
     "frontend-code-reviewer": {
       "type": "code-reviewer",
+      "description": "Frontend code reviewer for security and best practices",
       "model": "sonnet",
       "tools": ["Read", "Grep"]
     },
     "integration-tester": {
       "type": "integration-tester",
+      "description": "Execute tests and enforce quality gates",
       "model": "haiku",
       "tools": ["Bash", "Read"]
     }
