@@ -1,41 +1,73 @@
-# Claude Code Project Template
+# Claude Flow Kit
 
-A reusable template for setting up Claude Code AI agents, workflows, and documentation structure in any project.
+A modular, language-specific template for setting up Claude Code AI agents, workflows, and documentation structure in any project.
 
 ## 🎯 What This Template Provides
 
-- **AI Agent Configuration** - Pre-configured specialized agents (developers, testers, reviewers)
+- **Modular Architecture** - Pick only backend, frontend, or infrastructure components you need
+- **Language-Specific Workflows** - Python, .NET, Node.js, Go, React, Vue, Angular, Terraform
 - **13-Step Worktree Workflow** - Isolated development with quality gates
-- **Documentation Structure** - Professional documentation templates
-- **Workflow Variants** - Multiple workflow options (Standard, Hotfix, Test-Only, etc.)
+- **PR Workflow Support** - Optional PR-to-main workflow with human approval
+- **Downloadable Installer** - Run from anywhere, no repo cloning needed
 - **Quality Gates** - Automated testing, code review, and integration checks
-- **Docker Integration** - Containerized development support
+- **All Components Optional** - Backend-only, frontend-only, or any combination
 
 ## 🚀 Quick Start
 
-### 1. Copy Template to Your Project
+### Option 1: Downloadable Installer (Recommended)
+
+Run the installer directly from GitHub - no need to clone the repository:
 
 ```bash
-# Copy the entire template to your project
-cp -r c:/repos/claude-template/* /path/to/your/project/
+# Download and run installer in one command
+curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py | python3
 ```
 
-### 2. Run Setup Script
+Or download first, then run:
 
 ```bash
-cd /path/to/your/project
+# Download the installer
+curl -O https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py
+
+# Run the installer
+python3 install.py
+```
+
+The installer will prompt you for:
+- **Project information** (name, description, repository URL)
+- **Backend** (Python/Node.js/.NET/Go or none)
+- **Frontend** (React/Vue/Angular or none)
+- **Infrastructure** (Terraform or none)
+- **Docker usage** (yes/no)
+- **Git configuration** (main branch name)
+
+The installer downloads **only** the components you select to your current directory.
+
+### Option 2: Clone and Setup Locally
+
+For development or customization:
+
+```bash
+# Clone repository
+git clone https://github.com/TheKathan/claude-flow-kit.git
+cd claude-flow-kit
+
+# Run setup script
 python setup_claude.py
 ```
 
-The setup script will prompt you for:
-- Project name
-- Project description
-- Tech stack (Backend/Frontend frameworks)
-- Main branch name
-- Repository URL
-- Docker usage (yes/no)
+### What Gets Installed
 
-### 3. Customize Agent Configuration
+Based on your selections, the installer downloads:
+
+- **CLAUDE.md** - Navigation hub with links to your selected workflows
+- **Workflow files** - Only for selected languages/frameworks
+- **Development guides** - Coding standards for your tech stack
+- **Agent configurations** - Merged config for your components
+- **Common documentation** - Architecture, deployment, troubleshooting
+- **Testing guide** - Testing standards and practices
+
+### After Installation
 
 Edit `.agents/config.json` to:
 - Adjust file watch patterns for your project structure
@@ -43,18 +75,13 @@ Edit `.agents/config.json` to:
 - Configure workflow gates and thresholds
 - Add/remove agents based on your needs
 
-### 4. Update Documentation
-
-Review and customize files in `.claude/` folder:
-- `ARCHITECTURE.md` - Your system architecture
-- `DEVELOPMENT.md` - Your development practices
-- `DOCKER_GUIDE.md` - Your Docker setup (if applicable)
-- `TESTING_GUIDE.md` - Your testing standards
-
-### 5. Commit Claude Files
+1. **Review Configuration** - Check `.agents/config.json` for merged agent settings
+2. **Customize Documentation** - Update files in `.claude/` folder with your project details
+3. **Review Workflow** - Read your selected workflow file in `docs/`
+4. **Commit Files** - Add Claude Code files to your repository
 
 ```bash
-git add CLAUDE.md .claude/ .agents/ docs/
+git add CLAUDE.md .claude/ .agents/ docs/ scripts/
 git commit -m "Add Claude Code configuration
 
 - Add AI agent workflow
@@ -64,108 +91,160 @@ git commit -m "Add Claude Code configuration
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 ```
 
-## 📁 Template Structure
+## 📁 Repository Structure
 
 ```
-claude-template/
-├── README.md                   # This file
-├── setup_claude.py             # Interactive setup script
-├── CLAUDE.md                   # Main navigation hub (TEMPLATE)
-├── .claude/                    # Documentation templates
-│   ├── ARCHITECTURE.md
-│   ├── DEVELOPMENT.md
-│   ├── DOCKER_GUIDE.md
-│   ├── DEPLOYMENT.md
-│   ├── ENVIRONMENT.md
-│   ├── TESTING_GUIDE.md
-│   ├── TROUBLESHOOTING.md
-│   ├── API_REFERENCE.md
-│   └── IMPLEMENTATION_STATUS.md
-├── .agents/                    # Agent configuration
-│   └── config.json
-├── docs/                       # Detailed workflow docs
-│   ├── WORKFLOW_GUIDE.md
-│   ├── WORKFLOW_IMPROVEMENTS.md
-│   ├── WORKTREE_WORKFLOW.md
-│   └── TESTING_GUIDE.md
-└── scripts/                    # Scripts folder structure
-    └── .gitkeep
+claude-flow-kit/
+├── README.md                           # This file
+├── install.py                          # Downloadable installer
+├── setup_claude.py                     # Local setup script
+├── CLAUDE.md                           # Navigation hub template
+│
+├── docs/                               # Workflow documentation
+│   ├── WORKFLOW_BACKEND_PYTHON.md      # Python/FastAPI workflow
+│   ├── WORKFLOW_BACKEND_DOTNET.md      # .NET/ASP.NET Core workflow
+│   ├── WORKFLOW_BACKEND_NODEJS.md      # Node.js/Express workflow
+│   ├── WORKFLOW_BACKEND_GO.md          # Go workflow
+│   ├── WORKFLOW_FRONTEND_REACT.md      # React/Next.js workflow
+│   ├── WORKFLOW_FRONTEND_VUE.md        # Vue/Nuxt workflow
+│   ├── WORKFLOW_FRONTEND_ANGULAR.md    # Angular workflow
+│   ├── WORKFLOW_INFRASTRUCTURE_TERRAFORM.md  # Terraform workflow
+│   └── TESTING_GUIDE.md                # Testing standards
+│
+├── .claude/                            # Development guides
+│   ├── PYTHON_GUIDE.md                 # Python coding standards
+│   ├── DOTNET_GUIDE.md                 # .NET coding standards
+│   ├── NODEJS_GUIDE.md                 # Node.js coding standards
+│   ├── GO_GUIDE.md                     # Go coding standards
+│   ├── REACT_GUIDE.md                  # React coding standards
+│   ├── VUE_GUIDE.md                    # Vue coding standards
+│   ├── ANGULAR_GUIDE.md                # Angular coding standards
+│   ├── TERRAFORM_GUIDE.md              # Terraform best practices
+│   ├── ARCHITECTURE.md                 # Architecture template
+│   ├── DEVELOPMENT.md                  # Development practices
+│   ├── DOCKER_GUIDE.md                 # Docker guide
+│   └── ... (other docs)
+│
+├── .agents/                            # Agent configurations
+│   ├── config_backend_python.json      # Python agent config
+│   ├── config_backend_dotnet.json      # .NET agent config
+│   ├── config_backend_nodejs.json      # Node.js agent config
+│   ├── config_backend_go.json          # Go agent config
+│   ├── config_frontend_react.json      # React agent config
+│   ├── config_frontend_vue.json        # Vue agent config
+│   ├── config_frontend_angular.json    # Angular agent config
+│   └── config_infrastructure_terraform.json  # Terraform agent config
+│
+└── scripts/                            # Worktree management
+    ├── worktree_create.py              # Create isolated worktree
+    ├── worktree_merge.py               # Merge to current branch
+    ├── worktree_cleanup.py             # Cleanup worktree
+    ├── worktree_create_pr.py           # Create PR to main
+    ├── worktree_check_pr_status.py     # Check PR status
+    └── worktree_poll_pr.py             # Poll PR until merged
 ```
 
 ## 🤖 Available Agents
 
-### Development Agents
-- **python-developer** - Backend Python/FastAPI development
-- **react-frontend-dev** - Frontend React/Next.js development
+The template includes language-specific agents that are automatically configured based on your selections:
 
-### Testing Agents
-- **python-test-specialist** - Write pytest tests
-- **react-test-specialist** - Write React Testing Library tests
-- **integration-tester** - Execute E2E tests (haiku model for cost savings)
+### Backend Development Agents
+- **python-developer** / **python-test-specialist** - Python/FastAPI development
+- **dotnet-developer** / **dotnet-test-specialist** - .NET/ASP.NET Core development
+- **nodejs-developer** / **nodejs-test-specialist** - Node.js/Express development
+- **go-developer** / **go-test-specialist** - Go development
 
-### Review Agents
-- **backend-code-reviewer** - Review Python code
-- **frontend-code-reviewer** - Review React code
+### Frontend Development Agents
+- **react-frontend-dev** / **react-test-specialist** - React/Next.js development
+- **vue-developer** / **vue-test-specialist** - Vue/Nuxt development
+- **angular-developer** / **angular-test-specialist** - Angular development
 
-### Architecture & Infrastructure
+### Infrastructure Agents
+- **terraform-developer** / **terraform-test-specialist** - Terraform/IaC development
+
+### Common Agents (Included in All Configurations)
+- **backend-code-reviewer** - Review backend code
+- **frontend-code-reviewer** - Review frontend code (if frontend selected)
+- **infrastructure-code-reviewer** - Review infrastructure code (if infrastructure selected)
 - **software-architect** - Design architecture (opus model)
 - **worktree-manager** - Manage isolated worktrees
+- **pr-manager** - Manage GitHub Pull Requests
 - **docker-debugger** - Fix Docker issues
 - **merge-conflict-resolver** - Resolve merge conflicts (opus model)
+- **integration-tester** - Execute E2E tests (haiku model for cost savings)
 
-## 🔄 Workflow Variants
+## 🔄 Workflow Support
 
-Choose the right workflow for your task:
+### 13-Step Worktree Workflow
 
-### Standard Worktree (11 steps) ⭐ Most Common
-- **Use For**: Regular features, enhancements
-- **Steps**: Create worktree → Implement → Tests → Commit → Unit Tests → Review → Fix → E2E Tests → Push → Resolve Conflicts → Final Test → Merge → Cleanup
-- **Time**: 25-35 minutes
-- **Cost**: Medium
+All workflows follow the same structure:
 
-### Full Worktree (13 steps)
-- **Use For**: New services, architectural changes
-- **Adds**: Architecture design step (Step 0)
-- **Time**: 35-50 minutes
-- **Cost**: High
+```
+Step 0:  [OPTIONAL] software-architect      → Design architecture
+Step 1:  worktree-manager                   → Create worktree + Docker
+Step 2:  {language}-developer               → Implement feature
+Step 3:  {language}-test-specialist         → Write comprehensive tests
+Step 4:  {language}-developer               → Commit code + tests
+Step 5:  integration-tester                 → Run unit tests [GATE]
+Step 6:  {area}-code-reviewer               → Review code [GATE]
+Step 7:  {language}-developer               → Fix if needed (loop to 5-6)
+Step 8:  integration-tester                 → Run integration tests [GATE]
+Step 9:  {language}-developer               → Push to feature branch
+Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
+Step 11: integration-tester                 → Final integration test [GATE]
+Step 12: worktree-manager                   → Merge to main, push
+Step 13: worktree-manager                   → Cleanup worktree + Docker
+```
 
-### Hotfix Worktree (9 steps) ⚡
-- **Use For**: Production bugs, urgent fixes
-- **Skips**: Test writing, E2E tests
-- **Time**: 15-20 minutes
-- **Cost**: Low
+### Merge Strategies
 
-### Test-Only (7 steps) & Docs-Only (6 steps)
-- For adding tests or documentation with isolation
+**Direct Merge to Current Branch (Default)**:
+- Worktrees merge back to the branch they were created from
+- Supports nested feature development
+- Example: On `feature/parent` → create `feature/child` → merges to `feature/parent`
 
-### Legacy Direct (9 steps)
-- For simple fixes without worktree isolation
+**PR to Main (Optional)**:
+- Create Pull Request to main (always main, regardless of current branch)
+- Requires human approval before merge
+- Auto-cleanup after PR is merged
+- Configure with `merge_strategy: "pr-to-main"` in `.agents/config.json`
+
+### Workflow Variants
+
+- **Standard Workflow (13 steps)** - Most common (25-35 min)
+- **Hotfix Workflow (9 steps)** - Urgent fixes (15-20 min)
+- **Architecture-First (14 steps)** - New services (35-50 min)
+
+See your language-specific workflow file in `docs/` for detailed commands.
 
 ## 🎛️ Customization Guide
 
-### Adjusting for Different Tech Stacks
+### Component Selection
 
-#### Non-Python Backend (Node.js, Go, Rust, etc.)
-1. Edit `.agents/config.json`
-2. Rename `python-developer` → `backend-developer`
-3. Update `watches` patterns to match your file extensions
-4. Modify `system_prompt` with language-specific best practices
-5. Update test commands in workflow steps
+The installer automatically configures your project based on selections:
 
-#### Non-React Frontend (Vue, Svelte, Angular, etc.)
-1. Edit `.agents/config.json`
-2. Rename `react-frontend-dev` → `frontend-developer`
-3. Update `watches` patterns
-4. Modify test commands and review criteria
+- **Backend-only**: Select Python/Node.js/.NET/Go, skip frontend and infrastructure
+- **Frontend-only**: Skip backend, select React/Vue/Angular
+- **Full-stack**: Select both backend and frontend
+- **Infrastructure-only**: Skip backend/frontend, select Terraform
+- **Any combination**: All components are optional
 
-#### No Frontend
-1. Remove frontend agents from `.agents/config.json`
-2. Simplify `CLAUDE.md` to remove frontend references
+### Adding More Languages/Frameworks
 
-#### No Docker
-1. Set `worktree_based: false` in `.agents/config.json`
-2. Remove Docker-related steps from workflow
-3. Update documentation to remove Docker references
+To extend the template:
+
+1. **Create workflow file**: `docs/WORKFLOW_{TYPE}_{LANG}.md`
+2. **Create development guide**: `.claude/{LANG}_GUIDE.md`
+3. **Create agent config**: `.agents/config_{type}_{lang}.json`
+4. **Update installer**: Add detection logic to `install.py`
+
+### Customizing Existing Configs
+
+Edit `.agents/config.json` after installation:
+- Adjust file watch patterns for your project structure
+- Modify model selections (haiku/sonnet/opus)
+- Configure workflow gates and thresholds
+- Add/remove agents based on your needs
 
 ### Model Cost Optimization
 
@@ -211,50 +290,92 @@ Edit `.agents/config.json` → `gates` section:
 
 ## 🔧 Troubleshooting
 
-### Setup Script Issues
+### Installation Issues
+
+**Installer fails to download:**
+```bash
+# Check network connection
+curl -I https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py
+
+# Try downloading manually first
+curl -O https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py
+python3 install.py
+```
 
 **Python not found:**
 ```bash
-# Use Python 3
-python3 setup_claude.py
+# Use Python 3 explicitly
+python3 install.py
+
+# Or check Python version
+python --version  # Should be 3.7+
 ```
 
-**File permissions:**
-```bash
-chmod +x setup_claude.py
-```
+**No components selected:**
+- You must select at least one component (backend, frontend, or infrastructure)
+- Rerun installer and select your desired components
 
-### Agent Not Working
+### Agent Configuration Issues
 
 **Check configuration:**
 1. Verify `.agents/config.json` is valid JSON
 2. Check file watch patterns match your project structure
 3. Ensure model names are correct (haiku/sonnet/opus)
 
-**Test agent invocation:**
+**Merged config missing agents:**
+- The installer only includes agents for selected components
+- Rerun installer if you need additional components
+
+### Worktree Scripts Issues
+
+**Scripts not executable:**
 ```bash
-# In Claude Code CLI
-> Can you invoke the python-developer agent to check configuration?
+chmod +x scripts/*.py
 ```
 
-## 🤝 Contributing to Template
+**GitHub CLI (gh) not found:**
+```bash
+# Install GitHub CLI for PR workflow
+# macOS: brew install gh
+# Linux: See https://github.com/cli/cli#installation
+# Windows: See https://github.com/cli/cli#installation
 
-If you improve this template, consider:
-1. Forking and sharing improvements
-2. Adding support for new tech stacks
-3. Creating specialized variants (mobile, ML, DevOps, etc.)
-4. Improving documentation
+# Authenticate
+gh auth login
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! To add new languages or frameworks:
+
+1. Fork the repository
+2. Add workflow file (`docs/WORKFLOW_{TYPE}_{LANG}.md`)
+3. Add development guide (`.claude/{LANG}_GUIDE.md`)
+4. Add agent config (`.agents/config_{type}_{lang}.json`)
+5. Update installer with detection logic
+6. Submit pull request
 
 ## 📝 License
 
 This template is provided as-is for use in any project. Customize freely.
 
-## 🙏 Credits
+## 🔗 Links
 
-Based on the Citadel.AI project workflow and agent system.
+- **Repository**: https://github.com/TheKathan/claude-flow-kit
+- **Installation**: `curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py | python3`
+- **Issues**: https://github.com/TheKathan/claude-flow-kit/issues
+- **Discussions**: https://github.com/TheKathan/claude-flow-kit/discussions
+
+## 📊 Repository Stats
+
+- 50+ files
+- 8 language/framework workflows
+- 8 development guides
+- 9 modular agent configurations
+- 6 worktree management scripts
 
 ---
 
-**Version**: 1.0.0
-**Last Updated**: 2026-02-08
+**Version**: 2.0.0
+**Last Updated**: 2026-02-12
 **Status**: Production Ready
