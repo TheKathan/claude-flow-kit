@@ -47,16 +47,16 @@ jobs:
 
           # Create input file for non-interactive testing
           cat > input.txt <<'EOF'
-test-project
-Test project description
-https://github.com/test/test-project
-1
-1
-n
-n
-n
-main
-EOF
+          test-project
+          Test project description
+          https://github.com/test/test-project
+          1
+          1
+          n
+          n
+          n
+          main
+          EOF
 
           # Run installer with input
           python ../install.py < input.txt || echo "Installer completed"
@@ -69,16 +69,16 @@ EOF
 
           # Create input file for non-interactive testing
           cat > input.txt <<'EOF'
-test-frontend-project
-Test frontend project
-https://github.com/test/test-frontend
-n
-1
-1
-n
-n
-main
-EOF
+          test-frontend-project
+          Test frontend project
+          https://github.com/test/test-frontend
+          n
+          1
+          1
+          n
+          n
+          main
+          EOF
 
           # Run installer with input
           python ../install.py < input.txt || echo "Installer completed"
