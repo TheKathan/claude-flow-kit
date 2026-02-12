@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Poll PR status until merged, then trigger cleanup.
 
@@ -17,6 +18,12 @@ import argparse
 import subprocess
 from datetime import datetime
 from pathlib import Path
+
+# Set UTF-8 encoding for Windows
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 def poll_pr_status(worktree_id: str, interval_minutes: int = 5):
     """Poll PR status with configurable interval."""
