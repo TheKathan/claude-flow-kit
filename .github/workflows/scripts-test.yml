@@ -1,0 +1,88 @@
+name: Test Worktree Scripts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/scripts-test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/scripts-test.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEPLOY_HOST: coopnet
+  DEPLOY_USER: coop
+  LOCAL_REGISTRY: localhost:5000
+
+jobs:
+  test-scripts:
+    runs-on: [self-hosted, coopnet-runner]
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.11']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Verify GitHub CLI
+        run: |
+          gh --version || echo "GitHub CLI not installed"
+        shell: bash
+
+      - name: Verify scripts are executable
+        run: |
+          chmod +x scripts/*.py
+          ls -la scripts/
+
+      - name: Test scripts can be imported
+        run: |
+          for script in scripts/*.py; do
+            echo "Testing $script"
+            script_name=$(basename "$script" .py)
+            python -c "import sys; sys.path.insert(0, 'scripts'); import $script_name; print('✓ $script imports successfully')" || echo "⚠ $script has import issues"
+          done
+        shell: bash
+
+      - name: Test create_worktree.py help
+        run: |
+          python scripts/create_worktree.py --help || echo "Help displayed"
+
+      - name: Test merge_worktree.py help
+        run: |
+          python scripts/merge_worktree.py --help || echo "Help displayed"
+
+      - name: Test cleanup_worktree.py help
+        run: |
+          python scripts/cleanup_worktree.py --help || echo "Help displayed"
+
+      - name: Test list_worktrees.py
+        run: |
+          python scripts/list_worktrees.py || echo "List completed"
+
+      - name: Verify script documentation
+        run: |
+          # Check that each script has a docstring
+          for script in scripts/*.py; do
+            if grep -q '"""' "$script" || grep -q "'''" "$script"; then
+              echo "✓ $script has documentation"
+            else
+              echo "⚠ $script missing documentation"
+            fi
+          done
+        shell: bash

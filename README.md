@@ -225,21 +225,6 @@ Contributions are welcome! To add new languages or frameworks:
 
 This template is provided as-is for use in any project. Customize freely.
 
-## 🔗 Links
-
-- **Repository**: https://github.com/TheKathan/claude-flow-kit
-- **Installation**: `curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py | python3`
-- **Issues**: https://github.com/TheKathan/claude-flow-kit/issues
-- **Discussions**: https://github.com/TheKathan/claude-flow-kit/discussions
-
-## 📊 Repository Stats
-
-- 50+ files
-- 8 language/framework workflows
-- 8 development guides
-- 9 modular agent configurations
-- 6 worktree management scripts
-
 ---
 
 **Version**: 2.0.0
