@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
 Create GitHub Pull Request for worktree feature branch.
 
@@ -22,6 +23,12 @@ import json
 import subprocess
 from pathlib import Path
 from typing import Dict, Optional
+
+# Set UTF-8 encoding for Windows
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Path to worktree registry
 REGISTRY_DIR = Path.home() / ".claude" / "worktrees"
