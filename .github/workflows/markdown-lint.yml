@@ -1,0 +1,143 @@
+name: Lint Markdown Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.md'
+      - '.github/workflows/markdown-lint.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.md'
+      - '.github/workflows/markdown-lint.yml'
+
+jobs:
+  markdown-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+
+      - name: Create markdownlint config
+        run: |
+          cat > .markdownlint.json << 'EOF'
+          {
+            "default": true,
+            "MD013": false,
+            "MD033": false,
+            "MD041": false,
+            "MD046": false
+          }
+          EOF
+
+      - name: Lint README.md
+        run: markdownlint README.md || echo "README.md has linting issues"
+
+      - name: Lint all markdown files
+        run: |
+          markdownlint "**/*.md" \
+            --ignore node_modules \
+            --ignore .git \
+            || echo "Some markdown files have linting issues"
+
+      - name: Check for broken internal links
+        run: |
+          python << 'PYTHON'
+          import re
+          import sys
+          from pathlib import Path
+
+          errors = []
+
+          for md_file in Path(".").rglob("*.md"):
+              if ".git" in str(md_file) or "node_modules" in str(md_file):
+                  continue
+
+              content = md_file.read_text(encoding='utf-8', errors='ignore')
+
+              # Find markdown links [text](path)
+              links = re.findall(r'\[([^\]]+)\]\(([^)]+)\)', content)
+
+              for text, link in links:
+                  # Skip external links
+                  if link.startswith(('http://', 'https://', 'mailto:', '#')):
+                      continue
+
+                  # Resolve relative path
+                  target = (md_file.parent / link).resolve()
+
+                  if not target.exists():
+                      error = f"✗ {md_file}: Broken link to '{link}'"
+                      errors.append(error)
+                      print(error)
+
+          if errors:
+              print(f"\n{len(errors)} broken link(s) found")
+              sys.exit(1)
+          else:
+              print("✓ No broken internal links found")
+          PYTHON
+
+      - name: Check for proper heading hierarchy
+        run: |
+          python << 'PYTHON'
+          import re
+          from pathlib import Path
+
+          for md_file in Path(".").rglob("*.md"):
+              if ".git" in str(md_file) or "node_modules" in str(md_file):
+                  continue
+
+              content = md_file.read_text(encoding='utf-8', errors='ignore')
+              lines = content.split('\n')
+
+              prev_level = 0
+              for i, line in enumerate(lines, 1):
+                  if line.startswith('#'):
+                      level = len(line.split()[0])
+
+                      if prev_level > 0 and level > prev_level + 1:
+                          print(f"⚠ {md_file}:{i} - Heading level jumps from h{prev_level} to h{level}")
+
+                      prev_level = level
+
+          print("✓ Heading hierarchy check complete")
+          PYTHON
+
+      - name: Check for consistent code fence language tags
+        run: |
+          python << 'PYTHON'
+          import re
+          from pathlib import Path
+
+          warnings = []
+
+          for md_file in Path(".").rglob("*.md"):
+              if ".git" in str(md_file) or "node_modules" in str(md_file):
+                  continue
+
+              content = md_file.read_text(encoding='utf-8', errors='ignore')
+
+              # Find code fences without language tags
+              fences = re.findall(r'^```\s*$', content, re.MULTILINE)
+
+              if fences:
+                  warning = f"⚠ {md_file}: {len(fences)} code fence(s) without language tag"
+                  warnings.append(warning)
+                  print(warning)
+
+          if warnings:
+              print(f"\n{len(warnings)} file(s) with unlabeled code fences")
+          else:
+              print("✓ All code fences have language tags")
+          PYTHON

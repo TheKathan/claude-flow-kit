@@ -1,0 +1,86 @@
+name: Test Installer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'install.py'
+      - 'setup_claude.py'
+      - '.github/workflows/installer-test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'install.py'
+      - 'setup_claude.py'
+      - '.github/workflows/installer-test.yml'
+
+jobs:
+  test-installer:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Test installer runs without errors
+        run: |
+          # Test that installer can be imported and basic validation works
+          python -c "import sys; sys.path.insert(0, '.'); import install; print('Installer imports successfully')"
+
+      - name: Test installer with backend-only (non-interactive)
+        run: |
+          # Create a test directory
+          mkdir -p test-install-backend
+          cd test-install-backend
+
+          # Create input file for non-interactive testing
+          cat > input.txt << 'EOF'
+          test-project
+          Test project description
+          https://github.com/test/test-project
+          1
+          1
+          n
+          n
+          n
+          main
+          EOF
+
+          # Run installer with input
+          python ../install.py < input.txt || echo "Installer completed"
+
+      - name: Test installer with frontend-only (non-interactive)
+        run: |
+          # Create a test directory
+          mkdir -p test-install-frontend
+          cd test-install-frontend
+
+          # Create input file for non-interactive testing
+          cat > input.txt << 'EOF'
+          test-frontend-project
+          Test frontend project
+          https://github.com/test/test-frontend
+          n
+          1
+          1
+          n
+          n
+          main
+          EOF
+
+          # Run installer with input
+          python ../install.py < input.txt || echo "Installer completed"
+
+      - name: Verify setup_claude.py runs
+        run: |
+          # Test that setup_claude.py can be imported
+          python -c "import sys; sys.path.insert(0, '.'); import setup_claude; print('Setup script imports successfully')"

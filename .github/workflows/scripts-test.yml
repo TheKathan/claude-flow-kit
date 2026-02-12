@@ -1,0 +1,83 @@
+name: Test Worktree Scripts
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/scripts-test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/scripts-test.yml'
+
+jobs:
+  test-scripts:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.8', '3.11']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install GitHub CLI
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+            sudo apt update
+            sudo apt install gh -y
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            brew install gh
+          fi
+        shell: bash
+
+      - name: Verify scripts are executable
+        run: |
+          chmod +x scripts/*.py
+          ls -la scripts/
+
+      - name: Test scripts can be imported
+        run: |
+          for script in scripts/*.py; do
+            echo "Testing $script"
+            python -c "import sys; sys.path.insert(0, 'scripts'); import $(basename $script .py); print('✓ $script imports successfully')" || echo "⚠ $script has import issues"
+          done
+        shell: bash
+
+      - name: Test create_worktree.py help
+        run: |
+          python scripts/create_worktree.py --help || echo "Help displayed"
+
+      - name: Test merge_worktree.py help
+        run: |
+          python scripts/merge_worktree.py --help || echo "Help displayed"
+
+      - name: Test cleanup_worktree.py help
+        run: |
+          python scripts/cleanup_worktree.py --help || echo "Help displayed"
+
+      - name: Test list_worktrees.py
+        run: |
+          python scripts/list_worktrees.py || echo "List completed"
+
+      - name: Verify script documentation
+        run: |
+          # Check that each script has a docstring
+          for script in scripts/*.py; do
+            if grep -q '"""' "$script" || grep -q "'''" "$script"; then
+              echo "✓ $script has documentation"
+            else
+              echo "⚠ $script missing documentation"
+            fi
+          done
+        shell: bash

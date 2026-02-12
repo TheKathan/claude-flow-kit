@@ -1,0 +1,150 @@
+name: Validate Agent Configurations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.agents/**'
+      - '.github/workflows/validate-configs.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - '.agents/**'
+      - '.github/workflows/validate-configs.yml'
+
+jobs:
+  validate-json:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install jsonschema
+        run: pip install jsonschema
+
+      - name: Validate all JSON files
+        run: |
+          # Find and validate all JSON files in .agents directory
+          find .agents -name "*.json" -type f | while read -r file; do
+            echo "Validating $file..."
+            python -m json.tool "$file" > /dev/null && echo "✓ $file is valid JSON" || exit 1
+          done
+
+      - name: Check for required fields in agent configs
+        run: |
+          # Validate that agent config files have required structure
+          python << 'PYTHON'
+          import json
+          import sys
+          from pathlib import Path
+
+          required_fields = ["name", "prompt", "model"]
+          errors = []
+
+          for config_file in Path(".agents").glob("config*.json"):
+              with open(config_file) as f:
+                  data = json.load(f)
+
+              # Check if it's an array of agents or merged config
+              if isinstance(data, list):
+                  agents = data
+              elif isinstance(data, dict) and "agents" in data:
+                  agents = data["agents"]
+              else:
+                  print(f"⚠ {config_file}: Unknown format")
+                  continue
+
+              for agent in agents:
+                  agent_name = agent.get("name", "unnamed")
+                  missing = [f for f in required_fields if f not in agent]
+                  if missing:
+                      error = f"✗ {config_file} - Agent '{agent_name}' missing: {', '.join(missing)}"
+                      errors.append(error)
+                      print(error)
+                  else:
+                      print(f"✓ {config_file} - Agent '{agent_name}' has all required fields")
+
+          if errors:
+              print(f"\n{len(errors)} validation error(s) found")
+              sys.exit(1)
+          else:
+              print("\n✓ All agent configurations are valid")
+          PYTHON
+
+      - name: Verify model names are valid
+        run: |
+          python << 'PYTHON'
+          import json
+          import sys
+          from pathlib import Path
+
+          valid_models = ["haiku", "sonnet", "opus", "claude-3-5-haiku-20241022",
+                         "claude-3-5-sonnet-20241022", "claude-opus-4-20250514"]
+          errors = []
+
+          for config_file in Path(".agents").glob("config*.json"):
+              with open(config_file) as f:
+                  data = json.load(f)
+
+              if isinstance(data, list):
+                  agents = data
+              elif isinstance(data, dict) and "agents" in data:
+                  agents = data["agents"]
+              else:
+                  continue
+
+              for agent in agents:
+                  model = agent.get("model", "")
+                  agent_name = agent.get("name", "unnamed")
+
+                  if model not in valid_models:
+                      error = f"✗ {config_file} - Agent '{agent_name}' has invalid model: '{model}'"
+                      errors.append(error)
+                      print(error)
+                  else:
+                      print(f"✓ {config_file} - Agent '{agent_name}' model '{model}' is valid")
+
+          if errors:
+              print(f"\n{len(errors)} invalid model(s) found")
+              sys.exit(1)
+          else:
+              print("\n✓ All models are valid")
+          PYTHON
+
+      - name: Check for duplicate agent names
+        run: |
+          python << 'PYTHON'
+          import json
+          from pathlib import Path
+          from collections import Counter
+
+          all_agent_names = []
+
+          for config_file in Path(".agents").glob("config*.json"):
+              with open(config_file) as f:
+                  data = json.load(f)
+
+              if isinstance(data, list):
+                  agents = data
+              elif isinstance(data, dict) and "agents" in data:
+                  agents = data["agents"]
+              else:
+                  continue
+
+              for agent in agents:
+                  all_agent_names.append(agent.get("name", "unnamed"))
+
+          duplicates = [name for name, count in Counter(all_agent_names).items() if count > 1]
+
+          if duplicates:
+              print(f"⚠ Warning: Duplicate agent names found: {', '.join(duplicates)}")
+              print("This may cause issues when merging configurations")
+          else:
+              print("✓ No duplicate agent names found")
+          PYTHON
