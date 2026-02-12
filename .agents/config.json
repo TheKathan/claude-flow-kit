@@ -3,6 +3,7 @@
     "backend-developer": {
       "name": "python-developer",
       "type": "developer",
+      "description": "Python backend developer for FastAPI applications",
       "scope": "backend",
       "watches": ["app/**/*.py", "src/**/*.py", "backend/**/*.py"],
       "reviewer": "backend-reviewer",
@@ -20,6 +21,7 @@
     "backend-reviewer": {
       "name": "backend-code-reviewer",
       "type": "reviewer",
+      "description": "Backend code reviewer for security and best practices",
       "scope": "backend",
       "watches": ["app/**/*.py", "src/**/*.py", "backend/**/*.py"],
       "reviews_for": "backend-developer",
@@ -46,6 +48,7 @@
     "frontend-developer": {
       "name": "react-frontend-dev",
       "type": "developer",
+      "description": "React/Next.js frontend developer with TypeScript",
       "scope": "frontend",
       "watches": [
         "dashboard/**/*.{ts,tsx,js,jsx,css}",
@@ -67,6 +70,7 @@
     "frontend-reviewer": {
       "name": "frontend-code-reviewer",
       "type": "reviewer",
+      "description": "Frontend code reviewer for React best practices and accessibility",
       "scope": "frontend",
       "watches": [
         "dashboard/**/*.{ts,tsx,js,jsx,css}",
@@ -98,6 +102,7 @@
     "architect": {
       "name": "software-architect",
       "type": "architect",
+      "description": "Software architect for system design and preventing technical debt",
       "scope": "all",
       "watches": ["**/*.py", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
       "capabilities": [
@@ -119,6 +124,7 @@
     "python-tester": {
       "name": "python-test-specialist",
       "type": "tester",
+      "description": "Python test specialist using pytest and mocking",
       "scope": "backend",
       "watches": ["app/**/*.py", "src/**/*.py", "backend/**/*.py"],
       "capabilities": [
@@ -134,6 +140,7 @@
     "react-tester": {
       "name": "react-test-specialist",
       "type": "tester",
+      "description": "React test specialist using React Testing Library and Jest",
       "scope": "frontend",
       "watches": [
         "dashboard/**/*.{ts,tsx,js,jsx}",
@@ -154,6 +161,7 @@
     "e2e-tester": {
       "name": "integration-tester",
       "type": "tester",
+      "description": "Execute tests and enforce quality gates",
       "scope": "all",
       "watches": ["**/*.py", "**/*.ts", "**/*.tsx", "scripts/test_*.py"],
       "capabilities": [
@@ -173,6 +181,7 @@
     "worktree-mgr": {
       "name": "worktree-manager",
       "type": "manager",
+      "description": "Manage git worktrees with isolated Docker environments",
       "scope": "all",
       "watches": [".worktrees/**/*.json", "scripts/worktree_*.sh", "scripts/worktree_*.py"],
       "capabilities": [
@@ -188,6 +197,7 @@
     "docker-debug": {
       "name": "docker-debugger",
       "type": "debugger",
+      "description": "Diagnose and fix Docker container issues",
       "scope": "all",
       "watches": ["docker-compose*.yml", "Dockerfile", ".env*"],
       "capabilities": [
@@ -204,6 +214,7 @@
     "conflict-resolver": {
       "name": "merge-conflict-resolver",
       "type": "resolver",
+      "description": "Detect and resolve git merge conflicts",
       "scope": "all",
       "watches": ["**/*.py", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
       "capabilities": [
