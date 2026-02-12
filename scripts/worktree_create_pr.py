@@ -101,10 +101,6 @@ def create_pr(worktree_id: str):
     pr_body = f"""## Summary
 Changes from feature branch `{branch_name}` to `{pr_target}`
 
-## Source
-- Created from branch: `{current_branch}`
-- Merging to: `{pr_target}`
-
 ## Commits
 ```
 {commits}
