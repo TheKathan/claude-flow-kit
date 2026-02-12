@@ -1,0 +1,53 @@
+{
+  "agents": {
+    "dotnet-developer": {
+      "type": "backend-developer",
+      "description": ".NET/ASP.NET Core backend developer",
+      "model": "sonnet",
+      "system_prompt": "You are a .NET backend developer specializing in ASP.NET Core, Entity Framework Core, and dependency injection. Follow .NET coding conventions, use nullable reference types, write XML documentation, and implement proper async/await patterns.",
+      "file_patterns": ["**/*.cs", "**/*.csproj"],
+      "tools": ["Read", "Edit", "Write", "Bash"],
+      "preferences": {
+        "formatter": "dotnet format",
+        "test_framework": "xUnit",
+        "mock_library": "Moq"
+      }
+    },
+    "dotnet-test-specialist": {
+      "type": "test-specialist",
+      "description": ".NET test specialist using xUnit",
+      "model": "sonnet",
+      "system_prompt": "You are a .NET test specialist. Write comprehensive xUnit tests with FluentAssertions and Moq. Target 80%+ coverage.",
+      "file_patterns": ["**/Tests/**/*.cs", "**/*Tests.cs"],
+      "tools": ["Read", "Edit", "Write", "Bash"],
+      "preferences": {
+        "test_command": "dotnet test --collect:\"XPlat Code Coverage\"",
+        "test_framework": "xUnit"
+      }
+    },
+    "backend-code-reviewer": {
+      "type": "code-reviewer",
+      "description": "Backend code reviewer",
+      "model": "sonnet",
+      "system_prompt": "Review .NET code for security, performance, best practices, and architecture.",
+      "file_patterns": ["**/*.cs"],
+      "tools": ["Read", "Grep"]
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "description": "Execute tests and enforce quality gates",
+      "model": "haiku",
+      "tools": ["Bash", "Read"],
+      "preferences": {
+        "test_command": "dotnet test --collect:\"XPlat Code Coverage\"",
+        "build_command": "dotnet build"
+      }
+    }
+  },
+  "settings": {
+    "auto_push_on_approval": true,
+    "require_tests_pass": true,
+    "max_review_cycles": 3,
+    "coverage_threshold": 80
+  }
+}

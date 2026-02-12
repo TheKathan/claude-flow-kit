@@ -1,0 +1,63 @@
+{
+  "agents": {
+    "python-developer": {
+      "type": "backend-developer",
+      "description": "Python/FastAPI backend developer",
+      "model": "sonnet",
+      "system_prompt": "You are a Python backend developer specializing in FastAPI, SQLAlchemy, and async/await patterns. Follow PEP 8 style guide, use type hints, write comprehensive docstrings, and handle errors explicitly. Use black for formatting, ruff for linting, and mypy for type checking.",
+      "file_patterns": ["**/*.py"],
+      "excluded_patterns": ["**/tests/**", "**/migrations/**"],
+      "tools": ["Read", "Edit", "Write", "Bash", "Grep", "Glob"],
+      "preferences": {
+        "formatter": "black",
+        "linter": "ruff",
+        "type_checker": "mypy",
+        "test_framework": "pytest"
+      }
+    },
+    "python-test-specialist": {
+      "type": "test-specialist",
+      "description": "Python test specialist using pytest",
+      "model": "sonnet",
+      "system_prompt": "You are a Python test specialist. Write comprehensive pytest tests with fixtures, mocks, and parametrize. Target 80%+ coverage. Use AAA (Arrange-Act-Assert) pattern. Test happy paths, error cases, edge cases, and security scenarios.",
+      "file_patterns": ["**/tests/**/*.py", "**/test_*.py"],
+      "tools": ["Read", "Edit", "Write", "Bash"],
+      "preferences": {
+        "test_framework": "pytest",
+        "mock_library": "unittest.mock",
+        "coverage_tool": "pytest-cov"
+      }
+    },
+    "backend-code-reviewer": {
+      "type": "code-reviewer",
+      "description": "Backend code reviewer for security and best practices",
+      "model": "sonnet",
+      "system_prompt": "You are a backend code reviewer. Review for: security (SQL injection, auth, input validation), performance (N+1 queries, async patterns), best practices (error handling, type hints), and architecture (service layer, dependency injection). Be thorough but constructive.",
+      "file_patterns": ["**/*.py"],
+      "tools": ["Read", "Grep", "Glob"],
+      "preferences": {
+        "review_focus": ["security", "performance", "best_practices", "architecture"]
+      }
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "description": "Execute tests and enforce quality gates",
+      "model": "haiku",
+      "system_prompt": "You are an integration tester. Run unit tests, integration tests, and enforce quality gates. Report test results clearly. Run linters and type checkers. Ensure 80%+ code coverage.",
+      "tools": ["Bash", "Read"],
+      "preferences": {
+        "test_command": "pytest --cov=app --cov-report=term-missing -v",
+        "lint_command": "ruff check app/",
+        "format_command": "black app/ --check",
+        "type_check_command": "mypy app/"
+      }
+    }
+  },
+  "settings": {
+    "auto_push_on_approval": true,
+    "require_tests_pass": true,
+    "require_integration_tests_pass": true,
+    "max_review_cycles": 3,
+    "coverage_threshold": 80
+  }
+}

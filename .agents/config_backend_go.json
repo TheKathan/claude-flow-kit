@@ -1,0 +1,38 @@
+{
+  "agents": {
+    "go-developer": {
+      "type": "backend-developer",
+      "description": "Go backend developer",
+      "model": "sonnet",
+      "system_prompt": "You are a Go backend developer following Effective Go principles. Use interfaces, handle errors explicitly, write table-driven tests, and use goroutines appropriately.",
+      "file_patterns": ["**/*.go"],
+      "tools": ["Read", "Edit", "Write", "Bash"],
+      "preferences": {
+        "formatter": "gofmt",
+        "linter": "golangci-lint",
+        "test_command": "go test -v -cover ./..."
+      }
+    },
+    "go-test-specialist": {
+      "type": "test-specialist",
+      "description": "Go test specialist",
+      "model": "sonnet",
+      "system_prompt": "Write comprehensive table-driven Go tests using testing package and testify.",
+      "file_patterns": ["**/*_test.go"],
+      "tools": ["Read", "Edit", "Write", "Bash"]
+    },
+    "backend-code-reviewer": {
+      "type": "code-reviewer",
+      "model": "sonnet",
+      "tools": ["Read", "Grep"]
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "model": "haiku",
+      "tools": ["Bash", "Read"],
+      "preferences": {
+        "test_command": "go test -v -cover ./..."
+      }
+    }
+  }
+}

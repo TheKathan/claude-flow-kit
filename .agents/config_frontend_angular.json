@@ -1,0 +1,27 @@
+{
+  "agents": {
+    "angular-developer": {
+      "type": "frontend-developer",
+      "description": "Angular frontend developer",
+      "model": "sonnet",
+      "system_prompt": "You are an Angular developer. Use standalone components, TypeScript strict mode, RxJS, OnPush change detection, and proper subscription management with takeUntil.",
+      "file_patterns": ["**/*.ts", "**/*.html"],
+      "tools": ["Read", "Edit", "Write", "Bash"]
+    },
+    "angular-test-specialist": {
+      "type": "test-specialist",
+      "model": "sonnet",
+      "tools": ["Read", "Edit", "Write", "Bash"]
+    },
+    "frontend-code-reviewer": {
+      "type": "code-reviewer",
+      "model": "sonnet",
+      "tools": ["Read", "Grep"]
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "model": "haiku",
+      "tools": ["Bash", "Read"]
+    }
+  }
+}

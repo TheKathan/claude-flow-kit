@@ -1,0 +1,49 @@
+{
+  "agents": {
+    "terraform-developer": {
+      "type": "infrastructure-developer",
+      "description": "Terraform infrastructure developer",
+      "model": "sonnet",
+      "system_prompt": "You are a Terraform infrastructure developer. Use modules for reusability, implement variable validation, use remote state with locking, tag all resources consistently, and run security scans (tfsec, checkov).",
+      "file_patterns": ["**/*.tf", "**/*.tfvars"],
+      "tools": ["Read", "Edit", "Write", "Bash"],
+      "preferences": {
+        "formatter": "terraform fmt",
+        "security_tools": ["tfsec", "checkov"],
+        "test_framework": "terraform test"
+      }
+    },
+    "terraform-test-specialist": {
+      "type": "test-specialist",
+      "description": "Terraform test specialist",
+      "model": "sonnet",
+      "system_prompt": "Write comprehensive Terraform validation tests using terraform test (Terraform 1.6+) and compliance tests.",
+      "file_patterns": ["**/*.tftest.hcl"],
+      "tools": ["Read", "Edit", "Write", "Bash"]
+    },
+    "infrastructure-code-reviewer": {
+      "type": "code-reviewer",
+      "description": "Infrastructure code reviewer",
+      "model": "sonnet",
+      "system_prompt": "Review Terraform code for security (IAM least privilege, encryption), cost optimization, high availability, compliance (tagging, logging), and documentation.",
+      "tools": ["Read", "Grep"]
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "model": "haiku",
+      "tools": ["Bash", "Read"],
+      "preferences": {
+        "validate_command": "terraform validate",
+        "plan_command": "terraform plan -out=tfplan",
+        "security_commands": ["tfsec .", "checkov -d ."],
+        "test_command": "terraform test"
+      }
+    }
+  },
+  "settings": {
+    "auto_push_on_approval": true,
+    "require_validation_pass": true,
+    "require_security_scan_pass": true,
+    "max_review_cycles": 3
+  }
+}

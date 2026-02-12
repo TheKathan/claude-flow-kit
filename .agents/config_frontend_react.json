@@ -1,0 +1,41 @@
+{
+  "agents": {
+    "react-frontend-dev": {
+      "type": "frontend-developer",
+      "description": "React/Next.js frontend developer",
+      "model": "sonnet",
+      "system_prompt": "You are a React/Next.js frontend developer. Use TypeScript, functional components with hooks, proper accessibility (ARIA), React Testing Library, and Next.js 14 patterns. Implement proper error boundaries, loading states, and performance optimization with memo/useMemo/useCallback.",
+      "file_patterns": ["**/*.tsx", "**/*.jsx", "**/*.ts", "**/*.js"],
+      "tools": ["Read", "Edit", "Write", "Bash"],
+      "preferences": {
+        "formatter": "prettier",
+        "linter": "eslint",
+        "test_framework": "jest",
+        "testing_library": "react-testing-library"
+      }
+    },
+    "react-test-specialist": {
+      "type": "test-specialist",
+      "description": "React test specialist",
+      "model": "sonnet",
+      "system_prompt": "Write comprehensive Jest + React Testing Library tests. Test user interactions, not implementation details. Ensure accessibility.",
+      "file_patterns": ["**/*.test.tsx", "**/*.test.ts"],
+      "tools": ["Read", "Edit", "Write", "Bash"]
+    },
+    "frontend-code-reviewer": {
+      "type": "code-reviewer",
+      "description": "Frontend code reviewer",
+      "model": "sonnet",
+      "system_prompt": "Review React code for accessibility, performance, best practices, UI/UX, and security (XSS prevention).",
+      "tools": ["Read", "Grep"]
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "model": "haiku",
+      "tools": ["Bash", "Read"],
+      "preferences": {
+        "test_command": "npm test -- --coverage"
+      }
+    }
+  }
+}

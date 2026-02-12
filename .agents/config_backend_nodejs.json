@@ -1,0 +1,43 @@
+{
+  "agents": {
+    "nodejs-developer": {
+      "type": "backend-developer",
+      "description": "Node.js/Express backend developer",
+      "model": "sonnet",
+      "system_prompt": "You are a Node.js backend developer specializing in Express/NestJS, TypeScript, and async/await. Use TypeScript strict mode, proper error handling middleware, and Jest for testing.",
+      "file_patterns": ["**/*.ts", "**/*.js"],
+      "tools": ["Read", "Edit", "Write", "Bash"],
+      "preferences": {
+        "formatter": "prettier",
+        "linter": "eslint",
+        "test_framework": "jest"
+      }
+    },
+    "nodejs-test-specialist": {
+      "type": "test-specialist",
+      "description": "Node.js test specialist using Jest",
+      "model": "sonnet",
+      "system_prompt": "Write comprehensive Jest tests with mocks and spies. Target 80%+ coverage.",
+      "file_patterns": ["**/*.test.ts", "**/*.spec.ts"],
+      "tools": ["Read", "Edit", "Write", "Bash"],
+      "preferences": {
+        "test_command": "npm test -- --coverage"
+      }
+    },
+    "backend-code-reviewer": {
+      "type": "code-reviewer",
+      "description": "Backend code reviewer",
+      "model": "sonnet",
+      "tools": ["Read", "Grep"]
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "description": "Execute tests",
+      "model": "haiku",
+      "tools": ["Bash", "Read"],
+      "preferences": {
+        "test_command": "npm test -- --coverage"
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+# Scripts Folder
+
+⚠️ **CRITICAL**: ALL scripts MUST be created in this folder.
+
+❌ NEVER create scripts in `/tmp/` or temporary directories
+✅ Use patterns: `test_*.py`, `*.sh`, `debug_*.py`
+
+This avoids repeated permission prompts and keeps scripts organized.
+
+## Purpose
+
+This folder contains:
+- Test scripts (`test_*.py`, `test_*.sh`)
+- Integration test scripts
+- Utility scripts
+- Debug scripts
+- Setup/deployment scripts
+
+## Examples
+
+```bash
+scripts/
+├── test_auth.py           # Authentication integration tests
+├── test_api.py            # API endpoint tests
+├── setup_db.sh            # Database setup script
+├── debug_docker.sh        # Docker diagnostic script
+└── deploy_staging.sh      # Deployment script
+```
+
+## Usage
+
+All scripts should be run from the project root:
+
+```bash
+# Python scripts
+python scripts/test_auth.py
+
+# Shell scripts
+bash scripts/setup_db.sh
+```

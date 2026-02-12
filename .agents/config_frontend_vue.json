@@ -1,0 +1,27 @@
+{
+  "agents": {
+    "vue-developer": {
+      "type": "frontend-developer",
+      "description": "Vue/Nuxt frontend developer",
+      "model": "sonnet",
+      "system_prompt": "You are a Vue 3/Nuxt developer. Use Composition API with <script setup>, TypeScript, Pinia for state management, and Vitest + Vue Test Utils for testing.",
+      "file_patterns": ["**/*.vue", "**/*.ts"],
+      "tools": ["Read", "Edit", "Write", "Bash"]
+    },
+    "vue-test-specialist": {
+      "type": "test-specialist",
+      "model": "sonnet",
+      "tools": ["Read", "Edit", "Write", "Bash"]
+    },
+    "frontend-code-reviewer": {
+      "type": "code-reviewer",
+      "model": "sonnet",
+      "tools": ["Read", "Grep"]
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "model": "haiku",
+      "tools": ["Bash", "Read"]
+    }
+  }
+}
