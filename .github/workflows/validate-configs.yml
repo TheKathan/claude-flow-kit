@@ -12,6 +12,13 @@ on:
       - '.agents/**'
       - '.github/workflows/validate-configs.yml'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate-json:
     runs-on: ubuntu-latest

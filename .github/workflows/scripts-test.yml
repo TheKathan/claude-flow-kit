@@ -12,12 +12,19 @@ on:
       - 'scripts/**'
       - '.github/workflows/scripts-test.yml'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test-scripts:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.8', '3.11']
 
     steps:
@@ -38,6 +45,8 @@ jobs:
             sudo apt install gh -y
           elif [ "$RUNNER_OS" == "macOS" ]; then
             brew install gh
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            choco install gh -y
           fi
         shell: bash
 
@@ -50,7 +59,8 @@ jobs:
         run: |
           for script in scripts/*.py; do
             echo "Testing $script"
-            python -c "import sys; sys.path.insert(0, 'scripts'); import $(basename $script .py); print('✓ $script imports successfully')" || echo "⚠ $script has import issues"
+            script_name=$(basename "$script" .py)
+            python -c "import sys; sys.path.insert(0, 'scripts'); import $script_name; print('✓ $script imports successfully')" || echo "⚠ $script has import issues"
           done
         shell: bash
 
