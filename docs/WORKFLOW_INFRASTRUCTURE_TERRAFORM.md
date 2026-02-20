@@ -632,11 +632,7 @@ checkov -d . --framework terraform --check CKV_AWS_*
 
 **Commands**:
 ```bash
-# Push feature branch to remote
-git push origin infra/feature-name
-
-# Verify push succeeded
-git log origin/infra/feature-name --oneline -5
+git push -u origin HEAD
 ```
 
 ---

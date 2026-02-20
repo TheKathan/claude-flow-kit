@@ -640,7 +640,7 @@ python scripts/worktree_merge.py feature-name
 1. Delete worktree
 2. Update registry
 
-*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images.
+*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images/volumes.
 
 **Commands**:
 ```bash

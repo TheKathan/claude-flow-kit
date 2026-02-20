@@ -407,8 +407,12 @@ ng test --watch=false --code-coverage --no-progress
 
 **On Fail**:
 - Workflow BLOCKED
-- Orchestrator invokes angular-developer to fix failures (Step 5b)
+- Orchestrator invokes angular-developer to fix failures
 - Returns to Step 5 after fix
+
+**On Docker Failure** (Step 5b) *(Docker projects only)*:
+- docker-debugger diagnoses container issues
+- Fixes and retries test execution
 
 ---
 
@@ -498,8 +502,12 @@ ng build --configuration=production
 
 **On Fail**:
 - Workflow BLOCKED
-- Orchestrator invokes angular-developer to fix (Step 8b)
+- Orchestrator invokes angular-developer to fix
 - Returns to Step 8 after fix
+
+**On Docker Failure** (Step 8b) *(Docker projects only)*:
+- docker-debugger diagnoses E2E test issues
+- Fixes and retries
 
 ---
 
@@ -606,7 +614,7 @@ python scripts/worktree_merge.py feature-name
 1. Delete worktree
 2. Update registry
 
-*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images.
+*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images/volumes.
 
 **Commands**:
 ```bash
