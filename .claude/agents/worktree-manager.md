@@ -1,7 +1,7 @@
 ---
 name: worktree-manager
-description: "Use this agent when you need to manage Git worktrees and their associated Docker environments throughout the development lifecycle. Specifically:\\n\\n- At the START of a new feature/task (Step 1): When creating a new feature branch and isolated development environment\\n- At the END of a completed feature/task (Steps 12-13): When merging changes to main and cleaning up the worktree environment\\n- When switching between multiple features that require isolated Docker environments\\n- When cleaning up stale or abandoned worktrees and their Docker resources\\n\\nExamples:\\n\\n<example>\\nContext: User is starting work on a new API endpoint feature.\\nuser: \"I need to implement a new user authentication endpoint\"\\nassistant: \"I'll use the Task tool to launch the worktree-manager agent to set up an isolated development environment for this feature.\"\\n<commentary>\\nSince this is the beginning of a new feature implementation, use the worktree-manager agent to create a new worktree with feature branch and Docker environment (Step 1).\\n</commentary>\\n</example>\\n\\n<example>\\nContext: User has completed a feature and all tests have passed.\\nuser: \"The user authentication feature is complete and all tests are passing. Let's merge it.\"\\nassistant: \"Great! I'll use the Task tool to launch the worktree-manager agent to merge the changes to main and clean up the worktree environment.\"\\n<commentary>\\nSince the feature is complete and approved, use the worktree-manager agent to handle the merge to main (Step 12) and cleanup (Step 13).\\n</commentary>\\n</example>\\n\\n<example>\\nContext: User wants to work on multiple features simultaneously.\\nuser: \"I need to switch to working on the payment integration feature while keeping my current authentication work\"\\nassistant: \"I'll use the Task tool to launch the worktree-manager agent to create a separate worktree for the payment integration feature.\"\\n<commentary>\\nSince the user needs to work on a different feature in parallel, use the worktree-manager agent to create a new isolated worktree environment.\\n</commentary>\\n</example>"
-model: haiku
+description: "Use this agent to manage Git worktrees and their associated Docker environments (if used) throughout the development lifecycle.\\n\\n- START of a feature (Step 1): Create feature branch and isolated environment\\n- END of a feature (Steps 12-13): Merge to main and clean up\\n- Working on multiple features in parallel: Create separate worktrees\\n- Cleaning up stale worktrees and Docker resources\\n\\nExamples:\\n\\n<example>\\nuser: \"I need to implement a new authentication endpoint\"\\nassistant: \"I'll use the worktree-manager agent to set up an isolated development environment for this feature.\"\\n</example>\\n\\n<example>\\nuser: \"The feature is complete and tests are passing. Let's merge it.\"\\nassistant: \"I'll use the worktree-manager agent to merge to main and clean up the worktree environment.\"\\n</example>"
+model: sonnet
 color: red
 ---
 
@@ -95,6 +95,20 @@ When removing worktree and Docker environment:
    - Verify worktree directory is removed from filesystem
    - Check that main repository is clean
    - Provide summary of cleaned resources
+
+## Non-Docker Projects
+
+If the project does not use Docker (check CLAUDE.md — no Docker/Docker Compose references), skip all Docker steps:
+
+**Environment Creation (Step 1)**: Create the git worktree and feature branch only. No Docker network, container, or volume setup needed.
+
+**Merge and Push (Step 12)**: Same git merge and push steps — no Docker changes.
+
+**Cleanup (Step 13)**: Remove the worktree and optionally delete the feature branch. No Docker cleanup needed.
+
+For non-Docker projects, focus entirely on git worktree isolation and branch management.
+
+---
 
 ## Best Practices
 
