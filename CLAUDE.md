@@ -173,6 +173,16 @@ Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKE
 
 ---
 
+## Git Commit Guidelines
+
+**IMPORTANT**: Never add Claude as a co-author on git commits.
+
+- Do NOT include `Co-Authored-By: Claude` or any similar AI assistant references in commit messages
+- Keep commit messages clean, professional, and focused on the changes
+- Commit messages should describe what was changed and why, not who helped
+
+---
+
 ## Need Help?
 
 ### Common Tasks

@@ -91,6 +91,20 @@ def detect_infrastructure_tool(infrastructure_tool: Optional[str]) -> Optional[s
         return "terraform"
     return None
 
+def _substitute_claude_md(file_path: Path, replacements: Dict[str, str]):
+    """Substitute simple {{VAR}} placeholders in a downloaded template file."""
+    if not file_path.exists():
+        return
+    try:
+        content = file_path.read_text(encoding='utf-8')
+        for placeholder, value in replacements.items():
+            content = content.replace(placeholder, value)
+        file_path.write_text(content, encoding='utf-8')
+        print(f"  ✅ Substituted variables in {file_path.name}")
+    except Exception as e:
+        print(f"  ⚠️  Could not substitute variables in {file_path.name}: {e}")
+
+
 def main():
     print("=" * 70)
     print("Claude Code Template Installer")
@@ -221,8 +235,23 @@ def main():
     print("\n📥 Downloading core template files...")
     current_dir = Path.cwd()
 
-    # Download CLAUDE.md
+    # Download CLAUDE.md and substitute template variables
     download_file(f"{GITHUB_RAW_URL}/CLAUDE.md", current_dir / "CLAUDE.md")
+    _substitute_claude_md(current_dir / "CLAUDE.md", {
+        "{{PROJECT_NAME}}": project_name,
+        "{{PROJECT_DESCRIPTION}}": project_description,
+        "{{REPO_URL}}": repo_url,
+        "{{BACKEND_FRAMEWORK}}": backend_framework or "",
+        "{{BACKEND_LANGUAGE}}": backend_language or "",
+        "{{FRONTEND_FRAMEWORK}}": frontend_framework or "",
+        "{{FRONTEND_LANGUAGE}}": frontend_language or "",
+        "{{MAIN_BRANCH}}": main_branch,
+        "{{CURRENT_DATE}}": __import__('datetime').date.today().isoformat(),
+        "{{USES_DOCKER}}": "true" if uses_docker else "false",
+        "{{HAS_FRONTEND}}": "true" if has_frontend else "false",
+        "{{HAS_INFRASTRUCTURE}}": "true" if has_infrastructure else "false",
+        "{{INFRASTRUCTURE_TOOL}}": infrastructure_tool or "",
+    })
 
     # Create directories
     (current_dir / ".claude").mkdir(exist_ok=True)
@@ -256,7 +285,18 @@ def main():
 
     # Download and merge agent configs
     print("\n🤖 Downloading and merging agent configurations...")
-    merged_config = {"agents": {}, "settings": {}}
+
+    # Download main config.json as the base to preserve workflow/gates/etc. sections
+    base_config_url = f"{GITHUB_RAW_URL}/.agents/config.json"
+    try:
+        with urllib.request.urlopen(base_config_url) as response:
+            merged_config = json.loads(response.read())
+            # Clear agents — they will be repopulated from component configs below
+            merged_config['agents'] = {}
+            print(f"  ✅ Downloaded base workflow config")
+    except Exception as e:
+        print(f"  ⚠️  Could not download base workflow config ({e}), using minimal defaults")
+        merged_config = {"agents": {}, "settings": {}}
 
     if backend_lang:
         config_url = f"{GITHUB_RAW_URL}/.agents/config_backend_{backend_lang}.json"
@@ -264,7 +304,7 @@ def main():
             with urllib.request.urlopen(config_url) as response:
                 backend_config = json.loads(response.read())
                 merged_config['agents'].update(backend_config.get('agents', {}))
-                merged_config['settings'].update(backend_config.get('settings', {}))
+                merged_config.setdefault('settings', {}).update(backend_config.get('settings', {}))
                 print(f"  ✅ Downloaded backend config ({backend_lang})")
         except Exception as e:
             print(f"  ❌ Failed to download backend config: {e}")
@@ -275,7 +315,7 @@ def main():
             with urllib.request.urlopen(config_url) as response:
                 frontend_config = json.loads(response.read())
                 merged_config['agents'].update(frontend_config.get('agents', {}))
-                merged_config['settings'].update(frontend_config.get('settings', {}))
+                merged_config.setdefault('settings', {}).update(frontend_config.get('settings', {}))
                 print(f"  ✅ Downloaded frontend config ({frontend_lang})")
         except Exception as e:
             print(f"  ❌ Failed to download frontend config: {e}")
@@ -286,10 +326,16 @@ def main():
             with urllib.request.urlopen(config_url) as response:
                 infra_config = json.loads(response.read())
                 merged_config['agents'].update(infra_config.get('agents', {}))
-                merged_config['settings'].update(infra_config.get('settings', {}))
+                merged_config.setdefault('settings', {}).update(infra_config.get('settings', {}))
                 print(f"  ✅ Downloaded infrastructure config ({infra_tool})")
         except Exception as e:
             print(f"  ❌ Failed to download infrastructure config: {e}")
+
+    # Replace project name placeholder in agent system prompts
+    config_str = json.dumps(merged_config)
+    config_str = config_str.replace("Citadel.AI", project_name)
+    config_str = config_str.replace("{{PROJECT_NAME}}", project_name)
+    merged_config = json.loads(config_str)
 
     # Write merged config
     config_path = current_dir / ".agents" / "config.json"

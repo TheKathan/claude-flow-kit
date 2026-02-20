@@ -4,7 +4,25 @@
       "Bash(chmod:*)",
       "Bash(git init:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git clone:*)",
+      "Bash(git tag:*)",
+      "Bash(git config:*)",
+      "Bash(git reset:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh release list:*)",
+      "Bash(gh repo view:*)",
+      "Bash(curl:*)",
+      "Bash(gh repo edit:*)",
+      "Bash(git stash:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git fetch:*)",
+      "Bash(xargs:*)",
+      "Bash(gh pr close:*)",
+      "Bash(git log:*)",
+      "Bash(git filter-branch:*)",
+      "Bash(git rm:*)",
+      "Bash(git merge:*)"
     ]
   }
 }
