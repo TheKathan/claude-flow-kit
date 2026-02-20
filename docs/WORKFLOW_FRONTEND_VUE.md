@@ -650,7 +650,7 @@ python scripts/worktree_cleanup.py feature-name
 
 **On Failure** (Step 13b) *(Docker projects only)*:
 - docker-debugger force cleanups stuck resources
-- Removes containers, images
+- Removes containers, images, volumes
 - Ensures clean state
 
 ---
