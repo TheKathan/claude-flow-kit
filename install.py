@@ -259,6 +259,19 @@ def main():
     (current_dir / "docs").mkdir(exist_ok=True)
     (current_dir / "scripts").mkdir(exist_ok=True)
 
+    # Download worktree management scripts
+    print("\n🔧 Downloading worktree management scripts...")
+    worktree_scripts = [
+        "worktree_create.py",
+        "worktree_merge.py",
+        "worktree_cleanup.py",
+        "worktree_create_pr.py",
+        "worktree_check_pr_status.py",
+        "worktree_poll_pr.py",
+    ]
+    for script in worktree_scripts:
+        download_file(f"{GITHUB_RAW_URL}/scripts/{script}", current_dir / "scripts" / script)
+
     # Download selected workflows
     print("\n📋 Downloading selected workflow files...")
 
@@ -302,9 +315,11 @@ def main():
         config_url = f"{GITHUB_RAW_URL}/.agents/config_backend_{backend_lang}.json"
         try:
             with urllib.request.urlopen(config_url) as response:
-                backend_config = json.loads(response.read())
+                raw_content = response.read()
+                backend_config = json.loads(raw_content)
                 merged_config['agents'].update(backend_config.get('agents', {}))
                 merged_config.setdefault('settings', {}).update(backend_config.get('settings', {}))
+                (current_dir / ".agents" / f"config_backend_{backend_lang}.json").write_bytes(raw_content)
                 print(f"  ✅ Downloaded backend config ({backend_lang})")
         except Exception as e:
             print(f"  ❌ Failed to download backend config: {e}")
@@ -313,9 +328,11 @@ def main():
         config_url = f"{GITHUB_RAW_URL}/.agents/config_frontend_{frontend_lang}.json"
         try:
             with urllib.request.urlopen(config_url) as response:
-                frontend_config = json.loads(response.read())
+                raw_content = response.read()
+                frontend_config = json.loads(raw_content)
                 merged_config['agents'].update(frontend_config.get('agents', {}))
                 merged_config.setdefault('settings', {}).update(frontend_config.get('settings', {}))
+                (current_dir / ".agents" / f"config_frontend_{frontend_lang}.json").write_bytes(raw_content)
                 print(f"  ✅ Downloaded frontend config ({frontend_lang})")
         except Exception as e:
             print(f"  ❌ Failed to download frontend config: {e}")
@@ -324,9 +341,11 @@ def main():
         config_url = f"{GITHUB_RAW_URL}/.agents/config_infrastructure_{infra_tool.lower()}.json"
         try:
             with urllib.request.urlopen(config_url) as response:
-                infra_config = json.loads(response.read())
+                raw_content = response.read()
+                infra_config = json.loads(raw_content)
                 merged_config['agents'].update(infra_config.get('agents', {}))
                 merged_config.setdefault('settings', {}).update(infra_config.get('settings', {}))
+                (current_dir / ".agents" / f"config_infrastructure_{infra_tool.lower()}.json").write_bytes(raw_content)
                 print(f"  ✅ Downloaded infrastructure config ({infra_tool})")
         except Exception as e:
             print(f"  ❌ Failed to download infrastructure config: {e}")
@@ -360,8 +379,9 @@ def main():
     for doc in common_docs:
         download_file(f"{GITHUB_RAW_URL}/.claude/{doc}", current_dir / ".claude" / doc)
 
-    # Download testing guide
+    # Download testing guide and general workflow reference
     download_file(f"{GITHUB_RAW_URL}/docs/TESTING_GUIDE.md", current_dir / "docs" / "TESTING_GUIDE.md")
+    download_file(f"{GITHUB_RAW_URL}/docs/WORKFLOW_GUIDE.md", current_dir / "docs" / "WORKFLOW_GUIDE.md")
 
     print("\n" + "=" * 70)
     print("✅ Installation Complete!")
@@ -380,7 +400,7 @@ def main():
     print("2. Update documentation in .claude/ folder")
     print("3. Review your workflow file(s) in docs/")
     print("4. Add your project-specific content")
-    print("5. Commit: git add CLAUDE.md .claude/ .agents/ docs/")
+    print("5. Commit: git add CLAUDE.md .claude/ .agents/ docs/ scripts/")
     print("6. Start using Claude Code with your configured agents!")
     print("\n💡 Tip: Run 'claude' in your terminal to start using Claude Code")
     print()
