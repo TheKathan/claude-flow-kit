@@ -279,22 +279,13 @@ def main():
         workflow_file = f"WORKFLOW_BACKEND_{backend_lang.upper()}.md"
         download_file(f"{GITHUB_RAW_URL}/docs/{workflow_file}", current_dir / "docs" / workflow_file)
 
-        guide_file = f"{backend_lang.upper()}_GUIDE.md"
-        download_file(f"{GITHUB_RAW_URL}/.claude/{guide_file}", current_dir / ".claude" / guide_file)
-
     if frontend_lang:
         workflow_file = f"WORKFLOW_FRONTEND_{frontend_lang.upper()}.md"
         download_file(f"{GITHUB_RAW_URL}/docs/{workflow_file}", current_dir / "docs" / workflow_file)
 
-        guide_file = f"{frontend_lang.upper()}_GUIDE.md"
-        download_file(f"{GITHUB_RAW_URL}/.claude/{guide_file}", current_dir / ".claude" / guide_file)
-
     if infra_tool:
         workflow_file = f"WORKFLOW_INFRASTRUCTURE_{infra_tool.upper()}.md"
         download_file(f"{GITHUB_RAW_URL}/docs/{workflow_file}", current_dir / "docs" / workflow_file)
-
-        guide_file = f"{infra_tool.upper()}_GUIDE.md"
-        download_file(f"{GITHUB_RAW_URL}/.claude/{guide_file}", current_dir / ".claude" / guide_file)
 
     # Download and merge agent configs
     print("\n🤖 Downloading and merging agent configurations...")
@@ -315,40 +306,34 @@ def main():
         config_url = f"{GITHUB_RAW_URL}/.agents/config_backend_{backend_lang}.json"
         try:
             with urllib.request.urlopen(config_url) as response:
-                raw_content = response.read()
-                backend_config = json.loads(raw_content)
+                backend_config = json.loads(response.read())
                 merged_config['agents'].update(backend_config.get('agents', {}))
                 merged_config.setdefault('settings', {}).update(backend_config.get('settings', {}))
-                (current_dir / ".agents" / f"config_backend_{backend_lang}.json").write_bytes(raw_content)
-                print(f"  ✅ Downloaded backend config ({backend_lang})")
+                print(f"  ✅ Merged backend config ({backend_lang})")
         except Exception as e:
-            print(f"  ❌ Failed to download backend config: {e}")
+            print(f"  ❌ Failed to merge backend config: {e}")
 
     if frontend_lang:
         config_url = f"{GITHUB_RAW_URL}/.agents/config_frontend_{frontend_lang}.json"
         try:
             with urllib.request.urlopen(config_url) as response:
-                raw_content = response.read()
-                frontend_config = json.loads(raw_content)
+                frontend_config = json.loads(response.read())
                 merged_config['agents'].update(frontend_config.get('agents', {}))
                 merged_config.setdefault('settings', {}).update(frontend_config.get('settings', {}))
-                (current_dir / ".agents" / f"config_frontend_{frontend_lang}.json").write_bytes(raw_content)
-                print(f"  ✅ Downloaded frontend config ({frontend_lang})")
+                print(f"  ✅ Merged frontend config ({frontend_lang})")
         except Exception as e:
-            print(f"  ❌ Failed to download frontend config: {e}")
+            print(f"  ❌ Failed to merge frontend config: {e}")
 
     if infra_tool:
         config_url = f"{GITHUB_RAW_URL}/.agents/config_infrastructure_{infra_tool.lower()}.json"
         try:
             with urllib.request.urlopen(config_url) as response:
-                raw_content = response.read()
-                infra_config = json.loads(raw_content)
+                infra_config = json.loads(response.read())
                 merged_config['agents'].update(infra_config.get('agents', {}))
                 merged_config.setdefault('settings', {}).update(infra_config.get('settings', {}))
-                (current_dir / ".agents" / f"config_infrastructure_{infra_tool.lower()}.json").write_bytes(raw_content)
-                print(f"  ✅ Downloaded infrastructure config ({infra_tool})")
+                print(f"  ✅ Merged infrastructure config ({infra_tool})")
         except Exception as e:
-            print(f"  ❌ Failed to download infrastructure config: {e}")
+            print(f"  ❌ Failed to merge infrastructure config: {e}")
 
     # Replace project name placeholder in agent system prompts
     config_str = json.dumps(merged_config)
@@ -362,21 +347,41 @@ def main():
         json.dump(merged_config, f, indent=2)
     print(f"  ✅ Created merged config.json")
 
-    # Download common documentation files
-    print("\n📚 Downloading common documentation...")
-    common_docs = [
+    # Download ALL component config files to .agents/
+    print("\n📦 Downloading all agent component configs...")
+    all_agent_configs = [
+        "config_backend_python.json",
+        "config_backend_nodejs.json",
+        "config_backend_dotnet.json",
+        "config_backend_go.json",
+        "config_frontend_react.json",
+        "config_frontend_vue.json",
+        "config_frontend_angular.json",
+        "config_infrastructure_terraform.json",
+    ]
+    for config_file in all_agent_configs:
+        download_file(f"{GITHUB_RAW_URL}/.agents/{config_file}", current_dir / ".agents" / config_file)
+
+    # Download ALL .claude/ documentation files
+    print("\n📚 Downloading all documentation...")
+    claude_docs = [
         "ARCHITECTURE.md",
         "DEVELOPMENT.md",
         "DEPLOYMENT.md",
         "ENVIRONMENT.md",
         "TROUBLESHOOTING.md",
         "IMPLEMENTATION_STATUS.md",
+        "DOCKER_GUIDE.md",
+        "PYTHON_GUIDE.md",
+        "NODEJS_GUIDE.md",
+        "DOTNET_GUIDE.md",
+        "GO_GUIDE.md",
+        "REACT_GUIDE.md",
+        "VUE_GUIDE.md",
+        "ANGULAR_GUIDE.md",
+        "TERRAFORM_GUIDE.md",
     ]
-
-    if uses_docker:
-        common_docs.append("DOCKER_GUIDE.md")
-
-    for doc in common_docs:
+    for doc in claude_docs:
         download_file(f"{GITHUB_RAW_URL}/.claude/{doc}", current_dir / ".claude" / doc)
 
     # Download testing guide and general workflow reference
