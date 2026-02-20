@@ -9,7 +9,7 @@
 ## Overview
 
 This guide covers the 13-step worktree-based workflow for **Go backend development**. This workflow integrates:
-- **Worktree isolation** (each feature gets its own worktree{{#if USES_DOCKER}} + Docker environment{{/if}})
+- **Worktree isolation** (each feature gets its own worktree, with Docker environment for Docker projects)
 - **Architectural planning** (optional for complex features)
 - **Automated test writing** (mandatory with Go testing package)
 - **Quality gates** (tests + code review + integration tests)
@@ -25,7 +25,7 @@ This guide covers the 13-step worktree-based workflow for **Go backend developme
 **Isolated, Test-Driven Quality with Automated Gates**
 
 Every backend feature:
-1. Gets its own **isolated worktree{{#if USES_DOCKER}} + Docker environment{{/if}}**
+1. Gets its own **isolated worktree** (with Docker environment for Docker projects)
 2. Goes through **mandatory quality gates** before being pushed
 3. Has **conflicts resolved automatically** before merge
 4. Is **merged and cleaned up automatically** after approval
@@ -35,7 +35,7 @@ Every backend feature:
 2. **Code Review Gate** (Step 6) - Code must be approved by backend reviewer
 3. **Integration Test Gate** (Step 8) - End-to-end tests must pass
 4. **Conflict Resolution Gate** (Step 10) - Merge conflicts must be resolved
-5. **Final Integration Gate** (Step 11) - Final tests with {{MAIN_BRANCH}} merged must pass
+5. **Final Integration Gate** (Step 11) - Final tests with base branch merged must pass
 
 ---
 
@@ -51,7 +51,7 @@ Every backend feature:
 | **go-test-specialist** | **Tester** | **Backend** | **Write Go tests** | sonnet |
 | **backend-code-reviewer** | **Reviewer** | **Backend** | **Review backend code** | sonnet/opus |
 | integration-tester | Tester | All | Execute all tests and enforce gates | haiku |
-{{#if USES_DOCKER}}| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** | sonnet |{{/if}}
+| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** *(Docker projects only)* | sonnet |
 | **merge-conflict-resolver** | **Resolver** | **All** | **Detect and resolve merge conflicts** | opus |
 
 ---
@@ -60,25 +60,27 @@ Every backend feature:
 
 ```
 Step 0:  [OPTIONAL] software-architect      → Design architecture
-Step 1:  worktree-manager                   → Create worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 1b: [ON-FAILURE] docker-debugger       → Debug setup issues{{/if}}
+Step 1:  worktree-manager                   → Create worktree
+Step 1b: [DOCKER/ON-FAILURE] docker-debugger → Debug setup issues
 Step 2:  go-developer                       → Implement Go feature
 Step 3:  go-test-specialist                 → Write Go tests
 Step 4:  go-developer                       → Commit code + tests
 Step 5:  integration-tester                 → Run Go unit tests [GATE]
-{{#if USES_DOCKER}}Step 5b: [ON-FAILURE] docker-debugger       → Debug test issues{{/if}}
+Step 5b: [DOCKER/ON-FAILURE] docker-debugger → Debug test issues
 Step 6:  backend-code-reviewer              → Review code [GATE]
 Step 7:  go-developer                       → Fix if needed (loop to 5-6)
 Step 8:  integration-tester                 → Run E2E tests [GATE]
-{{#if USES_DOCKER}}Step 8b: [ON-FAILURE] docker-debugger       → Debug E2E issues{{/if}}
+Step 8b: [DOCKER/ON-FAILURE] docker-debugger → Debug E2E issues
 Step 9:  go-developer                       → Push to feature branch
 Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final integration test [GATE]
-{{#if USES_DOCKER}}Step 11b: [ON-FAILURE] docker-debugger      → Debug integration issues{{/if}}
-Step 12: worktree-manager                   → Merge to {{MAIN_BRANCH}}, push
-Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 13b: [ON-FAILURE] docker-debugger      → Force cleanup{{/if}}
+Step 11b: [DOCKER/ON-FAILURE] docker-debugger → Debug integration issues
+Step 12: worktree-manager                   → Merge to base branch, push
+Step 13: worktree-manager                   → Cleanup worktree
+Step 13b: [DOCKER/ON-FAILURE] docker-debugger → Force cleanup
 ```
+
+> `b` steps only activate for Docker projects when container failures occur.
 
 ---
 
@@ -113,7 +115,7 @@ Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKE
 
 **Agent**: worktree-manager
 
-**Action**: Create isolated worktree{{#if USES_DOCKER}} with Docker environment{{/if}}
+**Action**: Create isolated worktree
 
 **Commands**:
 ```bash
@@ -124,15 +126,15 @@ bash scripts/worktree_create.sh feature-name "Feature description"
 **Output**:
 - Worktree created at `.worktrees/feature-name`
 - Branch created: `feature/feature-name`
-{{#if USES_DOCKER}}- Docker containers running with unique ports (including PostgreSQL/MySQL and Redis)
-- Completely isolated Go environment with separate database per worktree
-- No shared resources with main branch{{/if}}
 
-{{#if USES_DOCKER}}**On Failure** (Step 1b):
+> **Note**: The worktree branches from whichever branch is currently checked out. At Step 12, the feature branch will be merged back to that same base branch.
+
+> *(Docker projects only)* Docker containers start with unique ports, providing a completely isolated Go environment with a separate database per worktree — no shared resources.
+
+**On Failure** (Step 1b) *(Docker projects only)*:
 - docker-debugger diagnoses port conflicts, container issues
 - Fixes automatically if possible
 - Reports if manual intervention needed
-{{/if}}
 
 ---
 
@@ -177,16 +179,6 @@ func NewUserHandler(userService services.UserService) *UserHandler {
 }
 
 // CreateUser handles POST /api/users
-// @Summary Create a new user
-// @Description Creates a new user with the provided data
-// @Tags users
-// @Accept json
-// @Produce json
-// @Param user body models.CreateUserRequest true "User creation data"
-// @Success 201 {object} models.UserResponse
-// @Failure 400 {object} models.ErrorResponse
-// @Failure 409 {object} models.ErrorResponse
-// @Router /api/users [post]
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req models.CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -227,7 +219,7 @@ func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 func respondJSON(w http.ResponseWriter, status int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteStatus(status)
+	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(data)
 }
 
@@ -258,9 +250,7 @@ package handlers_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -280,7 +270,6 @@ func TestUserHandler_CreateUser(t *testing.T) {
 		requestBody    models.CreateUserRequest
 		setupMock      func(*mocks.UserService)
 		expectedStatus int
-		expectedBody   interface{}
 		checkResponse  func(*testing.T, *httptest.ResponseRecorder)
 	}{
 		{
@@ -320,26 +309,11 @@ func TestUserHandler_CreateUser(t *testing.T) {
 					Return(nil, services.ErrUserExists)
 			},
 			expectedStatus: http.StatusConflict,
-			checkResponse: func(t *testing.T, rec *httptest.ResponseRecorder) {
-				var errResp models.ErrorResponse
-				err := json.NewDecoder(rec.Body).Decode(&errResp)
-				require.NoError(t, err)
-				assert.Contains(t, errResp.Error, "already exists")
-			},
-		},
-		{
-			name: "invalid request body returns 400",
-			requestBody: models.CreateUserRequest{
-				Email: "", // Invalid: empty email
-			},
-			setupMock:      func(m *mocks.UserService) {},
-			expectedStatus: http.StatusBadRequest,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Arrange
 			mockService := new(mocks.UserService)
 			tt.setupMock(mockService)
 
@@ -352,66 +326,12 @@ func TestUserHandler_CreateUser(t *testing.T) {
 			req.Header.Set("Content-Type", "application/json")
 			rec := httptest.NewRecorder()
 
-			// Act
 			handler.CreateUser(rec, req)
 
-			// Assert
 			assert.Equal(t, tt.expectedStatus, rec.Code)
 			if tt.checkResponse != nil {
 				tt.checkResponse(t, rec)
 			}
-			mockService.AssertExpectations(t)
-		})
-	}
-}
-
-func TestUserHandler_GetUser(t *testing.T) {
-	tests := []struct {
-		name           string
-		userID         string
-		setupMock      func(*mocks.UserService)
-		expectedStatus int
-	}{
-		{
-			name:   "user found",
-			userID: "1",
-			setupMock: func(m *mocks.UserService) {
-				m.On("GetUserByID", mock.Anything, "1").
-					Return(&models.UserResponse{
-						ID:       1,
-						Email:    "user@example.com",
-						Username: "testuser",
-					}, nil)
-			},
-			expectedStatus: http.StatusOK,
-		},
-		{
-			name:   "user not found",
-			userID: "999",
-			setupMock: func(m *mocks.UserService) {
-				m.On("GetUserByID", mock.Anything, "999").
-					Return(nil, services.ErrUserNotFound)
-			},
-			expectedStatus: http.StatusNotFound,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Arrange
-			mockService := new(mocks.UserService)
-			tt.setupMock(mockService)
-
-			handler := handlers.NewUserHandler(mockService)
-
-			req := httptest.NewRequest(http.MethodGet, "/api/users/"+tt.userID, nil)
-			rec := httptest.NewRecorder()
-
-			// Act
-			handler.GetUser(rec, req)
-
-			// Assert
-			assert.Equal(t, tt.expectedStatus, rec.Code)
 			mockService.AssertExpectations(t)
 		})
 	}
@@ -433,29 +353,17 @@ func TestUserHandler_GetUser(t *testing.T) {
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Format code with gofmt
+# With Docker:
 docker-compose exec backend gofmt -w .
-
-# Run go vet
 docker-compose exec backend go vet ./...
-
-# Run golangci-lint
 docker-compose exec backend golangci-lint run
-
-# Build
 docker-compose exec backend go build ./...
-{{else}}# Format code with gofmt
+
+# Without Docker:
 gofmt -w .
-
-# Run go vet
 go vet ./...
-
-# Run golangci-lint
 golangci-lint run
-
-# Build
 go build ./...
-{{/if}}
 
 # Commit
 git add .
@@ -466,9 +374,7 @@ git commit -m "feat: add user creation endpoint
 - Add User entity with GORM
 - Implement UserService with duplicate email check
 - Add comprehensive table-driven tests with testify
-- Test coverage: 85%
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+- Test coverage: 85%"
 ```
 
 **Commit Format**:
@@ -477,8 +383,6 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 - Implementation details
 - Test coverage: X%
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
 
 **Types**: feat, fix, docs, style, refactor, test, chore
@@ -491,25 +395,15 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Run Go tests with coverage
+# With Docker:
 docker-compose exec backend go test -v -cover ./...
-
-# Generate coverage report
 docker-compose exec backend go test -coverprofile=coverage.out ./...
 docker-compose exec backend go tool cover -html=coverage.out -o coverage.html
 
-# View coverage
-docker-compose exec backend cat coverage.html
-{{else}}# Run Go tests with coverage
+# Without Docker:
 go test -v -cover ./...
-
-# Generate coverage report
 go test -coverprofile=coverage.out ./...
 go tool cover -html=coverage.out -o coverage.html
-
-# View coverage
-cat coverage.html
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -523,10 +417,9 @@ cat coverage.html
 - Orchestrator invokes go-developer to fix
 - Returns to Step 5 after fix
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 5b):
+**On Docker Failure** (Step 5b) *(Docker projects only)*:
 - docker-debugger diagnoses container issues
 - Fixes and retries test execution
-{{/if}}
 
 ---
 
@@ -580,17 +473,17 @@ cat coverage.html
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Backend E2E tests
+# With Docker:
 docker-compose exec backend go test -v -tags=integration ./tests/integration/...
 
-# Check API health
-curl http://localhost:{{BACKEND_PORT}}/health
-{{else}}# Backend E2E tests
+# Check API health:
+curl http://localhost:8080/health
+
+# Without Docker:
 go test -v -tags=integration ./tests/integration/...
 
-# Check API health
+# Check API health:
 curl http://localhost:8080/health
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -605,10 +498,9 @@ curl http://localhost:8080/health
 - go-developer fixes issues
 - May loop back to Step 5-6 if code changes needed
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 8b):
+**On Docker Failure** (Step 8b) *(Docker projects only)*:
 - docker-debugger diagnoses E2E test issues
 - Fixes and retries
-{{/if}}
 
 ---
 
@@ -633,11 +525,17 @@ git push -u origin HEAD
 **Agent**: merge-conflict-resolver (opus model)
 
 **Actions**:
-1. Pull latest {{MAIN_BRANCH}}
-2. Merge {{MAIN_BRANCH}} into feature branch
+1. Pull latest base branch
+2. Merge base branch into feature branch
 3. Detect conflicts
 4. Resolve automatically (or request manual review for complex cases)
 5. Commit resolution
+6. Push resolved feature branch to remote
+
+```bash
+# Push after conflict resolution:
+git push origin HEAD --force-with-lease
+```
 
 **Go-Specific Conflict Types**:
 - **Simple**: imports, whitespace, formatting → auto-resolve
@@ -658,29 +556,21 @@ git push -u origin HEAD
 
 **Agent**: integration-tester (haiku model)
 
-**Purpose**: Verify everything works with {{MAIN_BRANCH}} merged
+**Purpose**: Verify everything works with base branch merged
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Full test suite
+# With Docker:
 docker-compose exec backend go test -v -cover ./...
-
-# Run linters
 docker-compose exec backend golangci-lint run
 docker-compose exec backend go vet ./...
-
-# Build verification
 docker-compose exec backend go build ./...
-{{else}}# Full test suite
-go test -v -cover ./...
 
-# Run linters
+# Without Docker:
+go test -v -cover ./...
 golangci-lint run
 go vet ./...
-
-# Build verification
 go build ./...
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -692,21 +582,20 @@ go build ./...
 - Workflow BLOCKED
 - go-developer fixes merge issues
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 11b):
+**On Docker Failure** (Step 11b) *(Docker projects only)*:
 - docker-debugger diagnoses issues
 - Fixes and retries
-{{/if}}
 
 ---
 
-### Step 12: Merge to {{MAIN_BRANCH}}
+### Step 12: Merge to Base Branch
 
 **Agent**: worktree-manager
 
 **Actions**:
 1. Verify all gates passed
-2. Merge feature branch to {{MAIN_BRANCH}}
-3. Push {{MAIN_BRANCH}} to remote
+2. Merge feature branch to base branch
+3. Push base branch to remote
 4. Update worktree registry
 
 **Commands**:
@@ -716,8 +605,8 @@ python scripts/worktree_merge.py <worktree-id>
 ```
 
 **Output**:
-- Feature merged to {{MAIN_BRANCH}}
-- {{MAIN_BRANCH}} pushed to remote
+- Feature merged to base branch
+- Base branch pushed to remote
 - Ready for cleanup
 
 ---
@@ -727,10 +616,10 @@ python scripts/worktree_merge.py <worktree-id>
 **Agent**: worktree-manager
 
 **Actions**:
-1. Stop{{#if USES_DOCKER}} and remove Docker containers{{/if}}
-2. Delete worktree
-3. Update registry
-{{#if USES_DOCKER}}4. Clean up Docker images/volumes (optional){{/if}}
+1. Delete worktree
+2. Update registry
+
+*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images/volumes.
 
 **Commands**:
 ```bash
@@ -738,11 +627,10 @@ python scripts/worktree_merge.py <worktree-id>
 bash scripts/worktree_cleanup.sh <worktree-id>
 ```
 
-{{#if USES_DOCKER}}**On Failure** (Step 13b):
+**On Failure** (Step 13b) *(Docker projects only)*:
 - docker-debugger force cleanups stuck resources
 - Removes containers, images, volumes
 - Ensures clean state
-{{/if}}
 
 ---
 
@@ -766,12 +654,30 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 ### Hotfix Workflow (9 steps) ⚡
 
-**Steps**: 1 → 2 → 4 → 5 → 6 → 9 → 10 → 12 → 13
+**Steps**: 1 → 2 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 
 **Use For**: Production bugs, urgent Go fixes
 **Time**: 15-20 minutes
 **Cost**: Low
-**Note**: Skips test writing (assumes tests exist), skips E2E tests
+**Note**: Skips test writing (assumes tests exist), skips E2E tests; includes fix loop (Step 7)
+
+### Test-Only Workflow (7 steps)
+
+**Steps**: 1 → 3 → 4 → 5 → 9 → 12 → 13
+
+**Use For**: Adding tests to existing Go code, improving coverage
+**Time**: 15-20 minutes
+**Cost**: Low
+**Note**: Skips implementation and E2E tests
+
+### Docs-Only Workflow (5 steps)
+
+**Steps**: 1 → 2 → 9 → 12 → 13
+
+**Use For**: Documentation changes only
+**Time**: 10-15 minutes
+**Cost**: Very Low
+**Note**: Skips testing and review; for documentation PRs only
 
 ---
 
@@ -809,95 +715,51 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 ### Building and Formatting
 ```bash
-{{#if USES_DOCKER}}# Format code
+# With Docker:
 docker-compose exec backend gofmt -w .
-
-# Run go vet
 docker-compose exec backend go vet ./...
-
-# Run golangci-lint
 docker-compose exec backend golangci-lint run
-
-# Build
 docker-compose exec backend go build ./...
-
-# Tidy dependencies
 docker-compose exec backend go mod tidy
-{{else}}# Format code
+
+# Without Docker:
 gofmt -w .
-
-# Run go vet
 go vet ./...
-
-# Run golangci-lint
 golangci-lint run
-
-# Build
 go build ./...
-
-# Tidy dependencies
 go mod tidy
-{{/if}}
 ```
 
 ### Testing
 ```bash
-{{#if USES_DOCKER}}# Run all tests
+# With Docker:
 docker-compose exec backend go test -v ./...
-
-# Run with coverage
 docker-compose exec backend go test -v -cover ./...
-
-# Run specific package
 docker-compose exec backend go test -v ./internal/handlers/...
-
-# Run with race detector
 docker-compose exec backend go test -race ./...
-
-# Run benchmarks
 docker-compose exec backend go test -bench=. ./...
-{{else}}# Run all tests
+
+# Without Docker:
 go test -v ./...
-
-# Run with coverage
 go test -v -cover ./...
-
-# Run specific package
 go test -v ./internal/handlers/...
-
-# Run with race detector
 go test -race ./...
-
-# Run benchmarks
 go test -bench=. ./...
-{{/if}}
 ```
 
 ### Database Migrations (golang-migrate)
 ```bash
-{{#if USES_DOCKER}}# Create migration
+# With Docker:
 docker-compose exec backend migrate create -ext sql -dir migrations -seq add_users_table
-
-# Run migrations up
 docker-compose exec backend migrate -path migrations -database "postgres://..." up
-
-# Run migrations down
 docker-compose exec backend migrate -path migrations -database "postgres://..." down 1
-
-# Check migration version
 docker-compose exec backend migrate -path migrations -database "postgres://..." version
-{{else}}# Create migration
+
+# Without Docker:
 migrate create -ext sql -dir migrations -seq add_users_table
-
-# Run migrations up
 migrate -path migrations -database "postgres://..." up
-
-# Run migrations down
 migrate -path migrations -database "postgres://..." down 1
-
-# Check migration version
 migrate -path migrations -database "postgres://..." version
-{{/if}}
 ```
 
 ---
@@ -929,7 +791,7 @@ migrate -path migrations -database "postgres://..." version
 
 1. Run `go mod tidy`
 2. Check go.mod and go.sum
-3. Rebuild{{#if USES_DOCKER}} Docker container{{else}} project{{/if}}
+3. With Docker: rebuild the Docker container. Without Docker: rebuild the project.
 4. Verify module versions
 
 ---
@@ -938,7 +800,7 @@ migrate -path migrations -database "postgres://..." version
 
 - [Go Development Guide](../.claude/GO_GUIDE.md) - Go coding standards
 - [Testing Guide](TESTING_GUIDE.md) - Go testing practices
-{{#if USES_DOCKER}}- [Docker Guide](../.claude/DOCKER_GUIDE.md) - Docker commands{{/if}}
+- [Docker Guide](../.claude/DOCKER_GUIDE.md) - Docker commands *(Docker projects only)*
 - [Architecture](../.claude/ARCHITECTURE.md) - System architecture
 - [Effective Go](https://golang.org/doc/effective_go) - Official Go best practices
 - [Go Testing Package](https://golang.org/pkg/testing/) - Standard testing package

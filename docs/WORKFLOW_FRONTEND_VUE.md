@@ -9,7 +9,7 @@
 ## Overview
 
 This guide covers the 13-step worktree-based workflow for **Vue.js/Nuxt frontend development**. This workflow integrates:
-- **Worktree isolation** (each feature gets its own worktree{{#if USES_DOCKER}} + Docker environment{{/if}})
+- **Worktree isolation** (each feature gets its own worktree, with Docker environment for Docker projects)
 - **Architectural planning** (optional for complex features)
 - **Automated test writing** (mandatory with Vitest + Vue Test Utils)
 - **Quality gates** (tests + code review + integration tests)
@@ -25,7 +25,7 @@ This guide covers the 13-step worktree-based workflow for **Vue.js/Nuxt frontend
 **Isolated, Test-Driven Quality with Automated Gates**
 
 Every frontend feature:
-1. Gets its own **isolated worktree{{#if USES_DOCKER}} + Docker environment{{/if}}**
+1. Gets its own **isolated worktree** (with Docker environment for Docker projects)
 2. Goes through **mandatory quality gates** before being pushed
 3. Has **conflicts resolved automatically** before merge
 4. Is **merged and cleaned up automatically** after approval
@@ -35,7 +35,7 @@ Every frontend feature:
 2. **Code Review Gate** (Step 6) - Code must be approved by frontend reviewer
 3. **Integration Test Gate** (Step 8) - End-to-end tests must pass
 4. **Conflict Resolution Gate** (Step 10) - Merge conflicts must be resolved
-5. **Final Integration Gate** (Step 11) - Final tests with {{MAIN_BRANCH}} merged must pass
+5. **Final Integration Gate** (Step 11) - Final tests with base branch merged must pass
 
 ---
 
@@ -51,7 +51,7 @@ Every frontend feature:
 | **vue-test-specialist** | **Tester** | **Frontend** | **Write Vitest + VTU tests** | sonnet |
 | **frontend-code-reviewer** | **Reviewer** | **Frontend** | **Review frontend code** | sonnet/opus |
 | integration-tester | Tester | All | Execute all tests and enforce gates | haiku |
-{{#if USES_DOCKER}}| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** | sonnet |{{/if}}
+| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** *(Docker projects only)* | sonnet |
 | **merge-conflict-resolver** | **Resolver** | **All** | **Detect and resolve merge conflicts** | opus |
 
 ---
@@ -60,25 +60,27 @@ Every frontend feature:
 
 ```
 Step 0:  [OPTIONAL] software-architect      → Design architecture
-Step 1:  worktree-manager                   → Create worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 1b: [ON-FAILURE] docker-debugger       → Debug setup issues{{/if}}
+Step 1:  worktree-manager                   → Create worktree
+Step 1b: [DOCKER/ON-FAILURE] docker-debugger → Debug setup issues
 Step 2:  vue-developer                      → Implement Vue/Nuxt feature
 Step 3:  vue-test-specialist                → Write Vitest + VTU tests
 Step 4:  vue-developer                      → Commit code + tests
 Step 5:  integration-tester                 → Run Vitest unit tests [GATE]
-{{#if USES_DOCKER}}Step 5b: [ON-FAILURE] docker-debugger       → Debug test issues{{/if}}
+Step 5b: [DOCKER/ON-FAILURE] docker-debugger → Debug test issues
 Step 6:  frontend-code-reviewer             → Review code [GATE]
 Step 7:  vue-developer                      → Fix if needed (loop to 5-6)
 Step 8:  integration-tester                 → Run E2E tests [GATE]
-{{#if USES_DOCKER}}Step 8b: [ON-FAILURE] docker-debugger       → Debug E2E issues{{/if}}
+Step 8b: [DOCKER/ON-FAILURE] docker-debugger → Debug E2E issues
 Step 9:  vue-developer                      → Push to feature branch
 Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final integration test [GATE]
-{{#if USES_DOCKER}}Step 11b: [ON-FAILURE] docker-debugger      → Debug integration issues{{/if}}
-Step 12: worktree-manager                   → Merge to {{MAIN_BRANCH}}, push
-Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 13b: [ON-FAILURE] docker-debugger      → Force cleanup{{/if}}
+Step 11b: [DOCKER/ON-FAILURE] docker-debugger → Debug integration issues
+Step 12: worktree-manager                   → Merge to base branch, push
+Step 13: worktree-manager                   → Cleanup worktree
+Step 13b: [DOCKER/ON-FAILURE] docker-debugger → Force cleanup
 ```
+
+> `b` steps only activate for Docker projects when container failures occur.
 
 ---
 
@@ -113,7 +115,7 @@ Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKE
 
 **Agent**: worktree-manager
 
-**Action**: Create isolated worktree{{#if USES_DOCKER}} with Docker environment{{/if}}
+**Action**: Create isolated worktree
 
 **Commands**:
 ```bash
@@ -124,15 +126,15 @@ bash scripts/worktree_create.sh feature-name "Feature description"
 **Output**:
 - Worktree created at `.worktrees/feature-name`
 - Branch created: `feature/feature-name`
-{{#if USES_DOCKER}}- Docker container running with unique port
-- Completely isolated Vue development environment
-- No shared resources with main branch{{/if}}
 
-{{#if USES_DOCKER}}**On Failure** (Step 1b):
+> **Note**: The worktree branches from whichever branch is currently checked out. At Step 12, the feature branch will be merged back to that same base branch.
+
+> *(Docker projects only)* Docker containers start with unique ports, providing a completely isolated Vue development environment — no shared resources.
+
+**On Failure** (Step 1b) *(Docker projects only)*:
 - docker-debugger diagnoses port conflicts, container issues
 - Fixes automatically if possible
 - Reports if manual intervention needed
-{{/if}}
 
 ---
 
@@ -171,7 +173,6 @@ const router = useRouter();
 const userStore = useUserStore();
 const { showSuccess, showError } = useToast();
 
-// Form state
 const formData = reactive<CreateUserData>({
   email: '',
   username: '',
@@ -181,74 +182,11 @@ const formData = reactive<CreateUserData>({
 const loading = ref(false);
 const errors = ref<Record<string, string>>({});
 
-// Validation rules
-const emailPattern = /\S+@\S+\.\S+/;
+const isFormValid = computed(() =>
+  formData.email && formData.username && formData.password.length >= 8
+);
 
-const isFormValid = computed(() => {
-  return formData.email &&
-         emailPattern.test(formData.email) &&
-         formData.username &&
-         formData.password.length >= 8;
-});
-
-/**
- * Validate a specific field
- */
-const validateField = (field: keyof CreateUserData): string | null => {
-  switch (field) {
-    case 'email':
-      if (!formData.email) return 'Email is required';
-      if (!emailPattern.test(formData.email)) return 'Email is invalid';
-      return null;
-    case 'username':
-      if (!formData.username) return 'Username is required';
-      return null;
-    case 'password':
-      if (!formData.password) return 'Password is required';
-      if (formData.password.length < 8) return 'Password must be at least 8 characters';
-      return null;
-    default:
-      return null;
-  }
-};
-
-/**
- * Validate entire form
- */
-const validateForm = (): boolean => {
-  const newErrors: Record<string, string> = {};
-
-  (['email', 'username', 'password'] as const).forEach(field => {
-    const error = validateField(field);
-    if (error) newErrors[field] = error;
-  });
-
-  errors.value = newErrors;
-  return Object.keys(newErrors).length === 0;
-};
-
-/**
- * Clear error for a specific field
- */
-const clearError = (field: string) => {
-  const newErrors = { ...errors.value };
-  delete newErrors[field];
-  errors.value = newErrors;
-};
-
-/**
- * Handle input change
- */
-const handleInput = (field: keyof CreateUserData) => {
-  clearError(field);
-};
-
-/**
- * Handle form submission
- */
 const handleSubmit = async () => {
-  if (!validateForm()) return;
-
   loading.value = true;
   errors.value = {};
 
@@ -267,110 +205,31 @@ const handleSubmit = async () => {
   }
 };
 
-/**
- * Reset form
- */
-const resetForm = () => {
+defineExpose({ resetForm: () => {
   formData.email = '';
   formData.username = '';
   formData.password = '';
   errors.value = {};
-};
-
-defineExpose({ resetForm });
+} });
 </script>
 
 <template>
   <form @submit.prevent="handleSubmit" class="space-y-4" aria-label="Create user form">
-    <!-- Email Field -->
     <div>
-      <label for="email" class="block text-sm font-medium text-gray-700">
-        Email
-      </label>
+      <label for="email">Email</label>
       <input
         id="email"
         v-model="formData.email"
         type="email"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        :class="{ 'border-red-500': errors.email }"
         :aria-invalid="!!errors.email"
-        :aria-describedby="errors.email ? 'email-error' : undefined"
         :disabled="loading"
-        @input="handleInput('email')"
       />
-      <p
-        v-if="errors.email"
-        id="email-error"
-        class="mt-1 text-sm text-red-600"
-        role="alert"
-      >
-        {{ errors.email }}
-      </p>
+      <p v-if="errors.email" id="email-error" role="alert">{{ errors.email }}</p>
     </div>
 
-    <!-- Username Field -->
-    <div>
-      <label for="username" class="block text-sm font-medium text-gray-700">
-        Username
-      </label>
-      <input
-        id="username"
-        v-model="formData.username"
-        type="text"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        :class="{ 'border-red-500': errors.username }"
-        :aria-invalid="!!errors.username"
-        :aria-describedby="errors.username ? 'username-error' : undefined"
-        :disabled="loading"
-        @input="handleInput('username')"
-      />
-      <p
-        v-if="errors.username"
-        id="username-error"
-        class="mt-1 text-sm text-red-600"
-        role="alert"
-      >
-        {{ errors.username }}
-      </p>
-    </div>
+    <div v-if="errors.submit" role="alert">{{ errors.submit }}</div>
 
-    <!-- Password Field -->
-    <div>
-      <label for="password" class="block text-sm font-medium text-gray-700">
-        Password
-      </label>
-      <input
-        id="password"
-        v-model="formData.password"
-        type="password"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-        :class="{ 'border-red-500': errors.password }"
-        :aria-invalid="!!errors.password"
-        :aria-describedby="errors.password ? 'password-error' : undefined"
-        :disabled="loading"
-        @input="handleInput('password')"
-      />
-      <p
-        v-if="errors.password"
-        id="password-error"
-        class="mt-1 text-sm text-red-600"
-        role="alert"
-      >
-        {{ errors.password }}
-      </p>
-    </div>
-
-    <!-- Submit Error -->
-    <div v-if="errors.submit" class="text-sm text-red-600" role="alert">
-      {{ errors.submit }}
-    </div>
-
-    <!-- Submit Button -->
-    <button
-      type="submit"
-      class="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-gray-400"
-      :disabled="loading || !isFormValid"
-    >
+    <button type="submit" :disabled="loading || !isFormValid">
       {{ loading ? 'Creating...' : 'Create User' }}
     </button>
   </form>
@@ -394,21 +253,17 @@ defineExpose({ resetForm });
 
 **Vue Test Structure** (Vitest + Vue Test Utils):
 ```typescript
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { mount, VueWrapper } from '@vue/test-utils';
 import { createPinia, setActivePinia } from 'pinia';
 import UserForm from './UserForm.vue';
 import { useUserStore } from '@/stores/user';
 import type { User } from '@/types/user';
 
-// Mock router
 vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: vi.fn()
-  })
+  useRouter: () => ({ push: vi.fn() })
 }));
 
-// Mock toast
 vi.mock('@/composables/useToast', () => ({
   useToast: () => ({
     showSuccess: vi.fn(),
@@ -429,101 +284,29 @@ describe('UserForm.vue', () => {
     wrapper?.unmount();
   });
 
-  const mountComponent = (props = {}) => {
-    return mount(UserForm, {
-      global: {
-        plugins: [createPinia()]
-      },
+  const mountComponent = (props = {}) =>
+    mount(UserForm, {
+      global: { plugins: [createPinia()] },
       props
     });
-  };
 
   describe('Rendering', () => {
     it('should render all form fields', () => {
       wrapper = mountComponent();
 
-      expect(wrapper.find('label[for="email"]').text()).toBe('Email');
-      expect(wrapper.find('label[for="username"]').text()).toBe('Username');
-      expect(wrapper.find('label[for="password"]').text()).toBe('Password');
+      expect(wrapper.find('label[for="email"]').exists()).toBe(true);
       expect(wrapper.find('button[type="submit"]').text()).toBe('Create User');
     });
 
     it('should have accessible form structure', () => {
       wrapper = mountComponent();
-
-      const form = wrapper.find('form');
-      expect(form.attributes('aria-label')).toBe('Create user form');
-    });
-  });
-
-  describe('Form Validation', () => {
-    it('should show error for invalid email', async () => {
-      wrapper = mountComponent();
-
-      const emailInput = wrapper.find('#email');
-      await emailInput.setValue('invalid-email');
-      await wrapper.find('form').trigger('submit.prevent');
-
-      expect(wrapper.find('#email-error').text()).toContain('Email is invalid');
-      expect(userStore.createUser).not.toHaveBeenCalled();
-    });
-
-    it('should show error for missing username', async () => {
-      wrapper = mountComponent();
-
-      await wrapper.find('#email').setValue('test@example.com');
-      await wrapper.find('#password').setValue('password123');
-      await wrapper.find('form').trigger('submit.prevent');
-
-      expect(wrapper.find('#username-error').text()).toContain('Username is required');
-    });
-
-    it('should show error for short password', async () => {
-      wrapper = mountComponent();
-
-      await wrapper.find('#password').setValue('short');
-      await wrapper.find('form').trigger('submit.prevent');
-
-      expect(wrapper.find('#password-error').text()).toContain('at least 8 characters');
-    });
-
-    it('should clear error when field is corrected', async () => {
-      wrapper = mountComponent();
-
-      // Trigger error
-      await wrapper.find('form').trigger('submit.prevent');
-      expect(wrapper.find('#email-error').exists()).toBe(true);
-
-      // Fix error
-      await wrapper.find('#email').setValue('test@example.com');
-      await wrapper.find('#email').trigger('input');
-
-      expect(wrapper.find('#email-error').exists()).toBe(false);
-    });
-
-    it('should disable submit button when form is invalid', async () => {
-      wrapper = mountComponent();
-
-      const submitButton = wrapper.find('button[type="submit"]');
-      expect(submitButton.attributes('disabled')).toBeDefined();
-
-      // Fill form
-      await wrapper.find('#email').setValue('test@example.com');
-      await wrapper.find('#username').setValue('testuser');
-      await wrapper.find('#password').setValue('password123');
-
-      expect(submitButton.attributes('disabled')).toBeUndefined();
+      expect(wrapper.find('form').attributes('aria-label')).toBe('Create user form');
     });
   });
 
   describe('Form Submission', () => {
     it('should create user successfully', async () => {
-      const mockUser: User = {
-        id: 1,
-        email: 'test@example.com',
-        username: 'testuser'
-      };
-
+      const mockUser: User = { id: 1, email: 'test@example.com', username: 'testuser' };
       vi.spyOn(userStore, 'createUser').mockResolvedValue(mockUser);
 
       const onSuccess = vi.fn();
@@ -533,14 +316,9 @@ describe('UserForm.vue', () => {
       await wrapper.find('#username').setValue('testuser');
       await wrapper.find('#password').setValue('password123');
       await wrapper.find('form').trigger('submit.prevent');
-
       await wrapper.vm.$nextTick();
 
-      expect(userStore.createUser).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        username: 'testuser',
-        password: 'password123'
-      });
+      expect(userStore.createUser).toHaveBeenCalled();
       expect(onSuccess).toHaveBeenCalledWith(mockUser);
     });
 
@@ -555,7 +333,6 @@ describe('UserForm.vue', () => {
       await wrapper.find('#username').setValue('testuser');
       await wrapper.find('#password').setValue('password123');
       await wrapper.find('form').trigger('submit.prevent');
-
       await wrapper.vm.$nextTick();
 
       expect(onError).toHaveBeenCalledWith(error);
@@ -574,54 +351,17 @@ describe('UserForm.vue', () => {
       await wrapper.find('#password').setValue('password123');
       await wrapper.find('form').trigger('submit.prevent');
 
-      expect(wrapper.find('#email').attributes('disabled')).toBeDefined();
-      expect(wrapper.find('#username').attributes('disabled')).toBeDefined();
-      expect(wrapper.find('#password').attributes('disabled')).toBeDefined();
       expect(wrapper.find('button[type="submit"]').text()).toBe('Creating...');
     });
   });
 
   describe('Accessibility', () => {
-    it('should have proper ARIA attributes for errors', async () => {
-      wrapper = mountComponent();
-
-      await wrapper.find('form').trigger('submit.prevent');
-
-      const emailInput = wrapper.find('#email');
-      expect(emailInput.attributes('aria-invalid')).toBe('true');
-      expect(emailInput.attributes('aria-describedby')).toBe('email-error');
-    });
-
     it('should announce errors with role="alert"', async () => {
       wrapper = mountComponent();
-
       await wrapper.find('form').trigger('submit.prevent');
 
-      const errors = wrapper.findAll('[role="alert"]');
-      expect(errors.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('Exposed Methods', () => {
-    it('should expose resetForm method', () => {
-      wrapper = mountComponent();
-
-      expect(wrapper.vm.resetForm).toBeDefined();
-    });
-
-    it('should reset form data when resetForm is called', async () => {
-      wrapper = mountComponent();
-
-      await wrapper.find('#email').setValue('test@example.com');
-      await wrapper.find('#username').setValue('testuser');
-      await wrapper.find('#password').setValue('password123');
-
-      wrapper.vm.resetForm();
-      await wrapper.vm.$nextTick();
-
-      expect((wrapper.find('#email').element as HTMLInputElement).value).toBe('');
-      expect((wrapper.find('#username').element as HTMLInputElement).value).toBe('');
-      expect((wrapper.find('#password').element as HTMLInputElement).value).toBe('');
+      const alerts = wrapper.findAll('[role="alert"]');
+      expect(alerts.length).toBeGreaterThan(0);
     });
   });
 });
@@ -643,29 +383,17 @@ describe('UserForm.vue', () => {
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Run Prettier formatter
+# With Docker:
 docker-compose exec frontend npm run format
-
-# Run ESLint
 docker-compose exec frontend npm run lint
-
-# Type check with TypeScript
 docker-compose exec frontend npm run type-check
-
-# Build
 docker-compose exec frontend npm run build
-{{else}}# Run Prettier formatter
+
+# Without Docker:
 npm run format
-
-# Run ESLint
 npm run lint
-
-# Type check with TypeScript
 npm run type-check
-
-# Build
 npm run build
-{{/if}}
 
 # Commit
 git add .
@@ -677,10 +405,18 @@ git commit -m "feat: add user creation form component
 - Implement proper error handling with toast notifications
 - Add comprehensive Vitest + VTU tests
 - Ensure ARIA attributes for accessibility
-- Test coverage: 85%
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+- Test coverage: 85%"
 ```
+
+**Commit Format**:
+```
+<type>: <short description>
+
+- Implementation details
+- Test coverage: X%
+```
+
+**Types**: feat, fix, docs, style, refactor, test, chore
 
 ---
 
@@ -690,17 +426,11 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Run Vitest tests with coverage
-docker-compose exec frontend npm test -- --coverage
+# With Docker:
+docker-compose exec frontend npx vitest run --coverage
 
-# Check coverage report
-docker-compose exec frontend cat coverage/index.html
-{{else}}# Run Vitest tests with coverage
-npm test -- --coverage
-
-# Check coverage report
-cat coverage/index.html
-{{/if}}
+# Without Docker:
+npx vitest run --coverage
 ```
 
 **Pass Criteria**:
@@ -709,11 +439,266 @@ cat coverage/index.html
 - No critical ESLint errors
 - TypeScript compilation succeeds
 
+**On Fail**:
+- Workflow BLOCKED
+- Orchestrator invokes vue-developer to fix
+- Returns to Step 5 after fix
+
+**On Docker Failure** (Step 5b) *(Docker projects only)*:
+- docker-debugger diagnoses container issues
+- Fixes and retries test execution
+
 ---
 
-### Step 6-13: [Same structure as React workflow]
+### Step 6: Code Review ⚠️ GATE
 
-Continue with same quality gates and steps...
+**Agent**: frontend-code-reviewer (sonnet, opus for critical)
+
+**Review Criteria**:
+- ✅ **Accessibility** (ARIA labels, keyboard navigation, screen reader support)
+- ✅ **Performance** (v-memo, lazy loading, avoiding watchers where computed suffices)
+- ✅ **Best Practices** (Composition API, ref/reactive/computed usage, no prop mutation)
+- ✅ **UI/UX** (responsive design, loading states, error messages)
+- ✅ **Security** (XSS prevention, v-html risks)
+- ✅ **Testing** (comprehensive test coverage)
+
+**Vue-Specific Checks**:
+- Composition API used correctly (`<script setup>`)
+- TypeScript types on all props and state
+- No direct prop mutation
+- Pinia store patterns followed correctly
+- Composables used for reusable logic
+- No memory leaks (cleared intervals, removed event listeners)
+- Accessibility attributes on interactive elements
+
+**Outcomes**:
+- ✅ **APPROVED** - Continue to Step 8
+- ❌ **CHANGES REQUESTED** - Go to Step 7
+
+---
+
+### Step 7: Fix Issues
+
+**Agent**: vue-developer
+
+**Responsibilities**:
+- Address ALL review issues
+- Make targeted fixes
+- Re-format with Prettier
+- Re-lint with ESLint
+- Type-check with TypeScript
+- Commit fixes
+- Return to Step 5 (re-test) → Step 6 (re-review)
+
+**Max Cycles**: 3 (if stuck, reassess approach)
+
+---
+
+### Step 8: Run Integration Tests ⚠️ GATE
+
+**Agent**: integration-tester (haiku model)
+
+**Commands**:
+```bash
+# With Docker:
+docker-compose exec frontend npm run test:e2e
+docker-compose exec frontend nuxt build
+
+# Without Docker:
+npm run test:e2e
+nuxt build
+```
+
+**Pass Criteria**:
+- All E2E tests pass
+- App builds successfully
+- No console errors
+
+**On Fail**:
+- Workflow BLOCKED
+- vue-developer fixes issues
+- May loop back to Step 5-6 if code changes needed
+
+**On Docker Failure** (Step 8b) *(Docker projects only)*:
+- docker-debugger diagnoses E2E test issues
+- Fixes and retries
+
+---
+
+### Step 9: Push Feature Branch
+
+**Agent**: vue-developer
+
+**Commands**:
+```bash
+git push -u origin HEAD
+```
+
+**Verification**:
+- Branch pushed successfully to remote
+- Remote tracking set up
+- CI/CD pipeline triggered (if configured)
+
+---
+
+### Step 10: Resolve Merge Conflicts ⚠️ GATE
+
+**Agent**: merge-conflict-resolver (opus model)
+
+**Actions**:
+1. Pull latest base branch
+2. Merge base branch into feature branch
+3. Detect conflicts
+4. Resolve automatically (or request manual review for complex cases)
+5. Commit resolution
+6. Push resolved feature branch to remote
+
+```bash
+# Push after conflict resolution:
+git push origin HEAD --force-with-lease
+```
+
+**Vue-Specific Conflict Types**:
+- **Simple**: imports, whitespace, formatting → auto-resolve
+- **Components**: Different components in same directory → integrate both
+- **Stores**: Pinia store changes → integrate both carefully
+- **Logic**: Different component implementations → request manual review
+- **Package.json**: Dependency conflicts → merge carefully, run npm install
+- **Complex**: Fundamental conflicts in component logic → request manual review
+
+**Outcomes**:
+- ✅ **RESOLVED** - Continue to Step 11
+- ⚠️ **MANUAL REVIEW NEEDED** - Workflow PAUSED
+- ❌ **FAILED** - Workflow BLOCKED
+
+---
+
+### Step 11: Final Integration Test ⚠️ GATE
+
+**Agent**: integration-tester (haiku model)
+
+**Purpose**: Verify everything works with base branch merged
+
+**Commands**:
+```bash
+# With Docker:
+docker-compose exec frontend npx vitest run --coverage
+docker-compose exec frontend npm run lint
+docker-compose exec frontend npm run type-check
+docker-compose exec frontend nuxt build
+
+# Without Docker:
+npx vitest run --coverage
+npm run lint
+npm run type-check
+nuxt build
+```
+
+**Pass Criteria**:
+- All tests pass after merge
+- No new linting errors
+- Build succeeds
+
+**On Fail**:
+- Workflow BLOCKED
+- vue-developer fixes merge issues
+
+**On Docker Failure** (Step 11b) *(Docker projects only)*:
+- docker-debugger diagnoses issues
+- Fixes and retries
+
+---
+
+### Step 12: Merge to Base Branch
+
+**Agent**: worktree-manager
+
+**Actions**:
+1. Verify all gates passed
+2. Merge feature branch to base branch
+3. Push base branch to remote
+4. Update worktree registry
+
+**Commands**:
+```bash
+# Agent runs:
+python scripts/worktree_merge.py <worktree-id>
+```
+
+**Output**:
+- Feature merged to base branch
+- Base branch pushed to remote
+- Ready for cleanup
+
+---
+
+### Step 13: Cleanup
+
+**Agent**: worktree-manager
+
+**Actions**:
+1. Delete worktree
+2. Update registry
+
+*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images.
+
+**Commands**:
+```bash
+# Agent runs:
+bash scripts/worktree_cleanup.sh <worktree-id>
+```
+
+**On Failure** (Step 13b) *(Docker projects only)*:
+- docker-debugger force cleanups stuck resources
+- Removes containers, images
+- Ensures clean state
+
+---
+
+## Workflow Variants
+
+### Standard Workflow (11 steps) ⭐ Most Common
+
+**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
+
+**Use For**: Regular Vue features, components (80% of work)
+**Time**: 25-35 minutes
+**Cost**: Medium
+
+### Full Workflow (13 steps)
+
+**Steps**: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
+
+**Use For**: New pages, major UI features, architectural changes
+**Time**: 35-50 minutes
+**Cost**: High
+
+### Hotfix Workflow (9 steps) ⚡
+
+**Steps**: 1 → 2 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
+
+**Use For**: UI bugs, urgent fixes
+**Time**: 15-20 minutes
+**Cost**: Low
+**Note**: Skips test writing (assumes tests exist), skips E2E tests; includes fix loop (Step 7)
+
+### Test-Only Workflow (7 steps)
+
+**Steps**: 1 → 3 → 4 → 5 → 9 → 12 → 13
+
+**Use For**: Adding tests to existing Vue code, improving coverage
+**Time**: 15-20 minutes
+**Cost**: Low
+**Note**: Skips implementation and E2E tests
+
+### Docs-Only Workflow (5 steps)
+
+**Steps**: 1 → 2 → 9 → 12 → 13
+
+**Use For**: Documentation changes only
+**Time**: 10-15 minutes
+**Cost**: Very Low
+**Note**: Skips testing and review; for documentation PRs only
 
 ---
 
@@ -747,10 +732,82 @@ Continue with same quality gates and steps...
 
 ---
 
+## Vue Tools and Commands
+
+### Building and Linting
+```bash
+# With Docker:
+docker-compose exec frontend npm install
+docker-compose exec frontend nuxt build
+docker-compose exec frontend npm run format
+docker-compose exec frontend npm run lint
+docker-compose exec frontend npm run type-check
+docker-compose exec frontend npm run dev
+
+# Without Docker:
+npm install
+nuxt build
+npm run format
+npm run lint
+npm run type-check
+npm run dev
+```
+
+### Testing
+```bash
+# With Docker:
+docker-compose exec frontend npx vitest run
+docker-compose exec frontend npx vitest run --coverage
+docker-compose exec frontend npx vitest run UserForm.test.ts
+docker-compose exec frontend npx vitest
+
+# Without Docker:
+npx vitest run
+npx vitest run --coverage
+npx vitest run UserForm.test.ts
+npx vitest
+```
+
+---
+
+## Troubleshooting
+
+### Workflow Stuck
+
+1. **Identify which step failed**
+2. **Check agent output** for Vue errors
+3. **Fix the issue** manually if needed
+4. **Resume workflow** from failed step
+
+### Vitest Tests Failing
+
+1. Review test output for failure details
+2. Check mocks are properly configured
+3. Verify Pinia store setup in tests
+4. Fix implementation or tests
+5. Re-run from Step 5
+
+### Review Rejected Multiple Times
+
+1. Discuss with team if Vue approach is correct
+2. Consider architectural review
+3. May need to restart with different component structure
+
+### Build Errors
+
+1. Delete .nuxt and node_modules
+2. Run npm install
+3. With Docker: rebuild the Docker container. Without Docker: rebuild the project.
+4. Check for TypeScript errors
+
+---
+
 ## Resources
 
 - [Vue Development Guide](../.claude/VUE_GUIDE.md) - Vue coding standards
 - [Testing Guide](TESTING_GUIDE.md) - Vitest + VTU practices
+- [Docker Guide](../.claude/DOCKER_GUIDE.md) - Docker commands *(Docker projects only)*
+- [Architecture](../.claude/ARCHITECTURE.md) - System architecture
 - [Vue 3 Documentation](https://vuejs.org/) - Official Vue docs
 - [Nuxt Documentation](https://nuxt.com/) - Nuxt framework
 - [Vue Test Utils](https://test-utils.vuejs.org/) - Testing utilities

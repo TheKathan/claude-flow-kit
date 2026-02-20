@@ -9,7 +9,7 @@
 ## Overview
 
 {{PROJECT_NAME}} uses an enhanced 13-step worktree-based workflow that integrates:
-- **Worktree isolation** (each feature gets its own worktree{{#if USES_DOCKER}} + Docker environment{{/if}})
+- **Worktree isolation** (each feature gets its own worktree, with Docker environment for Docker projects)
 - **Architectural planning** (optional for complex features)
 - **Automated test writing** (mandatory)
 - **Quality gates** (tests + code review + integration tests)
@@ -25,7 +25,7 @@
 **Isolated, Test-Driven Quality with Automated Gates**
 
 Every feature:
-1. Gets its own **isolated worktree{{#if USES_DOCKER}} + Docker environment{{/if}}**
+1. Gets its own **isolated worktree** (with Docker environment for Docker projects)
 2. Goes through **mandatory quality gates** before being pushed
 3. Has **conflicts resolved automatically** before merge
 4. Is **merged and cleaned up automatically** after approval
@@ -35,7 +35,7 @@ Every feature:
 2. **Code Review Gate** (Step 6) - Code must be approved by reviewer
 3. **Integration Test Gate** (Step 8) - End-to-end tests must pass
 4. **Conflict Resolution Gate** (Step 10) - Merge conflicts must be resolved
-5. **Final Integration Gate** (Step 11) - Final tests with {{MAIN_BRANCH}} merged must pass
+5. **Final Integration Gate** (Step 11) - Final tests with base branch merged must pass
 
 ---
 
@@ -47,15 +47,17 @@ Every feature:
 |-------|------|-------|------|
 | software-architect | Architect | All | Design architecture (optional) |
 | **worktree-manager** | **Manager** | **All** | **Create worktrees, merge, cleanup** |
-| {{BACKEND_AGENT_NAME}} | Developer | Backend | Implement backend features |
+| backend-developer | Developer | Backend | Implement backend features |
 | backend-test-specialist | Tester | Backend | Write backend tests |
 | backend-code-reviewer | Reviewer | Backend | Review backend code |
-{{#if HAS_FRONTEND}}| {{FRONTEND_AGENT_NAME}} | Developer | Frontend | Implement frontend features |
+| frontend-developer | Developer | Frontend | Implement frontend features |
 | frontend-test-specialist | Tester | Frontend | Write frontend tests |
-| frontend-code-reviewer | Reviewer | Frontend | Review frontend code |{{/if}}
+| frontend-code-reviewer | Reviewer | Frontend | Review frontend code |
 | integration-tester | Tester | All | Execute all tests and enforce gates |
-{{#if USES_DOCKER}}| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** |{{/if}}
+| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** *(Docker projects only)* |
 | **merge-conflict-resolver** | **Resolver** | **All** | **Detect and resolve merge conflicts** |
+
+> Replace `backend-developer` with the specific agent for your stack (e.g. `python-developer`, `dotnet-developer`, `nodejs-developer`, `go-developer`). Replace `frontend-developer` with `react-frontend-dev`, `vue-developer`, or `angular-developer` as applicable.
 
 ---
 
@@ -65,30 +67,31 @@ Every feature:
 
 ```
 Step 0:  [OPTIONAL] software-architect      → Design architecture
-Step 1:  worktree-manager                   → Create worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 1b: [ON-FAILURE] docker-debugger       → Debug setup issues{{/if}}
-Step 2:  {{BACKEND_AGENT_NAME}}             → Implement feature
+Step 1:  worktree-manager                   → Create worktree
+Step 1b: [DOCKER/ON-FAILURE] docker-debugger → Debug setup issues
+Step 2:  backend-developer                  → Implement feature
 Step 3:  backend-test-specialist            → Write tests
-Step 4:  {{BACKEND_AGENT_NAME}}             → Commit code + tests
+Step 4:  backend-developer                  → Commit code + tests
 Step 5:  integration-tester                 → Run unit tests [GATE]
-{{#if USES_DOCKER}}Step 5b: [ON-FAILURE] docker-debugger       → Debug test issues{{/if}}
+Step 5b: [DOCKER/ON-FAILURE] docker-debugger → Debug test issues
 Step 6:  backend-code-reviewer              → Review code [GATE]
-Step 7:  {{BACKEND_AGENT_NAME}}             → Fix if needed (loop to 5-6)
+Step 7:  backend-developer                  → Fix if needed (loop to 5-6)
 Step 8:  integration-tester                 → Run E2E tests [GATE]
-{{#if USES_DOCKER}}Step 8b: [ON-FAILURE] docker-debugger       → Debug E2E issues{{/if}}
-Step 9:  {{BACKEND_AGENT_NAME}}             → Push to feature branch
+Step 8b: [DOCKER/ON-FAILURE] docker-debugger → Debug E2E issues
+Step 9:  backend-developer                  → Push to feature branch
 Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final integration test [GATE]
-{{#if USES_DOCKER}}Step 11b: [ON-FAILURE] docker-debugger      → Debug integration issues{{/if}}
-Step 12: worktree-manager                   → Merge to {{MAIN_BRANCH}}, push
-Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 13b: [ON-FAILURE] docker-debugger      → Force cleanup{{/if}}
+Step 11b: [DOCKER/ON-FAILURE] docker-debugger → Debug integration issues
+Step 12: worktree-manager                   → Merge to base branch, push
+Step 13: worktree-manager                   → Cleanup worktree
+Step 13b: [DOCKER/ON-FAILURE] docker-debugger → Force cleanup
 ```
 
-{{#if HAS_FRONTEND}}### Frontend Workflow
+> `b` steps only activate for Docker projects when container failures occur.
 
-Same pattern with `{{FRONTEND_AGENT_NAME}}`, `frontend-test-specialist`, `frontend-code-reviewer`
-{{/if}}
+### Frontend Workflow
+
+Same pattern with `frontend-developer`, `frontend-test-specialist`, `frontend-code-reviewer`.
 
 ---
 
@@ -121,7 +124,7 @@ Same pattern with `{{FRONTEND_AGENT_NAME}}`, `frontend-test-specialist`, `fronte
 
 **Agent**: worktree-manager
 
-**Action**: Create isolated worktree{{#if USES_DOCKER}} with Docker environment{{/if}}
+**Action**: Create isolated worktree
 
 **Commands**:
 ```bash
@@ -132,21 +135,21 @@ bash scripts/worktree_create.sh feature-name "Feature description"
 **Output**:
 - Worktree created at `.worktrees/feature-name`
 - Branch created: `feature/feature-name`
-{{#if USES_DOCKER}}- Docker containers running with unique ports (including database and cache)
-- Completely isolated environment with separate database per worktree
-- No shared resources with main branch{{/if}}
 
-{{#if USES_DOCKER}}**On Failure** (Step 1b):
+> **Note**: The worktree branches from whichever branch is currently checked out. At Step 12, the feature branch will be merged back to that same base branch.
+
+> *(Docker projects only)* Docker containers start with unique ports, providing a completely isolated environment with a separate database per worktree.
+
+**On Failure** (Step 1b) *(Docker projects only)*:
 - docker-debugger diagnoses port conflicts, container issues
 - Fixes automatically if possible
 - Reports if manual intervention needed
-{{/if}}
 
 ---
 
 ### Step 2: Implement Feature
 
-**Agent**: {{BACKEND_AGENT_NAME}}{{#if HAS_FRONTEND}} or {{FRONTEND_AGENT_NAME}}{{/if}}
+**Agent**: backend-developer or frontend-developer
 
 **Responsibilities**:
 - Write clean, maintainable code
@@ -161,7 +164,7 @@ bash scripts/worktree_create.sh feature-name "Feature description"
 
 ### Step 3: Write Tests
 
-**Agent**: backend-test-specialist{{#if HAS_FRONTEND}} or frontend-test-specialist{{/if}}
+**Agent**: backend-test-specialist or frontend-test-specialist
 
 **Responsibilities**:
 - Analyze implementation
@@ -187,7 +190,7 @@ def test_feature():
 
 ### Step 4: Commit Code + Tests
 
-**Agent**: {{BACKEND_AGENT_NAME}}{{#if HAS_FRONTEND}} or {{FRONTEND_AGENT_NAME}}{{/if}}
+**Agent**: backend-developer or frontend-developer
 
 **Commit Format**:
 ```
@@ -195,8 +198,6 @@ def test_feature():
 
 - Implementation details
 - Test coverage: X%
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
 
 **Types**: feat, fix, docs, style, refactor, test, chore
@@ -209,17 +210,13 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Backend
-docker-compose exec backend {{TEST_COMMAND}}
-
-{{#if HAS_FRONTEND}}# Frontend
+# With Docker:
+docker-compose exec backend <test command>
 docker-compose exec frontend npm test -- --coverage
-{{/if}}{{else}}# Backend
-{{TEST_COMMAND}}
 
-{{#if HAS_FRONTEND}}# Frontend
+# Without Docker:
+<test command>
 npm test -- --coverage
-{{/if}}{{/if}}
 ```
 
 **Pass Criteria**:
@@ -231,23 +228,22 @@ npm test -- --coverage
 - Orchestrator invokes developer to fix
 - Returns to Step 5 after fix
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 5b):
+**On Docker Failure** (Step 5b) *(Docker projects only)*:
 - docker-debugger diagnoses container issues
 - Fixes and retries test execution
-{{/if}}
 
 ---
 
 ### Step 6: Code Review ⚠️ GATE
 
-**Agent**: backend-code-reviewer{{#if HAS_FRONTEND}} or frontend-code-reviewer{{/if}} (sonnet, opus for critical)
+**Agent**: backend-code-reviewer or frontend-code-reviewer (sonnet, opus for critical)
 
 **Review Criteria**:
 - ✅ Security (SQL injection, auth bypass, input validation)
 - ✅ Performance (query optimization, async patterns)
 - ✅ Best Practices (style guide, error handling)
 - ✅ Architecture (follows project patterns)
-{{#if HAS_FRONTEND}}- ✅ Accessibility (ARIA labels, keyboard navigation){{/if}}
+- ✅ Accessibility (ARIA labels, keyboard navigation) — for frontend only
 
 **Outcomes**:
 - ✅ **APPROVED** - Continue to Step 8
@@ -257,7 +253,7 @@ npm test -- --coverage
 
 ### Step 7: Fix Issues
 
-**Agent**: {{BACKEND_AGENT_NAME}}{{#if HAS_FRONTEND}} or {{FRONTEND_AGENT_NAME}}{{/if}}
+**Agent**: backend-developer or frontend-developer
 
 **Responsibilities**:
 - Address ALL review issues
@@ -275,17 +271,13 @@ npm test -- --coverage
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Backend E2E tests
-docker-compose exec backend python scripts/test_integration.py
-
-{{#if HAS_FRONTEND}}# Frontend E2E tests
+# With Docker:
+docker-compose exec backend pytest tests/integration/ -v
 docker-compose exec frontend npm run test:e2e
-{{/if}}{{else}}# Backend E2E tests
-python scripts/test_integration.py
 
-{{#if HAS_FRONTEND}}# Frontend E2E tests
+# Without Docker:
+pytest tests/integration/ -v
 npm run test:e2e
-{{/if}}{{/if}}
 ```
 
 **Pass Criteria**:
@@ -297,16 +289,15 @@ npm run test:e2e
 - Developer fixes issues
 - May loop back to Step 5-6 if code changes needed
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 8b):
+**On Docker Failure** (Step 8b) *(Docker projects only)*:
 - docker-debugger diagnoses E2E test issues
 - Fixes and retries
-{{/if}}
 
 ---
 
 ### Step 9: Push Feature Branch
 
-**Agent**: {{BACKEND_AGENT_NAME}}{{#if HAS_FRONTEND}} or {{FRONTEND_AGENT_NAME}}{{/if}}
+**Agent**: backend-developer or frontend-developer
 
 **Commands**:
 ```bash
@@ -324,11 +315,17 @@ git push -u origin HEAD
 **Agent**: merge-conflict-resolver (opus model)
 
 **Actions**:
-1. Pull latest {{MAIN_BRANCH}}
-2. Merge {{MAIN_BRANCH}} into feature branch
+1. Pull latest base branch
+2. Merge base branch into feature branch
 3. Detect conflicts
 4. Resolve automatically (or request manual review for complex cases)
 5. Commit resolution
+6. Push resolved feature branch to remote
+
+```bash
+# Push after conflict resolution:
+git push origin HEAD --force-with-lease
+```
 
 **Conflict Types**:
 - Simple: imports, whitespace → auto-resolve
@@ -346,15 +343,17 @@ git push -u origin HEAD
 
 **Agent**: integration-tester (haiku model)
 
-**Purpose**: Verify everything works with {{MAIN_BRANCH}} merged
+**Purpose**: Verify everything works with base branch merged
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Full test suite
-docker-compose exec backend pytest
-{{#if HAS_FRONTEND}}docker-compose exec frontend npm test{{/if}}{{else}}# Full test suite
-{{TEST_COMMAND}}
-{{#if HAS_FRONTEND}}npm test{{/if}}{{/if}}
+# With Docker:
+docker-compose exec backend <test command>
+docker-compose exec frontend npm test
+
+# Without Docker:
+<test command>
+npm test
 ```
 
 **Pass Criteria**:
@@ -364,21 +363,20 @@ docker-compose exec backend pytest
 - Workflow BLOCKED
 - Developer fixes merge issues
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 11b):
+**On Docker Failure** (Step 11b) *(Docker projects only)*:
 - docker-debugger diagnoses issues
 - Fixes and retries
-{{/if}}
 
 ---
 
-### Step 12: Merge to {{MAIN_BRANCH}}
+### Step 12: Merge to Base Branch
 
 **Agent**: worktree-manager
 
 **Actions**:
 1. Verify all gates passed
-2. Merge feature branch to {{MAIN_BRANCH}}
-3. Push {{MAIN_BRANCH}} to remote
+2. Merge feature branch to base branch
+3. Push base branch to remote
 4. Update worktree registry
 
 **Commands**:
@@ -388,8 +386,8 @@ python scripts/worktree_merge.py <worktree-id>
 ```
 
 **Output**:
-- Feature merged to {{MAIN_BRANCH}}
-- {{MAIN_BRANCH}} pushed to remote
+- Feature merged to base branch
+- Base branch pushed to remote
 - Ready for cleanup
 
 ---
@@ -399,10 +397,10 @@ python scripts/worktree_merge.py <worktree-id>
 **Agent**: worktree-manager
 
 **Actions**:
-1. Stop{{#if USES_DOCKER}} and remove Docker containers{{/if}}
-2. Delete worktree
-3. Update registry
-{{#if USES_DOCKER}}4. Clean up Docker images/volumes (optional){{/if}}
+1. Delete worktree
+2. Update registry
+
+*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images/volumes.
 
 **Commands**:
 ```bash
@@ -410,11 +408,10 @@ python scripts/worktree_merge.py <worktree-id>
 bash scripts/worktree_cleanup.sh <worktree-id>
 ```
 
-{{#if USES_DOCKER}}**On Failure** (Step 13b):
+**On Failure** (Step 13b) *(Docker projects only)*:
 - docker-debugger force cleanups stuck resources
 - Removes containers, images, volumes
 - Ensures clean state
-{{/if}}
 
 ---
 
@@ -438,27 +435,30 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 ### Hotfix Workflow (9 steps) ⚡
 
-**Steps**: 1 → 2 → 4 → 5 → 6 → 9 → 10 → 12 → 13
+**Steps**: 1 → 2 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 
 **Use For**: Production bugs, urgent fixes
 **Time**: 15-20 minutes
 **Cost**: Low
-**Note**: Skips test writing (assumes tests exist), skips E2E tests
+**Note**: Skips test writing (assumes tests exist), skips E2E tests; includes fix loop (Step 7)
 
 ### Test-Only Workflow (7 steps)
 
 **Steps**: 1 → 3 → 4 → 5 → 9 → 12 → 13
 
-**Use For**: Adding tests to existing code
+**Use For**: Adding tests to existing code, improving coverage
 **Time**: 15-20 minutes
+**Cost**: Low
+**Note**: Skips implementation and E2E tests
 
-### Docs-Only Workflow (6 steps)
+### Docs-Only Workflow (5 steps)
 
-**Steps**: 1 → 2 → 9 → 10 → 12 → 13
+**Steps**: 1 → 2 → 9 → 12 → 13
 
-**Use For**: Documentation changes
+**Use For**: Documentation changes only
 **Time**: 10-15 minutes
-**Note**: Skips testing and review
+**Cost**: Very Low
+**Note**: Skips testing and review; for documentation PRs only
 
 ---
 
@@ -517,7 +517,7 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 - [Development Guide](../.claude/DEVELOPMENT.md) - Coding standards
 - [Testing Guide](TESTING_GUIDE.md) - Testing practices
-{{#if USES_DOCKER}}- [Docker Guide](../.claude/DOCKER_GUIDE.md) - Docker commands{{/if}}
+- [Docker Guide](../.claude/DOCKER_GUIDE.md) - Docker commands *(Docker projects only)*
 - [Architecture](../.claude/ARCHITECTURE.md) - System architecture
 
 ---

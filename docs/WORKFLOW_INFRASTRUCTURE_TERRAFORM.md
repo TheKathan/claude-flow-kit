@@ -16,7 +16,7 @@ This guide covers the 13-step worktree-based workflow for **Terraform infrastruc
 - **Merge conflict resolution** (automated before merge)
 - **Automatic merge & cleanup** (after all gates pass)
 
-**Note**: Infrastructure workflows differ from application code - instead of merging to main and deploying, you merge the Terraform code to main, then apply changes to dev/staging/production environments separately.
+**Note**: Infrastructure workflows differ from application code — you merge the Terraform code to the base branch, then apply changes to dev/staging/production environments separately.
 
 ---
 
@@ -30,15 +30,15 @@ Every infrastructure change:
 1. Gets its own **isolated worktree** with separate state
 2. Goes through **mandatory quality gates** before being pushed
 3. Has **conflicts resolved automatically** before merge
-4. Is **merged to main** after approval (application happens separately)
+4. Is **merged to the base branch** after approval (application happens separately)
 
 **Quality Gates**:
-1. **Validation Gate** (Step 5) - terraform validate + terraform plan must succeed
+1. **Validation Gate** (Step 5) - `terraform validate` + `terraform plan` must succeed
 2. **Security Scan Gate** (Step 5) - tfsec + checkov must pass
 3. **Code Review Gate** (Step 6) - Code must be approved by infrastructure reviewer
 4. **Terraform Test Gate** (Step 8) - Automated tests must pass
 5. **Conflict Resolution Gate** (Step 10) - Merge conflicts must be resolved
-6. **Final Validation Gate** (Step 11) - Final terraform plan with {{MAIN_BRANCH}} merged
+6. **Final Validation Gate** (Step 11) - Final terraform plan with base branch merged
 
 ---
 
@@ -73,16 +73,16 @@ Step 8:  integration-tester                 → Run terraform test + Terratest [
 Step 9:  terraform-developer                → Push to feature branch
 Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final terraform plan [GATE]
-Step 12: worktree-manager                   → Merge to {{MAIN_BRANCH}}, push
+Step 12: worktree-manager                   → Merge to base branch, push
 Step 13: worktree-manager                   → Cleanup worktree + state
 ```
 
-**Important**: After Step 12, infrastructure is NOT automatically applied. Use separate deployment process:
-- Step 14 (Manual): Apply to dev environment → `terraform apply` in dev workspace
-- Step 15 (Manual): Verify dev deployment → Integration tests
-- Step 16 (Manual): Apply to staging → `terraform apply` in staging workspace
-- Step 17 (Manual): Verify staging → Integration tests
-- Step 18 (Manual): Apply to production → `terraform apply` in prod workspace (with approval)
+**Important**: After Step 12, infrastructure is NOT automatically applied. Use a separate deployment process:
+- Step 14 (Manual): Apply to dev environment — `terraform apply` in dev workspace
+- Step 15 (Manual): Verify dev deployment — integration tests
+- Step 16 (Manual): Apply to staging — `terraform apply` in staging workspace
+- Step 17 (Manual): Verify staging — integration tests
+- Step 18 (Manual): Apply to production — `terraform apply` in prod workspace (with approval)
 
 ---
 
@@ -120,6 +120,8 @@ Step 13: worktree-manager                   → Cleanup worktree + state
 
 **Action**: Create isolated worktree with separate Terraform state
 
+> **Note**: The worktree branches from whichever branch is currently checked out. At Step 12, the feature branch will be merged back to that same base branch.
+
 **Commands**:
 ```bash
 # Agent runs:
@@ -143,10 +145,10 @@ bash scripts/worktree_create.sh infra-feature-name "Infrastructure change descri
 - Follow Terraform best practices
 - Use modules for reusability
 - Implement proper variable validation
-- Add meaningful descriptions
+- Add meaningful descriptions to all variables and outputs
 - Use consistent naming conventions
 - Handle secrets securely
-- Place scripts in `scripts/` folder
+- Place scripts in `scripts/` folder (never `/tmp/`)
 
 **Terraform-Specific Patterns**:
 ```hcl
@@ -212,7 +214,6 @@ locals {
     }
   )
 
-  # Calculate subnet CIDRs
   public_subnet_cidrs = [
     for idx in range(length(var.availability_zones)) :
     cidrsubnet(var.vpc_cidr, 4, idx)
@@ -230,24 +231,14 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${var.environment}-vpc"
-    }
-  )
+  tags = merge(local.common_tags, { Name = "${var.environment}-vpc" })
 }
 
 # Internet Gateway
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${var.environment}-igw"
-    }
-  )
+  tags = merge(local.common_tags, { Name = "${var.environment}-igw" })
 }
 
 # Public Subnets
@@ -258,13 +249,10 @@ resource "aws_subnet" "public" {
   availability_zone       = var.availability_zones[count.index]
   map_public_ip_on_launch = true
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${var.environment}-public-subnet-${count.index + 1}"
-      Type = "public"
-    }
-  )
+  tags = merge(local.common_tags, {
+    Name = "${var.environment}-public-subnet-${count.index + 1}"
+    Type = "public"
+  })
 }
 
 # Private Subnets
@@ -274,13 +262,10 @@ resource "aws_subnet" "private" {
   cidr_block        = local.private_subnet_cidrs[count.index]
   availability_zone = var.availability_zones[count.index]
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${var.environment}-private-subnet-${count.index + 1}"
-      Type = "private"
-    }
-  )
+  tags = merge(local.common_tags, {
+    Name = "${var.environment}-private-subnet-${count.index + 1}"
+    Type = "private"
+  })
 }
 
 # NAT Gateways (one per AZ for high availability)
@@ -288,12 +273,7 @@ resource "aws_eip" "nat" {
   count  = length(var.availability_zones)
   domain = "vpc"
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${var.environment}-nat-eip-${count.index + 1}"
-    }
-  )
+  tags = merge(local.common_tags, { Name = "${var.environment}-nat-eip-${count.index + 1}" })
 
   depends_on = [aws_internet_gateway.main]
 }
@@ -303,12 +283,7 @@ resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${var.environment}-nat-gw-${count.index + 1}"
-    }
-  )
+  tags = merge(local.common_tags, { Name = "${var.environment}-nat-gw-${count.index + 1}" })
 }
 
 # Route Tables
@@ -320,12 +295,7 @@ resource "aws_route_table" "public" {
     gateway_id = aws_internet_gateway.main.id
   }
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${var.environment}-public-rt"
-    }
-  )
+  tags = merge(local.common_tags, { Name = "${var.environment}-public-rt" })
 }
 
 resource "aws_route_table" "private" {
@@ -337,12 +307,7 @@ resource "aws_route_table" "private" {
     nat_gateway_id = aws_nat_gateway.main[count.index].id
   }
 
-  tags = merge(
-    local.common_tags,
-    {
-      Name = "${var.environment}-private-rt-${count.index + 1}"
-    }
-  )
+  tags = merge(local.common_tags, { Name = "${var.environment}-private-rt-${count.index + 1}" })
 }
 
 # Route Table Associations
@@ -514,12 +479,10 @@ git commit -m "feat: add VPC module with high availability
 
 - Implement VPC module with public/private subnets across 2 AZs
 - Add NAT gateways for private subnet internet access
-- Add proper tagging strategy for resource management
+- Add tagging strategy for resource management
 - Implement variable validation for inputs
 - Add Terraform native tests for validation
-- Add security best practices (DNS enabled, proper routing)
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+- Apply security best practices (DNS enabled, proper routing)"
 ```
 
 ---
@@ -550,8 +513,8 @@ opa test policies/
 ```
 
 **Pass Criteria**:
-- terraform validate succeeds
-- terraform plan succeeds (no errors)
+- `terraform validate` succeeds
+- `terraform plan` succeeds with no errors
 - tfsec passes (no HIGH/CRITICAL issues)
 - checkov passes (no HIGH/CRITICAL issues)
 - Compliance tests pass
@@ -569,19 +532,19 @@ opa test policies/
 
 **Review Criteria**:
 - ✅ **Security** (IAM least privilege, encryption, secret management)
-- ✅ **Best Practices** (module structure, naming, state management)
-- ✅ **Cost Optimization** (right-sized resources, reserved instances)
+- ✅ **Best Practices** (module structure, naming conventions, state management)
+- ✅ **Cost Optimization** (right-sized resources, lifecycle policies)
 - ✅ **High Availability** (multi-AZ, redundancy, failover)
 - ✅ **Compliance** (tagging, logging, monitoring)
-- ✅ **Documentation** (variable descriptions, outputs, README)
+- ✅ **Documentation** (variable descriptions, output descriptions, README)
 
 **Terraform-Specific Checks**:
 - All variables have descriptions
 - All outputs have descriptions
-- Proper use of locals for DRY
+- Proper use of locals for DRY code
 - Module versioning specified
 - State backend configured securely
-- Sensitive outputs marked as sensitive
+- Sensitive outputs marked as `sensitive = true`
 - Resource names follow conventions
 - Tags applied consistently
 
@@ -591,7 +554,233 @@ opa test policies/
 
 ---
 
-### Step 7-13: [Continue with same quality gate structure]
+### Step 7: Fix Review Issues
+
+**Agent**: terraform-developer
+
+**Action**: Address all code review feedback
+
+**Process**:
+1. Read review comments carefully
+2. Fix each identified issue
+3. Run `terraform validate` and `terraform fmt -recursive`
+4. Re-run security scans to confirm issues are resolved
+5. Commit fixes
+
+**Commands**:
+```bash
+# Format after fixes
+terraform fmt -recursive
+
+# Validate
+terraform validate
+
+# Re-run security scans
+tfsec .
+checkov -d .
+
+# Commit fixes
+git add .
+git commit -m "fix: address infrastructure code review feedback
+
+- Add missing descriptions to all variables and outputs
+- Mark sensitive outputs with sensitive = true
+- Add encryption configuration to S3 bucket
+- Fix IAM policy to apply least privilege"
+```
+
+**Then**: Return to Step 5 to re-run quality gates
+
+---
+
+### Step 8: Run Terraform Tests ⚠️ GATE
+
+**Agent**: integration-tester (haiku model)
+
+**Commands**:
+```bash
+# Run Terraform native tests (Terraform 1.6+)
+terraform test
+
+# Run Terratest (if configured)
+cd tests/
+go test -v -timeout 30m ./...
+
+# Run OPA policy tests (if configured)
+opa test policies/ -v
+
+# Run compliance framework tests (if configured)
+checkov -d . --framework terraform --check CKV_AWS_*
+```
+
+**Pass Criteria**:
+- All `terraform test` assertions pass
+- Terratest integration tests pass (if configured)
+- OPA policy tests pass
+- No new security findings introduced
+
+**On Fail**:
+- Workflow BLOCKED
+- Orchestrator invokes terraform-developer to fix failures
+- Returns to Step 8 after fix
+
+---
+
+### Step 9: Push to Feature Branch
+
+**Agent**: terraform-developer
+
+**Commands**:
+```bash
+# Push feature branch to remote
+git push origin infra/feature-name
+
+# Verify push succeeded
+git log origin/infra/feature-name --oneline -5
+```
+
+---
+
+### Step 10: Resolve Merge Conflicts ⚠️ GATE
+
+**Agent**: merge-conflict-resolver (opus model)
+
+**Actions**:
+1. Pull latest base branch
+2. Merge base branch into feature branch
+3. Detect conflicts (pay special attention to `.tf` and `.tfvars` files)
+4. Resolve automatically (or request manual review for state-impacting conflicts)
+5. Commit resolution
+6. Push resolved feature branch to remote
+
+**Commands**:
+```bash
+# Pull latest and merge base branch
+git fetch origin
+git merge origin/<base-branch>
+
+# After conflict resolution - re-validate to confirm integrity:
+terraform fmt -recursive
+terraform validate
+terraform plan -out=tfplan
+
+# Push after conflict resolution:
+git push origin HEAD --force-with-lease
+```
+
+**Terraform Conflict Notes**:
+- Conflicts in `.tf` files are usually safe to resolve by keeping both resource blocks
+- Conflicts in `terraform.lock.hcl` should keep the more recent provider versions
+- Never attempt auto-resolution of `.tfstate` files — these require manual review
+- After resolution, always run `terraform validate` and `terraform plan` to confirm no unintended changes
+
+**On Fail**:
+- Complex conflicts or `.tfstate` conflicts require manual resolution
+- Orchestrator alerts developer to resolve manually
+- Returns to Step 10 after manual resolution
+
+---
+
+### Step 11: Final Validation ⚠️ GATE
+
+**Agent**: integration-tester (haiku model)
+
+**Commands**:
+```bash
+# Final validation after base branch merged
+terraform validate
+
+# Final plan — review carefully for unexpected changes
+terraform plan -out=tfplan-final
+
+# Re-run security scans with merged state
+tfsec .
+checkov -d .
+```
+
+**Pass Criteria**:
+- `terraform validate` succeeds
+- `terraform plan` shows only the expected changes (no unintended resource drift)
+- Security scans pass
+- No unexpected resource destructions or replacements in the plan
+
+**On Fail**:
+- terraform-developer investigates unexpected plan changes
+- Fix any regressions introduced by the base branch merge
+- Returns to Step 11 after fix
+
+---
+
+### Step 12: Merge to Base Branch ⚠️ FINAL
+
+**Agent**: worktree-manager
+
+**Action**: Merge feature branch into base branch and push
+
+**Commands**:
+```bash
+# Switch to base branch
+git checkout <base-branch>
+
+# Merge feature branch (no fast-forward for clear history)
+git merge --no-ff infra/feature-name -m "merge: infra/feature-name into <base-branch>"
+
+# Push to remote
+git push origin <base-branch>
+```
+
+**After merge**: Infrastructure code is now in the base branch but NOT yet applied. Follow the manual deployment process (Steps 14-18) to apply changes to each environment.
+
+---
+
+### Step 13: Cleanup Worktree + State
+
+**Agent**: worktree-manager
+
+**Commands**:
+```bash
+# Remove the feature worktree
+bash scripts/worktree_remove.sh infra-feature-name
+
+# Clean up Terraform workspace (if using workspaces)
+terraform workspace select default
+terraform workspace delete infra-feature-name
+
+# Remove temporary plan files
+rm -f tfplan tfplan-final
+```
+
+**Output**:
+- Worktree removed from `.worktrees/`
+- Feature branch deleted locally (remote branch kept for PR history)
+- Temporary Terraform workspace cleaned up
+
+---
+
+## Workflow Variants
+
+### Standard Workflow (11 steps)
+**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
+**Use For**: Regular infrastructure changes (80% of work)
+**Note**: Skips Terratest (Step 8) — use when native `terraform test` coverage is sufficient
+
+### Full Workflow (13 steps)
+**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
+**Use For**: New modules, network changes, multi-region deployments, major refactors
+**Note**: Includes all quality gates including Terratest
+
+### Hotfix Workflow (9 steps)
+**Steps**: 1 → 2 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
+**Use For**: Critical infrastructure fixes, urgent security patches
+**Note**: Skips test writing (assumes tests exist), skips Terratest; includes fix loop (Step 7)
+
+### Test-Only Workflow (7 steps)
+**Steps**: 1 → 3 → 4 → 5 → 9 → 12 → 13
+**Use For**: Adding tests to existing Terraform modules, improving validation coverage
+
+### Docs-Only Workflow (5 steps)
+**Steps**: 1 → 2 → 9 → 12 → 13
+**Use For**: Documentation updates, README changes, variable description improvements
 
 ---
 
@@ -603,33 +792,34 @@ opa test policies/
 ✅ Implement variable validation
 ✅ Use remote state with locking
 ✅ Tag all resources consistently
-✅ Use workspaces for environments
-✅ Document variables and outputs
-✅ Use terraform fmt before committing
-✅ Run security scans (tfsec, checkov)
-✅ Implement least privilege IAM
-✅ Encrypt sensitive data
+✅ Use workspaces for environment isolation
+✅ Document all variables and outputs with descriptions
+✅ Run `terraform fmt` before committing
+✅ Run security scans (tfsec, checkov) before every review
+✅ Implement least privilege IAM policies
+✅ Encrypt sensitive data at rest and in transit
 
 ### DON'T
 
-❌ Hardcode secrets or credentials
-❌ Skip variable validation
-❌ Use local state in production
+❌ Hardcode secrets or credentials in `.tf` files
+❌ Skip variable validation for critical inputs
+❌ Use local state in shared or production environments
 ❌ Ignore security scan warnings
-❌ Create resources without tags
-❌ Skip documentation
+❌ Create resources without consistent tags
+❌ Skip documentation on variables and outputs
 ❌ Use default security groups
-❌ Forget to version modules
+❌ Forget to version external modules
 ❌ Create single-AZ resources for critical workloads
-❌ Skip cost analysis
+❌ Skip cost analysis for new resource types
 
 ---
 
 ## Resources
 
 - [Terraform Development Guide](../.claude/TERRAFORM_GUIDE.md) - Terraform best practices
+- [Testing Guide](TESTING_GUIDE.md) - Terratest and native testing practices
 - [Terraform Documentation](https://www.terraform.io/docs) - Official Terraform docs
-- [tfsec](https://aquasecurity.github.io/tfsec/) - Security scanner
+- [tfsec](https://aquasecurity.github.io/tfsec/) - Security scanner for Terraform
 - [Checkov](https://www.checkov.io/) - Policy-as-code scanner
 
 ---

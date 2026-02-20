@@ -9,7 +9,7 @@
 ## Overview
 
 This guide covers the 13-step worktree-based workflow for **.NET/ASP.NET Core backend development**. This workflow integrates:
-- **Worktree isolation** (each feature gets its own worktree{{#if USES_DOCKER}} + Docker environment{{/if}})
+- **Worktree isolation** (each feature gets its own worktree, with Docker environment for Docker projects)
 - **Architectural planning** (optional for complex features)
 - **Automated test writing** (mandatory with xUnit)
 - **Quality gates** (tests + code review + integration tests)
@@ -25,7 +25,7 @@ This guide covers the 13-step worktree-based workflow for **.NET/ASP.NET Core ba
 **Isolated, Test-Driven Quality with Automated Gates**
 
 Every backend feature:
-1. Gets its own **isolated worktree{{#if USES_DOCKER}} + Docker environment{{/if}}**
+1. Gets its own **isolated worktree** (with Docker environment for Docker projects)
 2. Goes through **mandatory quality gates** before being pushed
 3. Has **conflicts resolved automatically** before merge
 4. Is **merged and cleaned up automatically** after approval
@@ -35,7 +35,7 @@ Every backend feature:
 2. **Code Review Gate** (Step 6) - Code must be approved by backend reviewer
 3. **Integration Test Gate** (Step 8) - End-to-end tests must pass
 4. **Conflict Resolution Gate** (Step 10) - Merge conflicts must be resolved
-5. **Final Integration Gate** (Step 11) - Final tests with {{MAIN_BRANCH}} merged must pass
+5. **Final Integration Gate** (Step 11) - Final tests with base branch merged must pass
 
 ---
 
@@ -51,7 +51,7 @@ Every backend feature:
 | **dotnet-test-specialist** | **Tester** | **Backend** | **Write xUnit tests** | sonnet |
 | **backend-code-reviewer** | **Reviewer** | **Backend** | **Review backend code** | sonnet/opus |
 | integration-tester | Tester | All | Execute all tests and enforce gates | haiku |
-{{#if USES_DOCKER}}| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** | sonnet |{{/if}}
+| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** *(Docker projects only)* | sonnet |
 | **merge-conflict-resolver** | **Resolver** | **All** | **Detect and resolve merge conflicts** | opus |
 
 ---
@@ -60,25 +60,27 @@ Every backend feature:
 
 ```
 Step 0:  [OPTIONAL] software-architect      → Design architecture
-Step 1:  worktree-manager                   → Create worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 1b: [ON-FAILURE] docker-debugger       → Debug setup issues{{/if}}
+Step 1:  worktree-manager                   → Create worktree
+Step 1b: [DOCKER/ON-FAILURE] docker-debugger → Debug setup issues
 Step 2:  dotnet-developer                   → Implement .NET/ASP.NET Core feature
 Step 3:  dotnet-test-specialist             → Write xUnit tests
 Step 4:  dotnet-developer                   → Commit code + tests
 Step 5:  integration-tester                 → Run xUnit unit tests [GATE]
-{{#if USES_DOCKER}}Step 5b: [ON-FAILURE] docker-debugger       → Debug test issues{{/if}}
+Step 5b: [DOCKER/ON-FAILURE] docker-debugger → Debug test issues
 Step 6:  backend-code-reviewer              → Review code [GATE]
 Step 7:  dotnet-developer                   → Fix if needed (loop to 5-6)
 Step 8:  integration-tester                 → Run E2E tests [GATE]
-{{#if USES_DOCKER}}Step 8b: [ON-FAILURE] docker-debugger       → Debug E2E issues{{/if}}
+Step 8b: [DOCKER/ON-FAILURE] docker-debugger → Debug E2E issues
 Step 9:  dotnet-developer                   → Push to feature branch
 Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final integration test [GATE]
-{{#if USES_DOCKER}}Step 11b: [ON-FAILURE] docker-debugger      → Debug integration issues{{/if}}
-Step 12: worktree-manager                   → Merge to {{MAIN_BRANCH}}, push
-Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 13b: [ON-FAILURE] docker-debugger      → Force cleanup{{/if}}
+Step 11b: [DOCKER/ON-FAILURE] docker-debugger → Debug integration issues
+Step 12: worktree-manager                   → Merge to base branch, push
+Step 13: worktree-manager                   → Cleanup worktree
+Step 13b: [DOCKER/ON-FAILURE] docker-debugger → Force cleanup
 ```
+
+> `b` steps only activate for Docker projects when container failures occur.
 
 ---
 
@@ -113,7 +115,7 @@ Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKE
 
 **Agent**: worktree-manager
 
-**Action**: Create isolated worktree{{#if USES_DOCKER}} with Docker environment{{/if}}
+**Action**: Create isolated worktree
 
 **Commands**:
 ```bash
@@ -124,15 +126,15 @@ bash scripts/worktree_create.sh feature-name "Feature description"
 **Output**:
 - Worktree created at `.worktrees/feature-name`
 - Branch created: `feature/feature-name`
-{{#if USES_DOCKER}}- Docker containers running with unique ports (including SQL Server/PostgreSQL and Redis)
-- Completely isolated .NET environment with separate database per worktree
-- No shared resources with main branch{{/if}}
 
-{{#if USES_DOCKER}}**On Failure** (Step 1b):
+> **Note**: The worktree branches from whichever branch is currently checked out. At Step 12, the feature branch will be merged back to that same base branch.
+
+> *(Docker projects only)* Docker containers start with unique ports, providing a completely isolated .NET environment with a separate database (SQL Server/PostgreSQL) per worktree — no shared resources.
+
+**On Failure** (Step 1b) *(Docker projects only)*:
 - docker-debugger diagnoses port conflicts, container issues
 - Fixes automatically if possible
 - Reports if manual intervention needed
-{{/if}}
 
 ---
 
@@ -301,27 +303,6 @@ public class UsersControllerTests
         // Assert
         result.Result.Should().BeOfType<ConflictObjectResult>();
     }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public async Task CreateUser_InvalidEmail_ReturnsBadRequest(string invalidEmail)
-    {
-        // Arrange
-        var createDto = new CreateUserDto
-        {
-            Email = invalidEmail,
-            Username = "username",
-            Password = "password"
-        };
-
-        // Act & Assert
-        // Model validation should catch this
-        _controller.ModelState.AddModelError("Email", "Email is required");
-        var result = await _controller.CreateUser(createDto);
-        result.Result.Should().BeOfType<BadRequestObjectResult>();
-    }
 }
 ```
 
@@ -340,23 +321,15 @@ public class UsersControllerTests
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Format code
+# With Docker:
 docker-compose exec backend dotnet format
-
-# Run linter
 docker-compose exec backend dotnet format --verify-no-changes
-
-# Build project
 docker-compose exec backend dotnet build
-{{else}}# Format code
+
+# Without Docker:
 dotnet format
-
-# Run linter
 dotnet format --verify-no-changes
-
-# Build project
 dotnet build
-{{/if}}
 
 # Commit
 git add .
@@ -367,9 +340,7 @@ git commit -m "feat: add user creation endpoint
 - Add User entity with Entity Framework Core
 - Implement UserService with duplicate email check
 - Add comprehensive xUnit tests with Moq (unit + integration)
-- Test coverage: 85%
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+- Test coverage: 85%"
 ```
 
 **Commit Format**:
@@ -378,8 +349,6 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 - Implementation details
 - Test coverage: X%
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
 
 **Types**: feat, fix, docs, style, refactor, test, chore
@@ -392,23 +361,13 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Run xUnit tests with coverage
+# With Docker:
 docker-compose exec backend dotnet test --collect:"XPlat Code Coverage" --results-directory ./TestResults /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
-
-# Generate coverage report
 docker-compose exec backend reportgenerator -reports:./TestResults/*/coverage.cobertura.xml -targetdir:./TestResults/CoverageReport -reporttypes:Html
 
-# View coverage
-docker-compose exec backend cat ./TestResults/CoverageReport/index.html
-{{else}}# Run xUnit tests with coverage
+# Without Docker:
 dotnet test --collect:"XPlat Code Coverage" --results-directory ./TestResults /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura
-
-# Generate coverage report
 reportgenerator -reports:./TestResults/*/coverage.cobertura.xml -targetdir:./TestResults/CoverageReport -reporttypes:Html
-
-# View coverage
-cat ./TestResults/CoverageReport/index.html
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -422,10 +381,9 @@ cat ./TestResults/CoverageReport/index.html
 - Orchestrator invokes dotnet-developer to fix
 - Returns to Step 5 after fix
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 5b):
+**On Docker Failure** (Step 5b) *(Docker projects only)*:
 - docker-debugger diagnoses container issues
 - Fixes and retries test execution
-{{/if}}
 
 ---
 
@@ -479,23 +437,19 @@ cat ./TestResults/CoverageReport/index.html
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Backend E2E tests
+# With Docker:
 docker-compose exec backend dotnet test --filter "Category=Integration"
-
-# Or custom integration script
 docker-compose exec backend dotnet run --project tests/IntegrationTests
 
-# Check API health
-curl http://localhost:{{BACKEND_PORT}}/health
-{{else}}# Backend E2E tests
-dotnet test --filter "Category=Integration"
+# Check API health:
+curl http://localhost:5000/health
 
-# Or custom integration script
+# Without Docker:
+dotnet test --filter "Category=Integration"
 dotnet run --project tests/IntegrationTests
 
-# Check API health
+# Check API health:
 curl http://localhost:5000/health
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -509,10 +463,9 @@ curl http://localhost:5000/health
 - dotnet-developer fixes issues
 - May loop back to Step 5-6 if code changes needed
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 8b):
+**On Docker Failure** (Step 8b) *(Docker projects only)*:
 - docker-debugger diagnoses E2E test issues
 - Fixes and retries
-{{/if}}
 
 ---
 
@@ -537,11 +490,17 @@ git push -u origin HEAD
 **Agent**: merge-conflict-resolver (opus model)
 
 **Actions**:
-1. Pull latest {{MAIN_BRANCH}}
-2. Merge {{MAIN_BRANCH}} into feature branch
+1. Pull latest base branch
+2. Merge base branch into feature branch
 3. Detect conflicts
 4. Resolve automatically (or request manual review for complex cases)
 5. Commit resolution
+6. Push resolved feature branch to remote
+
+```bash
+# Push after conflict resolution:
+git push origin HEAD --force-with-lease
+```
 
 **.NET-Specific Conflict Types**:
 - **Simple**: usings, whitespace, formatting → auto-resolve
@@ -562,21 +521,17 @@ git push -u origin HEAD
 
 **Agent**: integration-tester (haiku model)
 
-**Purpose**: Verify everything works with {{MAIN_BRANCH}} merged
+**Purpose**: Verify everything works with base branch merged
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Full test suite
+# With Docker:
 docker-compose exec backend dotnet test --collect:"XPlat Code Coverage"
-
-# Build verification
 docker-compose exec backend dotnet build
-{{else}}# Full test suite
-dotnet test --collect:"XPlat Code Coverage"
 
-# Build verification
+# Without Docker:
+dotnet test --collect:"XPlat Code Coverage"
 dotnet build
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -588,21 +543,20 @@ dotnet build
 - Workflow BLOCKED
 - dotnet-developer fixes merge issues
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 11b):
+**On Docker Failure** (Step 11b) *(Docker projects only)*:
 - docker-debugger diagnoses issues
 - Fixes and retries
-{{/if}}
 
 ---
 
-### Step 12: Merge to {{MAIN_BRANCH}}
+### Step 12: Merge to Base Branch
 
 **Agent**: worktree-manager
 
 **Actions**:
 1. Verify all gates passed
-2. Merge feature branch to {{MAIN_BRANCH}}
-3. Push {{MAIN_BRANCH}} to remote
+2. Merge feature branch to base branch
+3. Push base branch to remote
 4. Update worktree registry
 
 **Commands**:
@@ -612,8 +566,8 @@ python scripts/worktree_merge.py <worktree-id>
 ```
 
 **Output**:
-- Feature merged to {{MAIN_BRANCH}}
-- {{MAIN_BRANCH}} pushed to remote
+- Feature merged to base branch
+- Base branch pushed to remote
 - Ready for cleanup
 
 ---
@@ -623,10 +577,10 @@ python scripts/worktree_merge.py <worktree-id>
 **Agent**: worktree-manager
 
 **Actions**:
-1. Stop{{#if USES_DOCKER}} and remove Docker containers{{/if}}
-2. Delete worktree
-3. Update registry
-{{#if USES_DOCKER}}4. Clean up Docker images/volumes (optional){{/if}}
+1. Delete worktree
+2. Update registry
+
+*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images/volumes.
 
 **Commands**:
 ```bash
@@ -634,11 +588,10 @@ python scripts/worktree_merge.py <worktree-id>
 bash scripts/worktree_cleanup.sh <worktree-id>
 ```
 
-{{#if USES_DOCKER}}**On Failure** (Step 13b):
+**On Failure** (Step 13b) *(Docker projects only)*:
 - docker-debugger force cleanups stuck resources
 - Removes containers, images, volumes
 - Ensures clean state
-{{/if}}
 
 ---
 
@@ -662,12 +615,30 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 ### Hotfix Workflow (9 steps) ⚡
 
-**Steps**: 1 → 2 → 4 → 5 → 6 → 9 → 10 → 12 → 13
+**Steps**: 1 → 2 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 
 **Use For**: Production bugs, urgent .NET fixes
 **Time**: 15-20 minutes
 **Cost**: Low
-**Note**: Skips test writing (assumes tests exist), skips E2E tests
+**Note**: Skips test writing (assumes tests exist), skips E2E tests; includes fix loop (Step 7)
+
+### Test-Only Workflow (7 steps)
+
+**Steps**: 1 → 3 → 4 → 5 → 9 → 12 → 13
+
+**Use For**: Adding tests to existing .NET code, improving coverage
+**Time**: 15-20 minutes
+**Cost**: Low
+**Note**: Skips implementation and E2E tests
+
+### Docs-Only Workflow (5 steps)
+
+**Steps**: 1 → 2 → 9 → 12 → 13
+
+**Use For**: Documentation changes only
+**Time**: 10-15 minutes
+**Cost**: Very Low
+**Note**: Skips testing and review; for documentation PRs only
 
 ---
 
@@ -705,83 +676,47 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 ### Building and Formatting
 ```bash
-{{#if USES_DOCKER}}# Build solution
+# With Docker:
 docker-compose exec backend dotnet build
-
-# Format code
 docker-compose exec backend dotnet format
-
-# Verify formatting
 docker-compose exec backend dotnet format --verify-no-changes
-
-# Restore packages
 docker-compose exec backend dotnet restore
-{{else}}# Build solution
+
+# Without Docker:
 dotnet build
-
-# Format code
 dotnet format
-
-# Verify formatting
 dotnet format --verify-no-changes
-
-# Restore packages
 dotnet restore
-{{/if}}
 ```
 
 ### Testing
 ```bash
-{{#if USES_DOCKER}}# Run all tests
+# With Docker:
 docker-compose exec backend dotnet test
-
-# Run with coverage
 docker-compose exec backend dotnet test --collect:"XPlat Code Coverage"
-
-# Run specific test project
 docker-compose exec backend dotnet test tests/MyProject.Tests
-
-# Run tests matching filter
 docker-compose exec backend dotnet test --filter "Category=Unit"
-{{else}}# Run all tests
+
+# Without Docker:
 dotnet test
-
-# Run with coverage
 dotnet test --collect:"XPlat Code Coverage"
-
-# Run specific test project
 dotnet test tests/MyProject.Tests
-
-# Run tests matching filter
 dotnet test --filter "Category=Unit"
-{{/if}}
 ```
 
 ### Database Migrations (Entity Framework Core)
 ```bash
-{{#if USES_DOCKER}}# Add migration
+# With Docker:
 docker-compose exec backend dotnet ef migrations add AddUserTable
-
-# Apply migrations
 docker-compose exec backend dotnet ef database update
-
-# Rollback migration
 docker-compose exec backend dotnet ef database update PreviousMigration
-
-# Generate SQL script
 docker-compose exec backend dotnet ef migrations script
-{{else}}# Add migration
+
+# Without Docker:
 dotnet ef migrations add AddUserTable
-
-# Apply migrations
 dotnet ef database update
-
-# Rollback migration
 dotnet ef database update PreviousMigration
-
-# Generate SQL script
 dotnet ef migrations script
-{{/if}}
 ```
 
 ---
@@ -811,9 +746,9 @@ dotnet ef migrations script
 
 ### Build Errors
 
-1. Verify all packages are restored (dotnet restore)
+1. Verify all packages are restored (`dotnet restore`)
 2. Check for missing dependencies
-3. Rebuild{{#if USES_DOCKER}} Docker container{{else}} solution{{/if}}
+3. With Docker: rebuild the Docker container. Without Docker: rebuild the solution.
 4. Check for circular dependencies
 
 ---
@@ -822,7 +757,7 @@ dotnet ef migrations script
 
 - [.NET Development Guide](../.claude/DOTNET_GUIDE.md) - C# coding standards
 - [Testing Guide](TESTING_GUIDE.md) - xUnit practices
-{{#if USES_DOCKER}}- [Docker Guide](../.claude/DOCKER_GUIDE.md) - Docker commands{{/if}}
+- [Docker Guide](../.claude/DOCKER_GUIDE.md) - Docker commands *(Docker projects only)*
 - [Architecture](../.claude/ARCHITECTURE.md) - System architecture
 - [ASP.NET Core Documentation](https://docs.microsoft.com/aspnet/core) - Official .NET docs
 - [xUnit Documentation](https://xunit.net/) - xUnit testing framework

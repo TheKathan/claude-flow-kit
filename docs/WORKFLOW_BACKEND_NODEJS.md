@@ -9,7 +9,7 @@
 ## Overview
 
 This guide covers the 13-step worktree-based workflow for **Node.js/Express backend development**. This workflow integrates:
-- **Worktree isolation** (each feature gets its own worktree{{#if USES_DOCKER}} + Docker environment{{/if}})
+- **Worktree isolation** (each feature gets its own worktree, with Docker environment for Docker projects)
 - **Architectural planning** (optional for complex features)
 - **Automated test writing** (mandatory with Jest)
 - **Quality gates** (tests + code review + integration tests)
@@ -25,7 +25,7 @@ This guide covers the 13-step worktree-based workflow for **Node.js/Express back
 **Isolated, Test-Driven Quality with Automated Gates**
 
 Every backend feature:
-1. Gets its own **isolated worktree{{#if USES_DOCKER}} + Docker environment{{/if}}**
+1. Gets its own **isolated worktree** (with Docker environment for Docker projects)
 2. Goes through **mandatory quality gates** before being pushed
 3. Has **conflicts resolved automatically** before merge
 4. Is **merged and cleaned up automatically** after approval
@@ -35,7 +35,7 @@ Every backend feature:
 2. **Code Review Gate** (Step 6) - Code must be approved by backend reviewer
 3. **Integration Test Gate** (Step 8) - End-to-end tests must pass
 4. **Conflict Resolution Gate** (Step 10) - Merge conflicts must be resolved
-5. **Final Integration Gate** (Step 11) - Final tests with {{MAIN_BRANCH}} merged must pass
+5. **Final Integration Gate** (Step 11) - Final tests with base branch merged must pass
 
 ---
 
@@ -51,7 +51,7 @@ Every backend feature:
 | **nodejs-test-specialist** | **Tester** | **Backend** | **Write Jest tests** | sonnet |
 | **backend-code-reviewer** | **Reviewer** | **Backend** | **Review backend code** | sonnet/opus |
 | integration-tester | Tester | All | Execute all tests and enforce gates | haiku |
-{{#if USES_DOCKER}}| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** | sonnet |{{/if}}
+| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** *(Docker projects only)* | sonnet |
 | **merge-conflict-resolver** | **Resolver** | **All** | **Detect and resolve merge conflicts** | opus |
 
 ---
@@ -60,25 +60,27 @@ Every backend feature:
 
 ```
 Step 0:  [OPTIONAL] software-architect      → Design architecture
-Step 1:  worktree-manager                   → Create worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 1b: [ON-FAILURE] docker-debugger       → Debug setup issues{{/if}}
+Step 1:  worktree-manager                   → Create worktree
+Step 1b: [DOCKER/ON-FAILURE] docker-debugger → Debug setup issues
 Step 2:  nodejs-developer                   → Implement Node.js/Express feature
 Step 3:  nodejs-test-specialist             → Write Jest tests
 Step 4:  nodejs-developer                   → Commit code + tests
 Step 5:  integration-tester                 → Run Jest unit tests [GATE]
-{{#if USES_DOCKER}}Step 5b: [ON-FAILURE] docker-debugger       → Debug test issues{{/if}}
+Step 5b: [DOCKER/ON-FAILURE] docker-debugger → Debug test issues
 Step 6:  backend-code-reviewer              → Review code [GATE]
 Step 7:  nodejs-developer                   → Fix if needed (loop to 5-6)
 Step 8:  integration-tester                 → Run E2E tests [GATE]
-{{#if USES_DOCKER}}Step 8b: [ON-FAILURE] docker-debugger       → Debug E2E issues{{/if}}
+Step 8b: [DOCKER/ON-FAILURE] docker-debugger → Debug E2E issues
 Step 9:  nodejs-developer                   → Push to feature branch
 Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final integration test [GATE]
-{{#if USES_DOCKER}}Step 11b: [ON-FAILURE] docker-debugger      → Debug integration issues{{/if}}
-Step 12: worktree-manager                   → Merge to {{MAIN_BRANCH}}, push
-Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 13b: [ON-FAILURE] docker-debugger      → Force cleanup{{/if}}
+Step 11b: [DOCKER/ON-FAILURE] docker-debugger → Debug integration issues
+Step 12: worktree-manager                   → Merge to base branch, push
+Step 13: worktree-manager                   → Cleanup worktree
+Step 13b: [DOCKER/ON-FAILURE] docker-debugger → Force cleanup
 ```
+
+> `b` steps only activate for Docker projects when container failures occur.
 
 ---
 
@@ -113,7 +115,7 @@ Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKE
 
 **Agent**: worktree-manager
 
-**Action**: Create isolated worktree{{#if USES_DOCKER}} with Docker environment{{/if}}
+**Action**: Create isolated worktree
 
 **Commands**:
 ```bash
@@ -124,15 +126,15 @@ bash scripts/worktree_create.sh feature-name "Feature description"
 **Output**:
 - Worktree created at `.worktrees/feature-name`
 - Branch created: `feature/feature-name`
-{{#if USES_DOCKER}}- Docker containers running with unique ports (including PostgreSQL/MongoDB and Redis)
-- Completely isolated Node.js environment with separate database per worktree
-- No shared resources with main branch{{/if}}
 
-{{#if USES_DOCKER}}**On Failure** (Step 1b):
+> **Note**: The worktree branches from whichever branch is currently checked out. At Step 12, the feature branch will be merged back to that same base branch.
+
+> *(Docker projects only)* Docker containers start with unique ports, providing a completely isolated Node.js environment with a separate database per worktree — no shared resources.
+
+**On Failure** (Step 1b) *(Docker projects only)*:
 - docker-debugger diagnoses port conflicts, container issues
 - Fixes automatically if possible
 - Reports if manual intervention needed
-{{/if}}
 
 ---
 
@@ -168,9 +170,6 @@ export class UserController {
   /**
    * Create a new user
    * @route POST /api/users
-   * @param {CreateUserDto} req.body - User creation data
-   * @returns {UserResponseDto} 201 - Created user data
-   * @throws {AppError} 409 - User already exists
    */
   public createUser = async (
     req: Request<{}, {}, CreateUserDto>,
@@ -241,9 +240,7 @@ export class UserController {
 import request from 'supertest';
 import { app } from '../src/app';
 import { UserService } from '../src/services/user.service';
-import { prismaMock } from '../__mocks__/prisma';
 
-// Mock the UserService
 jest.mock('../src/services/user.service');
 
 describe('UserController', () => {
@@ -290,7 +287,6 @@ describe('UserController', () => {
     });
 
     it('should return 409 when email already exists', async () => {
-      // Arrange
       const userData = {
         email: 'existing@example.com',
         username: 'newuser',
@@ -301,34 +297,17 @@ describe('UserController', () => {
         new AppError('User already exists', 409)
       );
 
-      // Act
       const response = await request(app)
         .post('/api/users')
         .send(userData)
-        .expect('Content-Type', /json/)
         .expect(409);
 
-      // Assert
       expect(response.body).toHaveProperty('message', 'User already exists');
-    });
-
-    it.each([
-      ['null email', { email: null, username: 'user', password: 'pass' }],
-      ['empty email', { email: '', username: 'user', password: 'pass' }],
-      ['invalid email', { email: 'notanemail', username: 'user', password: 'pass' }],
-      ['missing password', { email: 'test@test.com', username: 'user' }]
-    ])('should return 400 for %s', async (_description, userData) => {
-      // Act & Assert
-      await request(app)
-        .post('/api/users')
-        .send(userData)
-        .expect(400);
     });
   });
 
   describe('GET /api/users/:id', () => {
     it('should return user when found', async () => {
-      // Arrange
       const userId = 1;
       const expectedUser = {
         id: userId,
@@ -339,21 +318,16 @@ describe('UserController', () => {
 
       userService.getUserById.mockResolvedValue(expectedUser);
 
-      // Act
       const response = await request(app)
         .get(`/api/users/${userId}`)
-        .expect('Content-Type', /json/)
         .expect(200);
 
-      // Assert
       expect(response.body).toMatchObject(expectedUser);
     });
 
     it('should return 404 when user not found', async () => {
-      // Arrange
       userService.getUserById.mockResolvedValue(null);
 
-      // Act & Assert
       await request(app)
         .get('/api/users/999')
         .expect(404);
@@ -377,29 +351,17 @@ describe('UserController', () => {
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Run Prettier formatter
+# With Docker:
 docker-compose exec backend npm run format
-
-# Run ESLint
 docker-compose exec backend npm run lint
-
-# Type check with TypeScript
 docker-compose exec backend npm run type-check
-
-# Build
 docker-compose exec backend npm run build
-{{else}}# Run Prettier formatter
+
+# Without Docker:
 npm run format
-
-# Run ESLint
 npm run lint
-
-# Type check with TypeScript
 npm run type-check
-
-# Build
 npm run build
-{{/if}}
 
 # Commit
 git add .
@@ -410,9 +372,7 @@ git commit -m "feat: add user creation endpoint
 - Add User model with Prisma
 - Implement UserService with duplicate email check
 - Add comprehensive Jest tests (unit + integration)
-- Test coverage: 85%
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+- Test coverage: 85%"
 ```
 
 **Commit Format**:
@@ -421,8 +381,6 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 - Implementation details
 - Test coverage: X%
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
 
 **Types**: feat, fix, docs, style, refactor, test, chore
@@ -435,17 +393,11 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Run Jest tests with coverage
+# With Docker:
 docker-compose exec backend npm test -- --coverage --verbose
 
-# Check coverage report
-docker-compose exec backend cat coverage/lcov-report/index.html
-{{else}}# Run Jest tests with coverage
+# Without Docker:
 npm test -- --coverage --verbose
-
-# Check coverage report
-cat coverage/lcov-report/index.html
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -459,10 +411,9 @@ cat coverage/lcov-report/index.html
 - Orchestrator invokes nodejs-developer to fix
 - Returns to Step 5 after fix
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 5b):
+**On Docker Failure** (Step 5b) *(Docker projects only)*:
 - docker-debugger diagnoses container issues
 - Fixes and retries test execution
-{{/if}}
 
 ---
 
@@ -517,23 +468,19 @@ cat coverage/lcov-report/index.html
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Backend E2E tests
+# With Docker:
 docker-compose exec backend npm run test:integration
-
-# Or Jest integration tests
 docker-compose exec backend npm test -- --testPathPattern=integration
 
-# Check API health
-curl http://localhost:{{BACKEND_PORT}}/health
-{{else}}# Backend E2E tests
-npm run test:integration
+# Check API health:
+curl http://localhost:3000/health
 
-# Or Jest integration tests
+# Without Docker:
+npm run test:integration
 npm test -- --testPathPattern=integration
 
-# Check API health
+# Check API health:
 curl http://localhost:3000/health
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -547,10 +494,9 @@ curl http://localhost:3000/health
 - nodejs-developer fixes issues
 - May loop back to Step 5-6 if code changes needed
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 8b):
+**On Docker Failure** (Step 8b) *(Docker projects only)*:
 - docker-debugger diagnoses E2E test issues
 - Fixes and retries
-{{/if}}
 
 ---
 
@@ -575,11 +521,17 @@ git push -u origin HEAD
 **Agent**: merge-conflict-resolver (opus model)
 
 **Actions**:
-1. Pull latest {{MAIN_BRANCH}}
-2. Merge {{MAIN_BRANCH}} into feature branch
+1. Pull latest base branch
+2. Merge base branch into feature branch
 3. Detect conflicts
 4. Resolve automatically (or request manual review for complex cases)
 5. Commit resolution
+6. Push resolved feature branch to remote
+
+```bash
+# Push after conflict resolution:
+git push origin HEAD --force-with-lease
+```
 
 **Node.js-Specific Conflict Types**:
 - **Simple**: imports, whitespace, formatting → auto-resolve
@@ -600,23 +552,19 @@ git push -u origin HEAD
 
 **Agent**: integration-tester (haiku model)
 
-**Purpose**: Verify everything works with {{MAIN_BRANCH}} merged
+**Purpose**: Verify everything works with base branch merged
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Full test suite
+# With Docker:
 docker-compose exec backend npm test -- --coverage
-
-# Run linters
 docker-compose exec backend npm run lint
 docker-compose exec backend npm run type-check
-{{else}}# Full test suite
-npm test -- --coverage
 
-# Run linters
+# Without Docker:
+npm test -- --coverage
 npm run lint
 npm run type-check
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -628,21 +576,20 @@ npm run type-check
 - Workflow BLOCKED
 - nodejs-developer fixes merge issues
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 11b):
+**On Docker Failure** (Step 11b) *(Docker projects only)*:
 - docker-debugger diagnoses issues
 - Fixes and retries
-{{/if}}
 
 ---
 
-### Step 12: Merge to {{MAIN_BRANCH}}
+### Step 12: Merge to Base Branch
 
 **Agent**: worktree-manager
 
 **Actions**:
 1. Verify all gates passed
-2. Merge feature branch to {{MAIN_BRANCH}}
-3. Push {{MAIN_BRANCH}} to remote
+2. Merge feature branch to base branch
+3. Push base branch to remote
 4. Update worktree registry
 
 **Commands**:
@@ -652,8 +599,8 @@ python scripts/worktree_merge.py <worktree-id>
 ```
 
 **Output**:
-- Feature merged to {{MAIN_BRANCH}}
-- {{MAIN_BRANCH}} pushed to remote
+- Feature merged to base branch
+- Base branch pushed to remote
 - Ready for cleanup
 
 ---
@@ -663,10 +610,10 @@ python scripts/worktree_merge.py <worktree-id>
 **Agent**: worktree-manager
 
 **Actions**:
-1. Stop{{#if USES_DOCKER}} and remove Docker containers{{/if}}
-2. Delete worktree
-3. Update registry
-{{#if USES_DOCKER}}4. Clean up Docker images/volumes (optional){{/if}}
+1. Delete worktree
+2. Update registry
+
+*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images/volumes.
 
 **Commands**:
 ```bash
@@ -674,11 +621,10 @@ python scripts/worktree_merge.py <worktree-id>
 bash scripts/worktree_cleanup.sh <worktree-id>
 ```
 
-{{#if USES_DOCKER}}**On Failure** (Step 13b):
+**On Failure** (Step 13b) *(Docker projects only)*:
 - docker-debugger force cleanups stuck resources
 - Removes containers, images, volumes
 - Ensures clean state
-{{/if}}
 
 ---
 
@@ -702,12 +648,30 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 ### Hotfix Workflow (9 steps) ⚡
 
-**Steps**: 1 → 2 → 4 → 5 → 6 → 9 → 10 → 12 → 13
+**Steps**: 1 → 2 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 
 **Use For**: Production bugs, urgent Node.js fixes
 **Time**: 15-20 minutes
 **Cost**: Low
-**Note**: Skips test writing (assumes tests exist), skips E2E tests
+**Note**: Skips test writing (assumes tests exist), skips E2E tests; includes fix loop (Step 7)
+
+### Test-Only Workflow (7 steps)
+
+**Steps**: 1 → 3 → 4 → 5 → 9 → 12 → 13
+
+**Use For**: Adding tests to existing Node.js code, improving coverage
+**Time**: 15-20 minutes
+**Cost**: Low
+**Note**: Skips implementation and E2E tests
+
+### Docs-Only Workflow (5 steps)
+
+**Steps**: 1 → 2 → 9 → 12 → 13
+
+**Use For**: Documentation changes only
+**Time**: 10-15 minutes
+**Cost**: Very Low
+**Note**: Skips testing and review; for documentation PRs only
 
 ---
 
@@ -745,101 +709,51 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 ### Building and Linting
 ```bash
-{{#if USES_DOCKER}}# Install dependencies
+# With Docker:
 docker-compose exec backend npm install
-
-# Build TypeScript
 docker-compose exec backend npm run build
-
-# Format code with Prettier
 docker-compose exec backend npm run format
-
-# Lint with ESLint
 docker-compose exec backend npm run lint
-
-# Type check
 docker-compose exec backend npm run type-check
-{{else}}# Install dependencies
+
+# Without Docker:
 npm install
-
-# Build TypeScript
 npm run build
-
-# Format code with Prettier
 npm run format
-
-# Lint with ESLint
 npm run lint
-
-# Type check
 npm run type-check
-{{/if}}
 ```
 
 ### Testing
 ```bash
-{{#if USES_DOCKER}}# Run all tests
+# With Docker:
 docker-compose exec backend npm test
-
-# Run with coverage
 docker-compose exec backend npm test -- --coverage
-
-# Run specific test file
 docker-compose exec backend npm test -- users.test.ts
-
-# Run tests in watch mode
 docker-compose exec backend npm test -- --watch
-
-# Run integration tests
 docker-compose exec backend npm run test:integration
-{{else}}# Run all tests
+
+# Without Docker:
 npm test
-
-# Run with coverage
 npm test -- --coverage
-
-# Run specific test file
 npm test -- users.test.ts
-
-# Run tests in watch mode
 npm test -- --watch
-
-# Run integration tests
 npm run test:integration
-{{/if}}
 ```
 
 ### Database Migrations (Prisma)
 ```bash
-{{#if USES_DOCKER}}# Generate Prisma client
+# With Docker:
 docker-compose exec backend npx prisma generate
-
-# Create migration
 docker-compose exec backend npx prisma migrate dev --name add-user-table
-
-# Apply migrations
 docker-compose exec backend npx prisma migrate deploy
-
-# Reset database
 docker-compose exec backend npx prisma migrate reset
 
-# Open Prisma Studio
-docker-compose exec backend npx prisma studio
-{{else}}# Generate Prisma client
+# Without Docker:
 npx prisma generate
-
-# Create migration
 npx prisma migrate dev --name add-user-table
-
-# Apply migrations
 npx prisma migrate deploy
-
-# Reset database
 npx prisma migrate reset
-
-# Open Prisma Studio
-npx prisma studio
-{{/if}}
 ```
 
 ---
@@ -871,7 +785,7 @@ npx prisma studio
 
 1. Delete node_modules and package-lock.json
 2. Run npm install
-3. Rebuild{{#if USES_DOCKER}} Docker container{{else}} project{{/if}}
+3. With Docker: rebuild the Docker container. Without Docker: rebuild the project.
 4. Check for peer dependency issues
 
 ---
@@ -880,7 +794,7 @@ npx prisma studio
 
 - [Node.js Development Guide](../.claude/NODEJS_GUIDE.md) - Node.js coding standards
 - [Testing Guide](TESTING_GUIDE.md) - Jest practices
-{{#if USES_DOCKER}}- [Docker Guide](../.claude/DOCKER_GUIDE.md) - Docker commands{{/if}}
+- [Docker Guide](../.claude/DOCKER_GUIDE.md) - Docker commands *(Docker projects only)*
 - [Architecture](../.claude/ARCHITECTURE.md) - System architecture
 - [Express Documentation](https://expressjs.com/) - Official Express docs
 - [Jest Documentation](https://jestjs.io/) - Jest testing framework

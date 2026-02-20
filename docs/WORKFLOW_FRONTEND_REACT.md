@@ -9,7 +9,7 @@
 ## Overview
 
 This guide covers the 13-step worktree-based workflow for **React/Next.js frontend development**. This workflow integrates:
-- **Worktree isolation** (each feature gets its own worktree{{#if USES_DOCKER}} + Docker environment{{/if}})
+- **Worktree isolation** (each feature gets its own worktree, with Docker environment for Docker projects)
 - **Architectural planning** (optional for complex features)
 - **Automated test writing** (mandatory with Jest + React Testing Library)
 - **Quality gates** (tests + code review + integration tests)
@@ -25,7 +25,7 @@ This guide covers the 13-step worktree-based workflow for **React/Next.js fronte
 **Isolated, Test-Driven Quality with Automated Gates**
 
 Every frontend feature:
-1. Gets its own **isolated worktree{{#if USES_DOCKER}} + Docker environment{{/if}}**
+1. Gets its own **isolated worktree** (with Docker environment for Docker projects)
 2. Goes through **mandatory quality gates** before being pushed
 3. Has **conflicts resolved automatically** before merge
 4. Is **merged and cleaned up automatically** after approval
@@ -35,7 +35,7 @@ Every frontend feature:
 2. **Code Review Gate** (Step 6) - Code must be approved by frontend reviewer
 3. **Integration Test Gate** (Step 8) - End-to-end tests must pass
 4. **Conflict Resolution Gate** (Step 10) - Merge conflicts must be resolved
-5. **Final Integration Gate** (Step 11) - Final tests with {{MAIN_BRANCH}} merged must pass
+5. **Final Integration Gate** (Step 11) - Final tests with base branch merged must pass
 
 ---
 
@@ -51,7 +51,7 @@ Every frontend feature:
 | **react-test-specialist** | **Tester** | **Frontend** | **Write React tests** | sonnet |
 | **frontend-code-reviewer** | **Reviewer** | **Frontend** | **Review frontend code** | sonnet/opus |
 | integration-tester | Tester | All | Execute all tests and enforce gates | haiku |
-{{#if USES_DOCKER}}| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** | sonnet |{{/if}}
+| **docker-debugger** | **Debugger** | **All** | **Diagnose and fix Docker issues** *(Docker projects only)* | sonnet |
 | **merge-conflict-resolver** | **Resolver** | **All** | **Detect and resolve merge conflicts** | opus |
 
 ---
@@ -60,25 +60,27 @@ Every frontend feature:
 
 ```
 Step 0:  [OPTIONAL] software-architect      → Design architecture
-Step 1:  worktree-manager                   → Create worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 1b: [ON-FAILURE] docker-debugger       → Debug setup issues{{/if}}
+Step 1:  worktree-manager                   → Create worktree
+Step 1b: [DOCKER/ON-FAILURE] docker-debugger → Debug setup issues
 Step 2:  react-frontend-dev                 → Implement React/Next.js feature
 Step 3:  react-test-specialist              → Write Jest + RTL tests
 Step 4:  react-frontend-dev                 → Commit code + tests
 Step 5:  integration-tester                 → Run Jest unit tests [GATE]
-{{#if USES_DOCKER}}Step 5b: [ON-FAILURE] docker-debugger       → Debug test issues{{/if}}
+Step 5b: [DOCKER/ON-FAILURE] docker-debugger → Debug test issues
 Step 6:  frontend-code-reviewer             → Review code [GATE]
 Step 7:  react-frontend-dev                 → Fix if needed (loop to 5-6)
 Step 8:  integration-tester                 → Run E2E tests [GATE]
-{{#if USES_DOCKER}}Step 8b: [ON-FAILURE] docker-debugger       → Debug E2E issues{{/if}}
+Step 8b: [DOCKER/ON-FAILURE] docker-debugger → Debug E2E issues
 Step 9:  react-frontend-dev                 → Push to feature branch
 Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final integration test [GATE]
-{{#if USES_DOCKER}}Step 11b: [ON-FAILURE] docker-debugger      → Debug integration issues{{/if}}
-Step 12: worktree-manager                   → Merge to {{MAIN_BRANCH}}, push
-Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKER}} + Docker{{/if}}
-{{#if USES_DOCKER}}Step 13b: [ON-FAILURE] docker-debugger      → Force cleanup{{/if}}
+Step 11b: [DOCKER/ON-FAILURE] docker-debugger → Debug integration issues
+Step 12: worktree-manager                   → Merge to base branch, push
+Step 13: worktree-manager                   → Cleanup worktree
+Step 13b: [DOCKER/ON-FAILURE] docker-debugger → Force cleanup
 ```
+
+> `b` steps only activate for Docker projects when container failures occur.
 
 ---
 
@@ -113,7 +115,7 @@ Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKE
 
 **Agent**: worktree-manager
 
-**Action**: Create isolated worktree{{#if USES_DOCKER}} with Docker environment{{/if}}
+**Action**: Create isolated worktree
 
 **Commands**:
 ```bash
@@ -124,15 +126,15 @@ bash scripts/worktree_create.sh feature-name "Feature description"
 **Output**:
 - Worktree created at `.worktrees/feature-name`
 - Branch created: `feature/feature-name`
-{{#if USES_DOCKER}}- Docker container running with unique port
-- Completely isolated React development environment
-- No shared resources with main branch{{/if}}
 
-{{#if USES_DOCKER}}**On Failure** (Step 1b):
+> **Note**: The worktree branches from whichever branch is currently checked out. At Step 12, the feature branch will be merged back to that same base branch.
+
+> *(Docker projects only)* Docker containers start with unique ports, providing a completely isolated React development environment — no shared resources.
+
+**On Failure** (Step 1b) *(Docker projects only)*:
 - docker-debugger diagnoses port conflicts, container issues
 - Fixes automatically if possible
 - Reports if manual intervention needed
-{{/if}}
 
 ---
 
@@ -155,7 +157,7 @@ bash scripts/worktree_create.sh feature-name "Feature description"
 // React component with TypeScript and hooks
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserService } from '@/services/user.service';
 import { CreateUserData, User } from '@/types/user';
@@ -168,12 +170,6 @@ interface UserFormProps {
   onError?: (error: Error) => void;
 }
 
-/**
- * UserForm component for creating new users
- *
- * @param {UserFormProps} props - Component props
- * @returns {JSX.Element} User creation form
- */
 export function UserForm({ onSuccess, onError }: UserFormProps): JSX.Element {
   const router = useRouter();
   const [formData, setFormData] = useState<CreateUserData>({
@@ -184,36 +180,9 @@ export function UserForm({ onSuccess, onError }: UserFormProps): JSX.Element {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-
-    if (!formData.username) {
-      newErrors.username = 'Username is required';
-    }
-
-    if (!formData.password || formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
     setLoading(true);
-    setErrors({});
 
     try {
       const user = await UserService.createUser(formData);
@@ -223,97 +192,27 @@ export function UserForm({ onSuccess, onError }: UserFormProps): JSX.Element {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to create user';
       toast.error(message);
-      setErrors({ submit: message });
       onError?.(error as Error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (field: keyof CreateUserData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error for this field
-    if (errors[field]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[field];
-        return newErrors;
-      });
-    }
-  };
-
   return (
     <form onSubmit={handleSubmit} className="space-y-4" aria-label="Create user form">
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-          Email
-        </label>
+        <label htmlFor="email">Email</label>
         <Input
           id="email"
           type="email"
           value={formData.email}
-          onChange={(e) => handleChange('email', e.target.value)}
-          className={errors.email ? 'border-red-500' : ''}
+          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
           aria-invalid={!!errors.email}
-          aria-describedby={errors.email ? 'email-error' : undefined}
           disabled={loading}
         />
-        {errors.email && (
-          <p id="email-error" className="mt-1 text-sm text-red-600" role="alert">
-            {errors.email}
-          </p>
-        )}
+        {errors.email && <p role="alert">{errors.email}</p>}
       </div>
-
-      <div>
-        <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-          Username
-        </label>
-        <Input
-          id="username"
-          type="text"
-          value={formData.username}
-          onChange={(e) => handleChange('username', e.target.value)}
-          className={errors.username ? 'border-red-500' : ''}
-          aria-invalid={!!errors.username}
-          aria-describedby={errors.username ? 'username-error' : undefined}
-          disabled={loading}
-        />
-        {errors.username && (
-          <p id="username-error" className="mt-1 text-sm text-red-600" role="alert">
-            {errors.username}
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-          Password
-        </label>
-        <Input
-          id="password"
-          type="password"
-          value={formData.password}
-          onChange={(e) => handleChange('password', e.target.value)}
-          className={errors.password ? 'border-red-500' : ''}
-          aria-invalid={!!errors.password}
-          aria-describedby={errors.password ? 'password-error' : undefined}
-          disabled={loading}
-        />
-        {errors.password && (
-          <p id="password-error" className="mt-1 text-sm text-red-600" role="alert">
-            {errors.password}
-          </p>
-        )}
-      </div>
-
-      {errors.submit && (
-        <div className="text-sm text-red-600" role="alert">
-          {errors.submit}
-        </div>
-      )}
-
-      <Button type="submit" disabled={loading} className="w-full">
+      <Button type="submit" disabled={loading}>
         {loading ? 'Creating...' : 'Create User'}
       </Button>
     </form>
@@ -338,19 +237,16 @@ export function UserForm({ onSuccess, onError }: UserFormProps): JSX.Element {
 
 **React Test Structure** (Jest + React Testing Library):
 ```typescript
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { UserForm } from './UserForm';
 import { UserService } from '@/services/user.service';
 import { toast } from 'sonner';
 
-// Mock dependencies
 jest.mock('@/services/user.service');
 jest.mock('sonner');
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: jest.fn()
-  })
+  useRouter: () => ({ push: jest.fn() })
 }));
 
 describe('UserForm', () => {
@@ -366,77 +262,12 @@ describe('UserForm', () => {
       render(<UserForm />);
 
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /create user/i })).toBeInTheDocument();
     });
 
     it('should have accessible form labels', () => {
       render(<UserForm />);
-
-      const form = screen.getByRole('form', { name: /create user form/i });
-      expect(form).toBeInTheDocument();
-    });
-  });
-
-  describe('Form Validation', () => {
-    it('should show error for invalid email', async () => {
-      const user = userEvent.setup();
-      render(<UserForm />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const submitButton = screen.getByRole('button', { name: /create user/i });
-
-      await user.type(emailInput, 'invalid-email');
-      await user.click(submitButton);
-
-      expect(await screen.findByText(/email is invalid/i)).toBeInTheDocument();
-      expect(UserService.createUser).not.toHaveBeenCalled();
-    });
-
-    it('should show error for missing username', async () => {
-      const user = userEvent.setup();
-      render(<UserForm />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
-      const submitButton = screen.getByRole('button', { name: /create user/i });
-
-      await user.type(emailInput, 'test@example.com');
-      await user.type(passwordInput, 'password123');
-      await user.click(submitButton);
-
-      expect(await screen.findByText(/username is required/i)).toBeInTheDocument();
-      expect(UserService.createUser).not.toHaveBeenCalled();
-    });
-
-    it('should show error for short password', async () => {
-      const user = userEvent.setup();
-      render(<UserForm />);
-
-      const passwordInput = screen.getByLabelText(/password/i);
-      const submitButton = screen.getByRole('button', { name: /create user/i });
-
-      await user.type(passwordInput, 'short');
-      await user.click(submitButton);
-
-      expect(await screen.findByText(/password must be at least 8 characters/i)).toBeInTheDocument();
-    });
-
-    it('should clear error when field is corrected', async () => {
-      const user = userEvent.setup();
-      render(<UserForm />);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      const submitButton = screen.getByRole('button', { name: /create user/i });
-
-      // Trigger error
-      await user.click(submitButton);
-      expect(await screen.findByText(/email is required/i)).toBeInTheDocument();
-
-      // Fix error
-      await user.type(emailInput, 'test@example.com');
-      expect(screen.queryByText(/email is required/i)).not.toBeInTheDocument();
+      expect(screen.getByRole('form', { name: /create user form/i })).toBeInTheDocument();
     });
   });
 
@@ -450,16 +281,10 @@ describe('UserForm', () => {
       render(<UserForm onSuccess={mockOnSuccess} />);
 
       await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-      await user.type(screen.getByLabelText(/username/i), 'testuser');
-      await user.type(screen.getByLabelText(/password/i), 'password123');
       await user.click(screen.getByRole('button', { name: /create user/i }));
 
       await waitFor(() => {
-        expect(UserService.createUser).toHaveBeenCalledWith({
-          email: 'test@example.com',
-          username: 'testuser',
-          password: 'password123'
-        });
+        expect(UserService.createUser).toHaveBeenCalled();
       });
 
       expect(toast.success).toHaveBeenCalledWith('User created successfully!');
@@ -475,8 +300,6 @@ describe('UserForm', () => {
       render(<UserForm onError={mockOnError} />);
 
       await user.type(screen.getByLabelText(/email/i), 'existing@example.com');
-      await user.type(screen.getByLabelText(/username/i), 'testuser');
-      await user.type(screen.getByLabelText(/password/i), 'password123');
       await user.click(screen.getByRole('button', { name: /create user/i }));
 
       await waitFor(() => {
@@ -484,43 +307,10 @@ describe('UserForm', () => {
       });
 
       expect(mockOnError).toHaveBeenCalledWith(error);
-      expect(screen.getByText(/user already exists/i)).toBeInTheDocument();
-    });
-
-    it('should disable form during submission', async () => {
-      const user = userEvent.setup();
-
-      (UserService.createUser as jest.Mock).mockImplementation(
-        () => new Promise(resolve => setTimeout(resolve, 100))
-      );
-
-      render(<UserForm />);
-
-      await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-      await user.type(screen.getByLabelText(/username/i), 'testuser');
-      await user.type(screen.getByLabelText(/password/i), 'password123');
-      await user.click(screen.getByRole('button', { name: /create user/i }));
-
-      expect(screen.getByLabelText(/email/i)).toBeDisabled();
-      expect(screen.getByLabelText(/username/i)).toBeDisabled();
-      expect(screen.getByLabelText(/password/i)).toBeDisabled();
-      expect(screen.getByRole('button', { name: /creating.../i })).toBeDisabled();
     });
   });
 
   describe('Accessibility', () => {
-    it('should have proper ARIA attributes for errors', async () => {
-      const user = userEvent.setup();
-      render(<UserForm />);
-
-      const submitButton = screen.getByRole('button', { name: /create user/i });
-      await user.click(submitButton);
-
-      const emailInput = screen.getByLabelText(/email/i);
-      expect(emailInput).toHaveAttribute('aria-invalid', 'true');
-      expect(emailInput).toHaveAttribute('aria-describedby', 'email-error');
-    });
-
     it('should announce errors to screen readers', async () => {
       const user = userEvent.setup();
       render(<UserForm />);
@@ -550,29 +340,17 @@ describe('UserForm', () => {
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Run Prettier formatter
+# With Docker:
 docker-compose exec frontend npm run format
-
-# Run ESLint
 docker-compose exec frontend npm run lint
-
-# Type check with TypeScript
 docker-compose exec frontend npm run type-check
-
-# Build
 docker-compose exec frontend npm run build
-{{else}}# Run Prettier formatter
+
+# Without Docker:
 npm run format
-
-# Run ESLint
 npm run lint
-
-# Type check with TypeScript
 npm run type-check
-
-# Build
 npm run build
-{{/if}}
 
 # Commit
 git add .
@@ -584,9 +362,7 @@ git commit -m "feat: add user creation form component
 - Implement proper error handling with toast notifications
 - Add comprehensive Jest + RTL tests
 - Ensure ARIA attributes for accessibility
-- Test coverage: 85%
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+- Test coverage: 85%"
 ```
 
 **Commit Format**:
@@ -595,8 +371,6 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
 - Implementation details
 - Test coverage: X%
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ```
 
 **Types**: feat, fix, docs, style, refactor, test, chore
@@ -609,17 +383,11 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Run Jest tests with coverage
+# With Docker:
 docker-compose exec frontend npm test -- --coverage --verbose
 
-# Check coverage report
-docker-compose exec frontend cat coverage/lcov-report/index.html
-{{else}}# Run Jest tests with coverage
+# Without Docker:
 npm test -- --coverage --verbose
-
-# Check coverage report
-cat coverage/lcov-report/index.html
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -633,10 +401,9 @@ cat coverage/lcov-report/index.html
 - Orchestrator invokes react-frontend-dev to fix
 - Returns to Step 5 after fix
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 5b):
+**On Docker Failure** (Step 5b) *(Docker projects only)*:
 - docker-debugger diagnoses container issues
 - Fixes and retries test execution
-{{/if}}
 
 ---
 
@@ -691,23 +458,15 @@ cat coverage/lcov-report/index.html
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Frontend E2E tests (Playwright/Cypress)
+# With Docker:
 docker-compose exec frontend npm run test:e2e
-
-# Or component integration tests
 docker-compose exec frontend npm test -- --testPathPattern=integration
-
-# Check app builds
 docker-compose exec frontend npm run build
-{{else}}# Frontend E2E tests (Playwright/Cypress)
+
+# Without Docker:
 npm run test:e2e
-
-# Or component integration tests
 npm test -- --testPathPattern=integration
-
-# Check app builds
 npm run build
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -721,10 +480,9 @@ npm run build
 - react-frontend-dev fixes issues
 - May loop back to Step 5-6 if code changes needed
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 8b):
+**On Docker Failure** (Step 8b) *(Docker projects only)*:
 - docker-debugger diagnoses E2E test issues
 - Fixes and retries
-{{/if}}
 
 ---
 
@@ -749,11 +507,17 @@ git push -u origin HEAD
 **Agent**: merge-conflict-resolver (opus model)
 
 **Actions**:
-1. Pull latest {{MAIN_BRANCH}}
-2. Merge {{MAIN_BRANCH}} into feature branch
+1. Pull latest base branch
+2. Merge base branch into feature branch
 3. Detect conflicts
 4. Resolve automatically (or request manual review for complex cases)
 5. Commit resolution
+6. Push resolved feature branch to remote
+
+```bash
+# Push after conflict resolution:
+git push origin HEAD --force-with-lease
+```
 
 **React-Specific Conflict Types**:
 - **Simple**: imports, whitespace, formatting → auto-resolve
@@ -774,29 +538,21 @@ git push -u origin HEAD
 
 **Agent**: integration-tester (haiku model)
 
-**Purpose**: Verify everything works with {{MAIN_BRANCH}} merged
+**Purpose**: Verify everything works with base branch merged
 
 **Commands**:
 ```bash
-{{#if USES_DOCKER}}# Full test suite
+# With Docker:
 docker-compose exec frontend npm test -- --coverage
-
-# Run linters
 docker-compose exec frontend npm run lint
 docker-compose exec frontend npm run type-check
-
-# Build verification
 docker-compose exec frontend npm run build
-{{else}}# Full test suite
-npm test -- --coverage
 
-# Run linters
+# Without Docker:
+npm test -- --coverage
 npm run lint
 npm run type-check
-
-# Build verification
 npm run build
-{{/if}}
 ```
 
 **Pass Criteria**:
@@ -808,21 +564,20 @@ npm run build
 - Workflow BLOCKED
 - react-frontend-dev fixes merge issues
 
-{{#if USES_DOCKER}}**On Docker Failure** (Step 11b):
+**On Docker Failure** (Step 11b) *(Docker projects only)*:
 - docker-debugger diagnoses issues
 - Fixes and retries
-{{/if}}
 
 ---
 
-### Step 12: Merge to {{MAIN_BRANCH}}
+### Step 12: Merge to Base Branch
 
 **Agent**: worktree-manager
 
 **Actions**:
 1. Verify all gates passed
-2. Merge feature branch to {{MAIN_BRANCH}}
-3. Push {{MAIN_BRANCH}} to remote
+2. Merge feature branch to base branch
+3. Push base branch to remote
 4. Update worktree registry
 
 **Commands**:
@@ -832,8 +587,8 @@ python scripts/worktree_merge.py <worktree-id>
 ```
 
 **Output**:
-- Feature merged to {{MAIN_BRANCH}}
-- {{MAIN_BRANCH}} pushed to remote
+- Feature merged to base branch
+- Base branch pushed to remote
 - Ready for cleanup
 
 ---
@@ -843,10 +598,10 @@ python scripts/worktree_merge.py <worktree-id>
 **Agent**: worktree-manager
 
 **Actions**:
-1. Stop{{#if USES_DOCKER}} and remove Docker container{{/if}}
-2. Delete worktree
-3. Update registry
-{{#if USES_DOCKER}}4. Clean up Docker images (optional){{/if}}
+1. Delete worktree
+2. Update registry
+
+*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images.
 
 **Commands**:
 ```bash
@@ -854,11 +609,10 @@ python scripts/worktree_merge.py <worktree-id>
 bash scripts/worktree_cleanup.sh <worktree-id>
 ```
 
-{{#if USES_DOCKER}}**On Failure** (Step 13b):
+**On Failure** (Step 13b) *(Docker projects only)*:
 - docker-debugger force cleanups stuck resources
 - Removes containers, images
 - Ensures clean state
-{{/if}}
 
 ---
 
@@ -882,12 +636,30 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 ### Hotfix Workflow (9 steps) ⚡
 
-**Steps**: 1 → 2 → 4 → 5 → 6 → 9 → 10 → 12 → 13
+**Steps**: 1 → 2 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 
 **Use For**: UI bugs, urgent fixes
 **Time**: 15-20 minutes
 **Cost**: Low
-**Note**: Skips test writing (assumes tests exist), skips E2E tests
+**Note**: Skips test writing (assumes tests exist), skips E2E tests; includes fix loop (Step 7)
+
+### Test-Only Workflow (7 steps)
+
+**Steps**: 1 → 3 → 4 → 5 → 9 → 12 → 13
+
+**Use For**: Adding tests to existing React code, improving coverage
+**Time**: 15-20 minutes
+**Cost**: Low
+**Note**: Skips implementation and E2E tests
+
+### Docs-Only Workflow (5 steps)
+
+**Steps**: 1 → 2 → 9 → 12 → 13
+
+**Use For**: Documentation changes only
+**Time**: 10-15 minutes
+**Cost**: Very Low
+**Note**: Skips testing and review; for documentation PRs only
 
 ---
 
@@ -925,74 +697,38 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 ### Building and Linting
 ```bash
-{{#if USES_DOCKER}}# Install dependencies
+# With Docker:
 docker-compose exec frontend npm install
-
-# Build Next.js app
 docker-compose exec frontend npm run build
-
-# Format code with Prettier
 docker-compose exec frontend npm run format
-
-# Lint with ESLint
 docker-compose exec frontend npm run lint
-
-# Type check
 docker-compose exec frontend npm run type-check
-
-# Start dev server
 docker-compose exec frontend npm run dev
-{{else}}# Install dependencies
+
+# Without Docker:
 npm install
-
-# Build Next.js app
 npm run build
-
-# Format code with Prettier
 npm run format
-
-# Lint with ESLint
 npm run lint
-
-# Type check
 npm run type-check
-
-# Start dev server
 npm run dev
-{{/if}}
 ```
 
 ### Testing
 ```bash
-{{#if USES_DOCKER}}# Run all tests
+# With Docker:
 docker-compose exec frontend npm test
-
-# Run with coverage
 docker-compose exec frontend npm test -- --coverage
-
-# Run specific test file
 docker-compose exec frontend npm test -- UserForm.test.tsx
-
-# Run tests in watch mode
 docker-compose exec frontend npm test -- --watch
-
-# Run E2E tests
 docker-compose exec frontend npm run test:e2e
-{{else}}# Run all tests
+
+# Without Docker:
 npm test
-
-# Run with coverage
 npm test -- --coverage
-
-# Run specific test file
 npm test -- UserForm.test.tsx
-
-# Run tests in watch mode
 npm test -- --watch
-
-# Run E2E tests
 npm run test:e2e
-{{/if}}
 ```
 
 ---
@@ -1024,7 +760,7 @@ npm run test:e2e
 
 1. Delete .next and node_modules
 2. Run npm install
-3. Rebuild{{#if USES_DOCKER}} Docker container{{else}} project{{/if}}
+3. With Docker: rebuild the Docker container. Without Docker: rebuild the project.
 4. Check for TypeScript errors
 
 ---
@@ -1033,7 +769,7 @@ npm run test:e2e
 
 - [React Development Guide](../.claude/REACT_GUIDE.md) - React coding standards
 - [Testing Guide](TESTING_GUIDE.md) - Jest + RTL practices
-{{#if USES_DOCKER}}- [Docker Guide](../.claude/DOCKER_GUIDE.md) - Docker commands{{/if}}
+- [Docker Guide](../.claude/DOCKER_GUIDE.md) - Docker commands *(Docker projects only)*
 - [Architecture](../.claude/ARCHITECTURE.md) - System architecture
 - [React Documentation](https://react.dev/) - Official React docs
 - [Next.js Documentation](https://nextjs.org/docs) - Next.js framework
