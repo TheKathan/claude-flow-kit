@@ -22,7 +22,9 @@
       "Bash(git log:*)",
       "Bash(git filter-branch:*)",
       "Bash(git rm:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }
