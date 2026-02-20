@@ -272,6 +272,49 @@ def main():
     for script in worktree_scripts:
         download_file(f"{GITHUB_RAW_URL}/scripts/{script}", current_dir / "scripts" / script)
 
+    # Download agent definition files (.claude/agents/)
+    print("\n🤖 Downloading agent definition files...")
+    agents_dir = current_dir / ".claude" / "agents"
+    agents_dir.mkdir(parents=True, exist_ok=True)
+
+    # Common agents — always installed
+    common_agents = [
+        "software-architect.md",
+        "worktree-manager.md",
+        "docker-debugger.md",
+        "merge-conflict-resolver.md",
+        "integration-tester.md",
+        "project-status-reviewer.md",
+    ]
+    for agent in common_agents:
+        download_file(f"{GITHUB_RAW_URL}/.claude/agents/{agent}", agents_dir / agent)
+
+    # Backend agents — conditional on selected language
+    backend_agent_map = {
+        "python":  ["python-developer.md", "python-test-specialist.md", "backend-code-reviewer.md"],
+        "nodejs":  ["nodejs-developer.md", "nodejs-test-specialist.md", "backend-code-reviewer.md"],
+        "dotnet":  ["dotnet-developer.md", "dotnet-test-specialist.md", "backend-code-reviewer.md"],
+        "go":      ["go-developer.md", "go-test-specialist.md", "backend-code-reviewer.md"],
+    }
+    if backend_lang and backend_lang in backend_agent_map:
+        for agent in backend_agent_map[backend_lang]:
+            download_file(f"{GITHUB_RAW_URL}/.claude/agents/{agent}", agents_dir / agent)
+
+    # Frontend agents — conditional on selected framework
+    frontend_agent_map = {
+        "react":   ["react-frontend-dev.md", "react-test-specialist.md", "frontend-code-reviewer.md"],
+        "vue":     ["vue-developer.md", "vue-test-specialist.md", "frontend-code-reviewer.md"],
+        "angular": ["angular-developer.md", "angular-test-specialist.md", "frontend-code-reviewer.md"],
+    }
+    if frontend_lang and frontend_lang in frontend_agent_map:
+        for agent in frontend_agent_map[frontend_lang]:
+            download_file(f"{GITHUB_RAW_URL}/.claude/agents/{agent}", agents_dir / agent)
+
+    # Infrastructure agents — conditional on selected tool
+    if infra_tool and infra_tool.lower() == "terraform":
+        for agent in ["terraform-developer.md", "terraform-test-specialist.md", "infrastructure-code-reviewer.md"]:
+            download_file(f"{GITHUB_RAW_URL}/.claude/agents/{agent}", agents_dir / agent)
+
     # Download selected workflows and guides
     print("\n📋 Downloading selected workflow and guide files...")
 
@@ -386,8 +429,9 @@ def main():
     print(f"   CLAUDE.md")
     print(f"   docs/          ← workflow files")
     print(f"   scripts/       ← worktree management scripts")
-    print(f"   .claude/       ← guides & documentation  ⚠️  HIDDEN DIRECTORY")
-    print(f"   .agents/       ← agent configs            ⚠️  HIDDEN DIRECTORY")
+    print(f"   .claude/           ← guides & documentation  ⚠️  HIDDEN DIRECTORY")
+    print(f"   .claude/agents/    ← agent definitions       ⚠️  HIDDEN DIRECTORY")
+    print(f"   .agents/           ← agent configs           ⚠️  HIDDEN DIRECTORY")
     print(f"\n⚠️  Note: .claude/ and .agents/ start with a dot — they are hidden")
     print(f"   on Mac/Linux. Use 'ls -la' to see them, not plain 'ls'.")
     print(f"\n📋 Components installed:")
