@@ -360,14 +360,16 @@ describe('UserProfileComponent', () => {
 
 **Commands**:
 ```bash
-# Check TypeScript and lint
-ng lint
+# With Docker:
+docker-compose exec frontend ng lint
+docker-compose exec frontend npx prettier --write "src/**/*.{ts,html,scss}"
 
-# Format with Prettier (if configured)
+# Without Docker:
+ng lint
 npx prettier --write "src/**/*.{ts,html,scss}"
 
 # Stage and commit
-git add src/ e2e/
+git add .
 git commit -m "feat(user-profile): add user profile component with error handling
 
 - Add standalone UserProfileComponent with OnPush change detection
@@ -395,9 +397,6 @@ Types: `feat`, `fix`, `refactor`, `test`, `docs`, `style`, `chore`
 ```bash
 # Run unit tests with coverage
 ng test --watch=false --code-coverage --no-progress
-
-# View coverage summary
-cat coverage/lcov-report/index.html | grep -E "Statements|Branches|Functions|Lines"
 ```
 
 **Pass Criteria**:
@@ -510,11 +509,7 @@ ng build --configuration=production
 
 **Commands**:
 ```bash
-# Push feature branch to remote
-git push origin feature/feature-name
-
-# Verify push succeeded
-git log origin/feature/feature-name --oneline -5
+git push -u origin HEAD
 ```
 
 ---
@@ -593,7 +588,7 @@ ng build --configuration=production
 **Commands**:
 ```bash
 # Agent runs:
-python scripts/worktree_merge.py <worktree-id>
+python scripts/worktree_merge.py feature-name
 ```
 
 **Output**:
@@ -616,7 +611,7 @@ python scripts/worktree_merge.py <worktree-id>
 **Commands**:
 ```bash
 # Agent runs:
-python scripts/worktree_cleanup.py <worktree-id>
+python scripts/worktree_cleanup.py feature-name
 ```
 
 **On Failure** (Step 13b) *(Docker projects only)*:
@@ -638,7 +633,7 @@ python scripts/worktree_cleanup.py <worktree-id>
 **Use For**: New components, services, routes, or complex features
 **Note**: Includes all quality gates including E2E
 
-### Hotfix Workflow (9 steps)
+### Hotfix Workflow (10 steps)
 **Steps**: 1 → 2 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 **Use For**: Production bugs, urgent fixes
 **Note**: Skips test writing (assumes tests exist), skips E2E tests; includes fix loop (Step 7)

@@ -720,7 +720,7 @@ checkov -d .
 **Commands**:
 ```bash
 # Agent runs:
-python scripts/worktree_merge.py <worktree-id>
+python scripts/worktree_merge.py infra-feature-name
 ```
 
 **Output**:
@@ -739,7 +739,7 @@ python scripts/worktree_merge.py <worktree-id>
 **Commands**:
 ```bash
 # Agent runs:
-python scripts/worktree_cleanup.py <worktree-id>
+python scripts/worktree_cleanup.py infra-feature-name
 
 # Clean up Terraform workspace (if using workspaces)
 terraform workspace select default
@@ -768,7 +768,7 @@ rm -f tfplan tfplan-final
 **Use For**: New modules, network changes, multi-region deployments, major refactors
 **Note**: Includes all quality gates including Terratest
 
-### Hotfix Workflow (9 steps)
+### Hotfix Workflow (10 steps)
 **Steps**: 1 → 2 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 **Use For**: Critical infrastructure fixes, urgent security patches
 **Note**: Skips test writing (assumes tests exist), skips Terratest; includes fix loop (Step 7)

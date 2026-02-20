@@ -583,7 +583,7 @@ npm run build
 **Commands**:
 ```bash
 # Agent runs:
-python scripts/worktree_merge.py <worktree-id>
+python scripts/worktree_merge.py feature-name
 ```
 
 **Output**:
@@ -601,17 +601,17 @@ python scripts/worktree_merge.py <worktree-id>
 1. Delete worktree
 2. Update registry
 
-*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images.
+*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images/volumes.
 
 **Commands**:
 ```bash
 # Agent runs:
-python scripts/worktree_cleanup.py <worktree-id>
+python scripts/worktree_cleanup.py feature-name
 ```
 
 **On Failure** (Step 13b) *(Docker projects only)*:
 - docker-debugger force cleanups stuck resources
-- Removes containers, images
+- Removes containers, images, volumes
 - Ensures clean state
 
 ---
@@ -620,11 +620,12 @@ python scripts/worktree_cleanup.py <worktree-id>
 
 ### Standard Workflow (11 steps) ⭐ Most Common
 
-**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
+**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 
 **Use For**: Regular React features, components (80% of work)
 **Time**: 25-35 minutes
 **Cost**: Medium
+**Note**: Skips E2E tests (Step 8) and final integration test (Step 11)
 
 ### Full Workflow (13 steps)
 
@@ -634,7 +635,7 @@ python scripts/worktree_cleanup.py <worktree-id>
 **Time**: 35-50 minutes
 **Cost**: High
 
-### Hotfix Workflow (9 steps) ⚡
+### Hotfix Workflow (10 steps) ⚡
 
 **Steps**: 1 → 2 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 

@@ -382,7 +382,7 @@ npm test
 **Commands**:
 ```bash
 # Agent runs:
-python scripts/worktree_merge.py <worktree-id>
+python scripts/worktree_merge.py feature-name
 ```
 
 **Output**:
@@ -405,7 +405,7 @@ python scripts/worktree_merge.py <worktree-id>
 **Commands**:
 ```bash
 # Agent runs:
-python scripts/worktree_cleanup.py <worktree-id>
+python scripts/worktree_cleanup.py feature-name
 ```
 
 **On Failure** (Step 13b) *(Docker projects only)*:
@@ -434,7 +434,7 @@ python scripts/worktree_cleanup.py <worktree-id>
 **Time**: 35-50 minutes
 **Cost**: High
 
-### Hotfix Workflow (9 steps) ⚡
+### Hotfix Workflow (10 steps) ⚡
 
 **Steps**: 1 → 2 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 
