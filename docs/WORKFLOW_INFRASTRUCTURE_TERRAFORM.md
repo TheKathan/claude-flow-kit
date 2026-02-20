@@ -125,7 +125,7 @@ Step 13: worktree-manager                   → Cleanup worktree + state
 **Commands**:
 ```bash
 # Agent runs:
-bash scripts/worktree_create.sh infra-feature-name "Infrastructure change description"
+python scripts/worktree_create.py infra-feature-name
 ```
 
 **Output**:
@@ -719,15 +719,14 @@ checkov -d .
 
 **Commands**:
 ```bash
-# Switch to base branch
-git checkout <base-branch>
-
-# Merge feature branch (no fast-forward for clear history)
-git merge --no-ff infra/feature-name -m "merge: infra/feature-name into <base-branch>"
-
-# Push to remote
-git push origin <base-branch>
+# Agent runs:
+python scripts/worktree_merge.py <worktree-id>
 ```
+
+**Output**:
+- Feature merged to base branch
+- Base branch pushed to remote
+- Ready for cleanup
 
 **After merge**: Infrastructure code is now in the base branch but NOT yet applied. Follow the manual deployment process (Steps 14-18) to apply changes to each environment.
 
@@ -739,8 +738,8 @@ git push origin <base-branch>
 
 **Commands**:
 ```bash
-# Remove the feature worktree
-bash scripts/worktree_remove.sh infra-feature-name
+# Agent runs:
+python scripts/worktree_cleanup.py <worktree-id>
 
 # Clean up Terraform workspace (if using workspaces)
 terraform workspace select default

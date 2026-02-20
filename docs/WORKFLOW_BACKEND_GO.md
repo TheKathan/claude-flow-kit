@@ -120,7 +120,7 @@ Step 13b: [DOCKER/ON-FAILURE] docker-debugger → Force cleanup
 **Commands**:
 ```bash
 # Agent runs:
-bash scripts/worktree_create.sh feature-name "Feature description"
+python scripts/worktree_create.py feature-name
 ```
 
 **Output**:
@@ -129,7 +129,7 @@ bash scripts/worktree_create.sh feature-name "Feature description"
 
 > **Note**: The worktree branches from whichever branch is currently checked out. At Step 12, the feature branch will be merged back to that same base branch.
 
-> *(Docker projects only)* Docker containers start with unique ports, providing a completely isolated Go environment with a separate database per worktree — no shared resources.
+> *(Docker projects only)* The script automatically starts Docker containers with unique ports, providing a completely isolated Go environment with a separate database per worktree — no shared resources.
 
 **On Failure** (Step 1b) *(Docker projects only)*:
 - docker-debugger diagnoses port conflicts, container issues
@@ -624,7 +624,7 @@ python scripts/worktree_merge.py <worktree-id>
 **Commands**:
 ```bash
 # Agent runs:
-bash scripts/worktree_cleanup.sh <worktree-id>
+python scripts/worktree_cleanup.py <worktree-id>
 ```
 
 **On Failure** (Step 13b) *(Docker projects only)*:
@@ -638,11 +638,12 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 ### Standard Workflow (11 steps) ⭐ Most Common
 
-**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
+**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 
 **Use For**: Regular Go backend features, enhancements (80% of work)
 **Time**: 25-35 minutes
 **Cost**: Medium
+**Note**: Skips E2E tests (Step 8) and final integration test (Step 11)
 
 ### Full Workflow (13 steps)
 

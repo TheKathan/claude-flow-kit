@@ -60,25 +60,27 @@ Every Angular feature:
 
 ```
 Step 0:  [OPTIONAL] software-architect      → Design architecture
-Step 1:  worktree-manager                   → Create worktree [+ Docker if applicable]
-Step 1b: docker-debugger                    → Fix Docker issues [DOCKER/ON-FAILURE]
+Step 1:  worktree-manager                   → Create worktree
+Step 1b: [DOCKER/ON-FAILURE] docker-debugger → Debug setup issues
 Step 2:  angular-developer                  → Implement Angular feature
 Step 3:  angular-test-specialist            → Write Jasmine/Karma tests
 Step 4:  angular-developer                  → Commit code + tests
 Step 5:  integration-tester                 → Run unit tests [GATE]
-Step 5b: angular-developer                  → Fix test failures [ON-FAILURE]
+Step 5b: [DOCKER/ON-FAILURE] docker-debugger → Debug test issues
 Step 6:  frontend-code-reviewer             → Review code [GATE]
 Step 7:  angular-developer                  → Fix review issues (loop to 5-6)
 Step 8:  integration-tester                 → Run E2E tests [GATE]
-Step 8b: angular-developer                  → Fix E2E failures [ON-FAILURE]
+Step 8b: [DOCKER/ON-FAILURE] docker-debugger → Debug E2E issues
 Step 9:  angular-developer                  → Push to feature branch
 Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final integration test [GATE]
-Step 11b: angular-developer                 → Fix final failures [ON-FAILURE]
+Step 11b: [DOCKER/ON-FAILURE] docker-debugger → Debug integration issues
 Step 12: worktree-manager                   → Merge to base branch, push
-Step 13: worktree-manager                   → Cleanup worktree [+ Docker if applicable]
-Step 13b: docker-debugger                   → Fix cleanup issues [DOCKER/ON-FAILURE]
+Step 13: worktree-manager                   → Cleanup worktree
+Step 13b: [DOCKER/ON-FAILURE] docker-debugger → Force cleanup
 ```
+
+> `b` steps only activate for Docker projects when container failures occur.
 
 ---
 
@@ -118,13 +120,8 @@ Step 13b: docker-debugger                   → Fix cleanup issues [DOCKER/ON-FA
 
 **Commands**:
 ```bash
-# With Docker:
-bash scripts/worktree_create.sh feature-name "Feature description"
-docker-compose -p feature-name up -d
-docker-compose -p feature-name ps
-
-# Without Docker:
-bash scripts/worktree_create.sh feature-name "Feature description"
+# Agent runs:
+python scripts/worktree_create.py feature-name
 ```
 
 **Output**:
@@ -133,7 +130,12 @@ bash scripts/worktree_create.sh feature-name "Feature description"
 - Dependencies installed (`npm ci`)
 - Development environment ready
 
-**If Docker fails → Step 1b**: docker-debugger diagnoses and fixes container issues *(Docker projects only)*
+> *(Docker projects only)* The script automatically starts Docker containers with unique ports, providing a completely isolated Angular development environment — no shared resources.
+
+**On Failure** (Step 1b) *(Docker projects only)*:
+- docker-debugger diagnoses port conflicts, container issues
+- Fixes automatically if possible
+- Reports if manual intervention needed
 
 ---
 
@@ -590,15 +592,14 @@ ng build --configuration=production
 
 **Commands**:
 ```bash
-# Switch to base branch
-git checkout <base-branch>
-
-# Merge feature branch (no fast-forward for clear history)
-git merge --no-ff feature/feature-name -m "merge: feature/feature-name into <base-branch>"
-
-# Push to remote
-git push origin <base-branch>
+# Agent runs:
+python scripts/worktree_merge.py <worktree-id>
 ```
+
+**Output**:
+- Feature merged to base branch
+- Base branch pushed to remote
+- Ready for cleanup
 
 ---
 
@@ -606,17 +607,22 @@ git push origin <base-branch>
 
 **Agent**: worktree-manager
 
+**Actions**:
+1. Delete worktree
+2. Update registry
+
+*(Docker projects only)* Also stops and removes Docker containers, and optionally cleans up images.
+
 **Commands**:
 ```bash
-# With Docker:
-docker-compose -p feature-name down -v
-bash scripts/worktree_remove.sh feature-name
-
-# Without Docker:
-bash scripts/worktree_remove.sh feature-name
+# Agent runs:
+python scripts/worktree_cleanup.py <worktree-id>
 ```
 
-**If Docker cleanup fails → Step 13b**: docker-debugger diagnoses container cleanup issues *(Docker projects only)*
+**On Failure** (Step 13b) *(Docker projects only)*:
+- docker-debugger force cleanups stuck resources
+- Removes containers, images
+- Ensures clean state
 
 ---
 

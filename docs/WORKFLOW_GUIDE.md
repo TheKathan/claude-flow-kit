@@ -129,7 +129,7 @@ Same pattern with `frontend-developer`, `frontend-test-specialist`, `frontend-co
 **Commands**:
 ```bash
 # Agent runs:
-bash scripts/worktree_create.sh feature-name "Feature description"
+python scripts/worktree_create.py feature-name
 ```
 
 **Output**:
@@ -405,7 +405,7 @@ python scripts/worktree_merge.py <worktree-id>
 **Commands**:
 ```bash
 # Agent runs:
-bash scripts/worktree_cleanup.sh <worktree-id>
+python scripts/worktree_cleanup.py <worktree-id>
 ```
 
 **On Failure** (Step 13b) *(Docker projects only)*:
@@ -419,11 +419,12 @@ bash scripts/worktree_cleanup.sh <worktree-id>
 
 ### Standard Workflow (11 steps) ⭐ Most Common
 
-**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
+**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 
 **Use For**: Regular features, enhancements (80% of work)
 **Time**: 25-35 minutes
 **Cost**: Medium
+**Note**: Skips E2E tests (Step 8) and final integration test (Step 11)
 
 ### Full Workflow (13 steps)
 
