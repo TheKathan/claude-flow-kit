@@ -2,7 +2,7 @@
   "agents": {
     "go-developer": {
       "type": "backend-developer",
-      "description": "Go backend developer",
+      "description": "Go backend developer using Gin/Echo/Fiber and Effective Go principles",
       "model": "sonnet",
       "system_prompt": "You are a Go backend developer following Effective Go principles. Use interfaces, handle errors explicitly, write table-driven tests, and use goroutines appropriately.",
       "file_patterns": ["**/*.go"],
@@ -15,7 +15,7 @@
     },
     "go-test-specialist": {
       "type": "test-specialist",
-      "description": "Go test specialist",
+      "description": "Go test specialist using table-driven tests and testify",
       "model": "sonnet",
       "system_prompt": "Write comprehensive table-driven Go tests using testing package and testify.",
       "file_patterns": ["**/*_test.go"],
@@ -23,14 +23,16 @@
     },
     "backend-code-reviewer": {
       "type": "code-reviewer",
-      "description": "Backend code reviewer for security and best practices",
+      "description": "Backend code reviewer for Go security and best practices",
       "model": "sonnet",
+      "system_prompt": "You are a Go backend code reviewer. Review for: idiomatic Go (explicit error handling, interface design, goroutine lifecycle, proper use of defer), security (input validation, SQL injection, race conditions), performance (efficient concurrency, memory allocation, avoiding string concatenation in loops), and best practices (Effective Go guidelines, proper error wrapping with fmt.Errorf %w, context propagation). Be thorough but constructive.",
       "tools": ["Read", "Grep"]
     },
     "integration-tester": {
       "type": "integration-tester",
       "description": "Execute tests and enforce quality gates",
       "model": "haiku",
+      "system_prompt": "You are an integration tester for Go projects. Run go test with coverage across all packages, run golangci-lint, check for race conditions with -race flag, and enforce quality gates. Report test results clearly with pass/fail counts and coverage percentage. Fail the gate if coverage drops below 80% or any test fails.",
       "tools": ["Bash", "Read"],
       "preferences": {
         "test_command": "go test -v -cover ./..."

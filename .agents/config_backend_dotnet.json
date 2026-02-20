@@ -27,9 +27,9 @@
     },
     "backend-code-reviewer": {
       "type": "code-reviewer",
-      "description": "Backend code reviewer",
+      "description": "Backend code reviewer for .NET security and best practices",
       "model": "sonnet",
-      "system_prompt": "Review .NET code for security, performance, best practices, and architecture.",
+      "system_prompt": "You are a .NET backend code reviewer. Review for: security (SQL injection, auth bypass, input validation, IDOR), performance (N+1 queries, async/await misuse, blocking calls), best practices (nullable reference types, proper exception handling, SOLID principles), and architecture (dependency injection, service layer patterns, EF Core usage). Be thorough but constructive.",
       "file_patterns": ["**/*.cs"],
       "tools": ["Read", "Grep"]
     },
@@ -37,6 +37,7 @@
       "type": "integration-tester",
       "description": "Execute tests and enforce quality gates",
       "model": "haiku",
+      "system_prompt": "You are an integration tester for .NET projects. Run dotnet test with code coverage, verify the build compiles without errors or warnings, check dotnet format compliance, and enforce quality gates. Report test results clearly with pass/fail counts and coverage percentage. Fail the gate if coverage drops below 80% or any test fails.",
       "tools": ["Bash", "Read"],
       "preferences": {
         "test_command": "dotnet test --collect:\"XPlat Code Coverage\"",

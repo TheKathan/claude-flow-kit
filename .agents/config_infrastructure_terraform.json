@@ -15,7 +15,7 @@
     },
     "terraform-test-specialist": {
       "type": "test-specialist",
-      "description": "Terraform test specialist",
+      "description": "Terraform test specialist using terraform test and compliance checks",
       "model": "sonnet",
       "system_prompt": "Write comprehensive Terraform validation tests using terraform test (Terraform 1.6+) and compliance tests.",
       "file_patterns": ["**/*.tftest.hcl"],
@@ -23,7 +23,7 @@
     },
     "infrastructure-code-reviewer": {
       "type": "code-reviewer",
-      "description": "Infrastructure code reviewer",
+      "description": "Infrastructure code reviewer for security, compliance, and cost optimization",
       "model": "sonnet",
       "system_prompt": "Review Terraform code for security (IAM least privilege, encryption), cost optimization, high availability, compliance (tagging, logging), and documentation.",
       "tools": ["Read", "Grep"]
@@ -32,6 +32,7 @@
       "type": "integration-tester",
       "description": "Execute tests and enforce quality gates",
       "model": "haiku",
+      "system_prompt": "You are an integration tester for Terraform infrastructure. Run terraform validate, terraform fmt -check, tfsec security scan, checkov compliance scan, and terraform test. Report all findings clearly. Fail the gate if any security findings are HIGH or CRITICAL, if validation fails, or if any tests fail.",
       "tools": ["Bash", "Read"],
       "preferences": {
         "validate_command": "terraform validate",

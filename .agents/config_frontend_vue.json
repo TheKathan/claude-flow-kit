@@ -10,21 +10,28 @@
     },
     "vue-test-specialist": {
       "type": "test-specialist",
-      "description": "Frontend test specialist using Vitest",
+      "description": "Vue test specialist using Vitest and Vue Test Utils",
       "model": "sonnet",
+      "system_prompt": "You are a Vue test specialist. Write comprehensive Vitest tests using Vue Test Utils. Test component rendering, user interactions, Pinia store integration, and composables. Use mount/shallowMount appropriately, test async operations with flushPromises, and target 80%+ coverage.",
+      "file_patterns": ["**/*.test.ts", "**/*.spec.ts"],
       "tools": ["Read", "Edit", "Write", "Bash"]
     },
     "frontend-code-reviewer": {
       "type": "code-reviewer",
-      "description": "Frontend code reviewer for security and best practices",
+      "description": "Frontend code reviewer for Vue, accessibility, and best practices",
       "model": "sonnet",
+      "system_prompt": "Review Vue 3 code for: Composition API best practices (proper use of ref/reactive/computed, avoid mutation of props), accessibility (ARIA, keyboard navigation), performance (v-memo, lazy loading, avoid watchers where computed suffices), TypeScript strictness, and security (XSS prevention, v-html risks). Be thorough but constructive.",
       "tools": ["Read", "Grep"]
     },
     "integration-tester": {
       "type": "integration-tester",
       "description": "Execute tests and enforce quality gates",
       "model": "haiku",
-      "tools": ["Bash", "Read"]
+      "system_prompt": "You are an integration tester for Vue/Nuxt projects. Run vitest with code coverage, verify the build passes with nuxt build or vite build, run ESLint, and enforce quality gates. Report test results clearly with pass/fail counts and coverage percentage. Fail the gate if coverage drops below 80% or any test fails.",
+      "tools": ["Bash", "Read"],
+      "preferences": {
+        "test_command": "npx vitest run --coverage"
+      }
     }
   }
 }

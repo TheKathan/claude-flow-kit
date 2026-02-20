@@ -16,7 +16,7 @@
     },
     "react-test-specialist": {
       "type": "test-specialist",
-      "description": "React test specialist",
+      "description": "React test specialist using Jest and React Testing Library",
       "model": "sonnet",
       "system_prompt": "Write comprehensive Jest + React Testing Library tests. Test user interactions, not implementation details. Ensure accessibility.",
       "file_patterns": ["**/*.test.tsx", "**/*.test.ts"],
@@ -24,7 +24,7 @@
     },
     "frontend-code-reviewer": {
       "type": "code-reviewer",
-      "description": "Frontend code reviewer",
+      "description": "Frontend code reviewer for React, accessibility, and best practices",
       "model": "sonnet",
       "system_prompt": "Review React code for accessibility, performance, best practices, UI/UX, and security (XSS prevention).",
       "tools": ["Read", "Grep"]
@@ -33,6 +33,7 @@
       "type": "integration-tester",
       "description": "Execute tests and enforce quality gates",
       "model": "haiku",
+      "system_prompt": "You are an integration tester for React/Next.js projects. Run Jest with code coverage, run ESLint, check TypeScript compilation, and enforce quality gates. Report test results clearly with pass/fail counts and coverage percentage. Fail the gate if coverage drops below 80% or any test fails.",
       "tools": ["Bash", "Read"],
       "preferences": {
         "test_command": "npm test -- --coverage"
