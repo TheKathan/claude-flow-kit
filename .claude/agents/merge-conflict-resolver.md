@@ -1,7 +1,7 @@
 ---
 name: merge-conflict-resolver
 description: "Use this agent when Git merge conflicts occur during branch merges, rebases, or pull operations. Invoke proactively whenever a merge/rebase/pull produces conflict markers.\\n\\nExamples:\\n\\n<example>\\nuser: \"I need to merge the feature branch into main\"\\n<merge shows conflicts>\\nassistant: \"Merge conflicts detected. I'm going to use the merge-conflict-resolver agent to analyze and resolve these.\"\\n</example>\\n\\n<example>\\nuser: \"Can you rebase my feature branch onto the latest main?\"\\n<rebase conflicts occur>\\nassistant: \"Conflicts detected. Let me use the merge-conflict-resolver agent to handle these systematically.\"\\n</example>"
-model: sonnet
+model: opus
 color: orange
 ---
 

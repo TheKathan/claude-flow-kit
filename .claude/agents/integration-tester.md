@@ -1,7 +1,7 @@
 ---
 name: integration-tester
 description: "Use this agent when you need comprehensive end-to-end testing of system components, API workflows, or multi-service interactions. Invoke after completing a feature that involves multiple services or layers.\\n\\nExamples:\\n\\n<example>\\nuser: \"I've finished implementing the OAuth2 authentication flow. Can you verify it works?\"\\nassistant: \"I'm going to use the integration-tester agent to perform end-to-end testing of the authentication flow.\"\\n</example>\\n\\n<example>\\nuser: \"The file operations service is done. Can you test the full workflow?\"\\nassistant: \"Let me use the integration-tester agent to test create, read, update, delete, security, and error scenarios.\"\\n</example>\\n\\n<example>\\nuser: \"Can you check if the new message routing system works correctly?\"\\nassistant: \"I'm going to use the integration-tester agent to verify the complete message routing flow.\"\\n</example>"
-model: sonnet
+model: haiku
 color: pink
 ---
 

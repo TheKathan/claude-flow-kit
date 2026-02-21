@@ -133,7 +133,7 @@
         "prevent_tech_debt",
         "plan_features"
       ],
-      "model": "sonnet",
+      "model": "opus",
       "tools": [
         "Read",
         "Grep",
@@ -220,7 +220,7 @@
         "test_security",
         "generate_reports"
       ],
-      "model": "sonnet",
+      "model": "haiku",
       "tools": [
         "Read",
         "Bash",
@@ -324,7 +324,7 @@
         "verify_resolution",
         "report_status"
       ],
-      "model": "sonnet",
+      "model": "opus",
       "tools": [
         "Read",
         "Write",

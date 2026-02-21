@@ -1,7 +1,7 @@
 ---
 name: software-architect
 description: "Use this agent when architectural planning, design review, or technical debt prevention is needed. Invoke for: designing new services or major components, making technology stack decisions, reviewing for tight coupling or SOLID violations, breaking down complex features, or reviewing PRs with significant architectural changes.\\n\\nExamples:\\n\\n<example>\\nuser: \"Should I add WebSocket endpoints directly in the API routes?\"\\nassistant: \"This is an architectural decision. Let me consult the software-architect agent to design the proper approach.\"\\n</example>\\n\\n<example>\\nuser: \"I've added the email notification service — the EmailService is instantiated directly in each route handler.\"\\nassistant: \"Before we proceed, let me have the software-architect agent review this for coupling and DI issues.\"\\n</example>\\n\\n<example>\\nuser: \"The current data model is causing performance issues. I'm thinking of denormalizing.\"\\nassistant: \"Schema changes have significant implications. Let me engage the software-architect agent to propose the right approach.\"\\n</example>"
-model: sonnet
+model: opus
 color: cyan
 ---
 
