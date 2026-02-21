@@ -519,7 +519,7 @@ docker-compose restart backend
 ## Resources
 
 ### Documentation
-- [Architecture](.claude/ARCHITECTURE.md) - System architecture
+- [Architecture](ARCHITECTURE.md) - System architecture
 - [Workflow Guide](../docs/WORKFLOW_GUIDE.md) - Development workflow
 - [Testing Guide](../docs/TESTING_GUIDE.md) - Testing standards
 

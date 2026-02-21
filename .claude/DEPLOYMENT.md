@@ -65,7 +65,7 @@ docker-compose build
 
 ## Environment Variables
 
-See [Environment Variables](.claude/ENVIRONMENT.md) for a full list of required configuration.
+See [Environment Variables](ENVIRONMENT.md) for a full list of required configuration.
 
 ---
 

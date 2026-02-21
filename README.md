@@ -76,9 +76,7 @@ That's it! You get only what you need - no clutter.
 
 ```bash
 git add CLAUDE.md .claude/ .agents/ docs/ scripts/
-git commit -m "Add Claude Code configuration
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+git commit -m "Add Claude Code configuration"
 ```
 
 ## 🤖 Available Agents
@@ -223,7 +221,7 @@ Contributions are welcome! To add new languages or frameworks:
 
 ## 📝 License
 
-This template is provided as-is for use in any project. Customize freely.
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ---
 

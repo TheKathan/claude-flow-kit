@@ -19,11 +19,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  DEPLOY_HOST: coopnet
-  DEPLOY_USER: coop
-  LOCAL_REGISTRY: localhost:5000
-
 jobs:
   validate-json:
     runs-on: ubuntu-latest
