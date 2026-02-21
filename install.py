@@ -494,6 +494,12 @@ def main():
     for doc in common_docs:
         download_file(f"{GITHUB_RAW_URL}/.claude/{doc}", current_dir / ".claude" / doc)
 
+    # Download slash commands
+    print("\n⌨️  Downloading slash commands...")
+    commands_dir = current_dir / ".claude" / "commands"
+    commands_dir.mkdir(parents=True, exist_ok=True)
+    download_file(f"{GITHUB_RAW_URL}/.claude/commands/workflow.md", commands_dir / "workflow.md")
+
     # Download testing guide and general workflow reference
     download_file(f"{GITHUB_RAW_URL}/docs/TESTING_GUIDE.md", current_dir / "docs" / "TESTING_GUIDE.md")
     workflow_guide = current_dir / "docs" / "WORKFLOW_GUIDE.md"
@@ -513,6 +519,7 @@ def main():
     print(f"   scripts/       ← worktree management scripts")
     print(f"   .claude/           ← guides & documentation  ⚠️  HIDDEN DIRECTORY")
     print(f"   .claude/agents/    ← agent definitions       ⚠️  HIDDEN DIRECTORY")
+    print(f"   .claude/commands/  ← slash commands          ⚠️  HIDDEN DIRECTORY")
     print(f"   .agents/           ← agent configs           ⚠️  HIDDEN DIRECTORY")
     print(f"\n⚠️  Note: .claude/ and .agents/ start with a dot — they are hidden")
     print(f"   on Mac/Linux. Use 'ls -la' to see them, not plain 'ls'.")
@@ -537,7 +544,8 @@ def main():
     print("4. Add your project-specific content")
     print("5. Commit: git add CLAUDE.md .claude/ .agents/ docs/ scripts/")
     print("6. Start using Claude Code with your configured agents!")
-    print("\n💡 Tip: Run 'claude' in your terminal to start using Claude Code")
+    print("\n💡 Slash command installed: type /workflow <task> to start the 13-step workflow")
+    print("   Example: /workflow implement user authentication with JWT")
     print()
 
 if __name__ == "__main__":
