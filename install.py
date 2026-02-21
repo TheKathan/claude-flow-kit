@@ -91,18 +91,77 @@ def detect_infrastructure_tool(infrastructure_tool: Optional[str]) -> Optional[s
         return "terraform"
     return None
 
-def _substitute_claude_md(file_path: Path, replacements: Dict[str, str]):
-    """Substitute simple {{VAR}} placeholders in a downloaded template file."""
+def _evaluate_condition(condition: str, variables: Dict[str, str]) -> bool:
+    """Evaluate a {{#if COND}} expression against the variable map."""
+    condition = condition.strip()
+    # "A or B" — any sub-condition being true is sufficient
+    if " or " in condition:
+        return any(_evaluate_condition(p, variables) for p in condition.split(" or "))
+    # 'VAR includes "STRING"' — substring check
+    import re as _re
+    m = _re.match(r'(\w+)\s+includes\s+"([^"]*)"', condition)
+    if m:
+        value = variables.get("{{" + m.group(1) + "}}", "")
+        return m.group(2).lower() in value.lower()
+    # Simple variable — truthy when non-empty and not "false"
+    value = variables.get("{{" + condition + "}}", "")
+    return value.lower() not in ("", "false")
+
+
+def _process_template(file_path: Path, replacements: Dict[str, str]):
+    """Substitute {{VAR}} placeholders and evaluate {{#if}}...{{/if}} blocks."""
     if not file_path.exists():
         return
     try:
-        content = file_path.read_text(encoding='utf-8')
+        import re
+        content = file_path.read_text(encoding="utf-8")
+
+        # Pass 1: simple variable substitution
         for placeholder, value in replacements.items():
             content = content.replace(placeholder, value)
-        file_path.write_text(content, encoding='utf-8')
-        print(f"  ✅ Substituted variables in {file_path.name}")
+
+        # Pass 2: process conditionals iteratively (inner blocks resolve first)
+        for _ in range(10):
+            prev = content
+
+            # Inline if-else: {{#if COND}}true content{{else}}false content{{/if}}
+            # Content must not contain another {{#if (handled in later iterations)
+            content = re.sub(
+                r'\{\{#if ([^}]+)\}\}((?:(?!\{\{#if)[^\n])*)\{\{else\}\}((?:(?!\{\{#if)[^\n])*)\{\{/if\}\}',
+                lambda m: m.group(2) if _evaluate_condition(m.group(1), replacements) else m.group(3),
+                content,
+            )
+            # Inline if: {{#if COND}}content{{/if}} (no else, no newlines, no nested)
+            content = re.sub(
+                r'\{\{#if ([^}]+)\}\}((?:(?!\{\{#if)[^\n])*)\{\{/if\}\}',
+                lambda m: m.group(2) if _evaluate_condition(m.group(1), replacements) else "",
+                content,
+            )
+            # Multi-line if-else (no nested {{#if}} inside either branch)
+            content = re.sub(
+                r'\{\{#if ([^}]+)\}\}((?:(?!\{\{#if).)*?)\{\{else\}\}((?:(?!\{\{#if).)*?)\{\{/if\}\}',
+                lambda m: m.group(2) if _evaluate_condition(m.group(1), replacements) else m.group(3),
+                content,
+                flags=re.DOTALL,
+            )
+            # Multi-line if (no nested {{#if}} inside)
+            content = re.sub(
+                r'\{\{#if ([^}]+)\}\}((?:(?!\{\{#if).)*?)\{\{/if\}\}',
+                lambda m: m.group(2) if _evaluate_condition(m.group(1), replacements) else "",
+                content,
+                flags=re.DOTALL,
+            )
+
+            if content == prev:
+                break
+
+        # Clean up runs of 3+ blank lines left by removed blocks
+        content = re.sub(r"\n{3,}", "\n\n", content)
+
+        file_path.write_text(content.strip() + "\n", encoding="utf-8")
+        print(f"  ✅ Processed template {file_path.name}")
     except Exception as e:
-        print(f"  ⚠️  Could not substitute variables in {file_path.name}: {e}")
+        print(f"  ⚠️  Could not process template {file_path.name}: {e}")
 
 
 def main():
@@ -235,9 +294,9 @@ def main():
     print("\n📥 Downloading core template files...")
     current_dir = Path.cwd()
 
-    # Download CLAUDE.md and substitute template variables
+    # Download CLAUDE.md and process template variables + conditionals
     download_file(f"{GITHUB_RAW_URL}/CLAUDE.md", current_dir / "CLAUDE.md")
-    _substitute_claude_md(current_dir / "CLAUDE.md", {
+    _process_template(current_dir / "CLAUDE.md", {
         "{{PROJECT_NAME}}": project_name,
         "{{PROJECT_DESCRIPTION}}": project_description,
         "{{REPO_URL}}": repo_url,
@@ -289,6 +348,15 @@ def main():
     for agent in common_agents:
         download_file(f"{GITHUB_RAW_URL}/.claude/agents/{agent}", agents_dir / agent)
 
+    # API reference — conditional on backend presence
+    if has_backend:
+        api_ref = agents_dir.parent / "API_REFERENCE.md"
+        download_file(f"{GITHUB_RAW_URL}/.claude/API_REFERENCE.md", api_ref)
+        _process_template(api_ref, {
+            "{{PROJECT_NAME}}": project_name,
+            "{{API_BASE_URL}}": "http://localhost:8000",
+        })
+
     # Backend agents — conditional on selected language
     backend_agent_map = {
         "python":  ["python-developer.md", "python-test-specialist.md", "backend-code-reviewer.md"],
@@ -339,13 +407,23 @@ def main():
     # Download and merge agent configs
     print("\n🤖 Downloading and merging agent configurations...")
 
+    # Common orchestration agents that are always needed regardless of stack
+    _COMMON_AGENT_KEYS = {
+        "architect", "worktree-mgr", "docker-debug",
+        "e2e-tester", "status-reviewer", "conflict-resolver",
+    }
+
     # Download main config.json as the base to preserve workflow/gates/etc. sections
     base_config_url = f"{GITHUB_RAW_URL}/.agents/config.json"
     try:
         with urllib.request.urlopen(base_config_url) as response:
             merged_config = json.loads(response.read())
-            # Clear agents — they will be repopulated from component configs below
-            merged_config['agents'] = {}
+            # Keep only common orchestration agents; stack-specific ones come from
+            # component configs below so we don't include mismatched generics.
+            merged_config['agents'] = {
+                k: v for k, v in merged_config['agents'].items()
+                if k in _COMMON_AGENT_KEYS
+            }
             print(f"  ✅ Downloaded base workflow config")
     except Exception as e:
         print(f"  ⚠️  Could not download base workflow config ({e}), using minimal defaults")
@@ -390,9 +468,8 @@ def main():
         except Exception as e:
             print(f"  ❌ Failed to download infrastructure config: {e}")
 
-    # Replace project name placeholder in agent system prompts
+    # Substitute {{PROJECT_NAME}} in any remaining config string fields
     config_str = json.dumps(merged_config)
-    config_str = config_str.replace("Citadel.AI", project_name)
     config_str = config_str.replace("{{PROJECT_NAME}}", project_name)
     merged_config = json.loads(config_str)
 
@@ -419,7 +496,12 @@ def main():
 
     # Download testing guide and general workflow reference
     download_file(f"{GITHUB_RAW_URL}/docs/TESTING_GUIDE.md", current_dir / "docs" / "TESTING_GUIDE.md")
-    download_file(f"{GITHUB_RAW_URL}/docs/WORKFLOW_GUIDE.md", current_dir / "docs" / "WORKFLOW_GUIDE.md")
+    workflow_guide = current_dir / "docs" / "WORKFLOW_GUIDE.md"
+    download_file(f"{GITHUB_RAW_URL}/docs/WORKFLOW_GUIDE.md", workflow_guide)
+    _process_template(workflow_guide, {
+        "{{PROJECT_NAME}}": project_name,
+        "{{CURRENT_DATE}}": __import__('datetime').date.today().isoformat(),
+    })
 
     print("\n" + "=" * 70)
     print("✅ Installation Complete!")
