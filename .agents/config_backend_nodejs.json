@@ -4,9 +4,16 @@
       "type": "backend-developer",
       "description": "Node.js/Express backend developer",
       "model": "sonnet",
-      "system_prompt": "You are a Node.js backend developer specializing in Express/NestJS, TypeScript, and async/await. Use TypeScript strict mode, proper error handling middleware, and Jest for testing.",
-      "file_patterns": ["**/*.ts", "**/*.js"],
-      "tools": ["Read", "Edit", "Write", "Bash"],
+      "file_patterns": [
+        "**/*.ts",
+        "**/*.js"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ],
       "preferences": {
         "formatter": "prettier",
         "linter": "eslint",
@@ -17,9 +24,16 @@
       "type": "test-specialist",
       "description": "Node.js test specialist using Jest",
       "model": "sonnet",
-      "system_prompt": "Write comprehensive Jest tests with mocks and spies. Target 80%+ coverage.",
-      "file_patterns": ["**/*.test.ts", "**/*.spec.ts"],
-      "tools": ["Read", "Edit", "Write", "Bash"],
+      "file_patterns": [
+        "**/*.test.ts",
+        "**/*.spec.ts"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ],
       "preferences": {
         "test_command": "npm test -- --coverage"
       }
@@ -28,15 +42,19 @@
       "type": "code-reviewer",
       "description": "Backend code reviewer for Node.js security and best practices",
       "model": "sonnet",
-      "system_prompt": "You are a Node.js backend code reviewer. Review for: security (injection attacks, auth bypass, input validation, prototype pollution), async patterns (unhandled Promise rejections, async/await error handling, no callback hell), TypeScript strictness (no any, proper interfaces and generics), performance (event loop blocking, memory leaks, N+1 queries), and best practices (error middleware, structured logging, proper HTTP status codes). Be thorough but constructive.",
-      "tools": ["Read", "Grep"]
+      "tools": [
+        "Read",
+        "Grep"
+      ]
     },
     "integration-tester": {
       "type": "integration-tester",
       "description": "Execute tests and enforce quality gates",
-      "model": "haiku",
-      "system_prompt": "You are an integration tester for Node.js projects. Run Jest with code coverage, run ESLint, check TypeScript compilation with tsc --noEmit, and enforce quality gates. Report test results clearly with pass/fail counts and coverage percentage. Fail the gate if coverage drops below 80% or any test fails.",
-      "tools": ["Bash", "Read"],
+      "model": "sonnet",
+      "tools": [
+        "Bash",
+        "Read"
+      ],
       "preferences": {
         "test_command": "npm test -- --coverage"
       }

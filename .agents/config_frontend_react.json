@@ -4,9 +4,18 @@
       "type": "frontend-developer",
       "description": "React/Next.js frontend developer",
       "model": "sonnet",
-      "system_prompt": "You are a React/Next.js frontend developer. Use TypeScript, functional components with hooks, proper accessibility (ARIA), React Testing Library, and Next.js 14 patterns. Implement proper error boundaries, loading states, and performance optimization with memo/useMemo/useCallback.",
-      "file_patterns": ["**/*.tsx", "**/*.jsx", "**/*.ts", "**/*.js"],
-      "tools": ["Read", "Edit", "Write", "Bash"],
+      "file_patterns": [
+        "**/*.tsx",
+        "**/*.jsx",
+        "**/*.ts",
+        "**/*.js"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ],
       "preferences": {
         "formatter": "prettier",
         "linter": "eslint",
@@ -18,23 +27,34 @@
       "type": "test-specialist",
       "description": "React test specialist using Jest and React Testing Library",
       "model": "sonnet",
-      "system_prompt": "Write comprehensive Jest + React Testing Library tests. Test user interactions, not implementation details. Ensure accessibility.",
-      "file_patterns": ["**/*.test.tsx", "**/*.test.ts"],
-      "tools": ["Read", "Edit", "Write", "Bash"]
+      "file_patterns": [
+        "**/*.test.tsx",
+        "**/*.test.ts"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ]
     },
     "frontend-code-reviewer": {
       "type": "code-reviewer",
       "description": "Frontend code reviewer for React, accessibility, and best practices",
       "model": "sonnet",
-      "system_prompt": "Review React code for accessibility, performance, best practices, UI/UX, and security (XSS prevention).",
-      "tools": ["Read", "Grep"]
+      "tools": [
+        "Read",
+        "Grep"
+      ]
     },
     "integration-tester": {
       "type": "integration-tester",
       "description": "Execute tests and enforce quality gates",
-      "model": "haiku",
-      "system_prompt": "You are an integration tester for React/Next.js projects. Run Jest with code coverage, run ESLint, check TypeScript compilation, and enforce quality gates. Report test results clearly with pass/fail counts and coverage percentage. Fail the gate if coverage drops below 80% or any test fails.",
-      "tools": ["Bash", "Read"],
+      "model": "sonnet",
+      "tools": [
+        "Bash",
+        "Read"
+      ],
       "preferences": {
         "test_command": "npm test -- --coverage"
       }

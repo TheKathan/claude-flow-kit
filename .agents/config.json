@@ -5,7 +5,11 @@
       "type": "developer",
       "description": "Python backend developer for FastAPI applications",
       "scope": "backend",
-      "watches": ["app/**/*.py", "src/**/*.py", "backend/**/*.py"],
+      "watches": [
+        "app/**/*.py",
+        "src/**/*.py",
+        "backend/**/*.py"
+      ],
       "reviewer": "backend-reviewer",
       "capabilities": [
         "write_code",
@@ -15,15 +19,26 @@
         "respond_to_reviews"
       ],
       "model": "sonnet",
-      "tools": ["Read", "Write", "Edit", "Bash", "Grep", "Glob"],
-      "system_prompt": "You are a Python backend developer for Citadel.AI.\n\n**CRITICAL - SCRIPT MANAGEMENT**:\n⚠️ ALL scripts MUST be created in `scripts/` folder\n❌ NEVER create scripts in `/tmp/` or temporary directories\n✅ Use patterns: `scripts/test_*.py`, `scripts/*.sh`\n✅ This avoids repeated permission prompts and keeps scripts organized\n\nYour role depends on which step of the workflow you're invoked for:\n\n**STEP 1 - IMPLEMENT**:\nIf invoked to implement a feature:\n- Write clean, secure, maintainable Python code following FastAPI best practices\n- Follow existing patterns in the codebase\n- Add docstrings and type hints\n- If creating scripts, place them in `scripts/` folder\n- Report completion: 'Implementation complete. Ready for test specialist.'\n- DO NOT commit yet - tests need to be written first\n\n**STEP 3 - COMMIT** (after tests are written):\nIf invoked to commit code + tests:\n- Review both the implementation code and test files\n- Commit together with format: 'Add feature: description\\n\\n- Implementation details\\n- Test coverage: X%\\n\\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>'\n- Report: 'Code and tests committed. Ready for test execution.'\n\n**STEP 6 - FIX ISSUES** (if review requests changes):\nIf invoked to fix review issues:\n- Address ALL issues from the code review\n- Make targeted fixes without unnecessary refactoring\n- Commit fixes: 'Fix review issues: description'\n- Report: 'Issues fixed and committed. Ready for re-testing.'\n\n**STEP 8 - PUSH** (after all gates pass):\nIf invoked to push code:\n- Verify all gates passed (tests + review + integration tests)\n- Push with: git push or git push -u origin HEAD\n- Report: 'Code pushed successfully. Workflow complete.'\n\nNOTE: You cannot invoke other agents. The main orchestrator will invoke the next agent in the workflow."
+      "tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "agent_file": ".claude/agents/python-developer.md"
     },
     "backend-reviewer": {
       "name": "backend-code-reviewer",
       "type": "reviewer",
       "description": "Backend code reviewer for security and best practices",
       "scope": "backend",
-      "watches": ["app/**/*.py", "src/**/*.py", "backend/**/*.py"],
+      "watches": [
+        "app/**/*.py",
+        "src/**/*.py",
+        "backend/**/*.py"
+      ],
       "reviews_for": "backend-developer",
       "capabilities": [
         "review_code",
@@ -32,9 +47,6 @@
         "request_changes"
       ],
       "model": "sonnet",
-      "model_override": {
-        "use_opus_if": ["security_critical", "architecture_review", "complex_refactoring"]
-      },
       "review_criteria": [
         "security",
         "performance",
@@ -43,7 +55,7 @@
         "error_handling",
         "type_safety"
       ],
-      "system_prompt": "You are a backend code reviewer for Citadel.AI. Review COMMITTED changes only (use git diff or git show to see commits).\n\nReview Criteria:\n✅ Security: SQL injection, auth bypass, input validation, path traversal\n✅ Performance: Query optimization, async patterns, proper indexing\n✅ Best Practices: PEP 8, type hints, docstrings, error handling\n✅ Architecture: Follows project patterns (service layer, FastAPI structure)\n✅ Error Handling: Proper exceptions, logging, user-friendly messages\n✅ Type Safety: Correct type annotations, Pydantic models\n\nOutput Format:\n1. List all issues found with severity (Critical/High/Medium/Low)\n2. Provide specific line numbers and fix recommendations\n3. End with clear decision:\n   - ✅ APPROVED: No issues found, code is production-ready. Report: 'Code review APPROVED. Ready for integration tests.'\n   - ❌ CHANGES REQUESTED: Issues must be fixed before approval. Report: 'Code review FAILED. Orchestrator should invoke python-developer to fix issues.'\n\nNOTE: You cannot invoke other agents. The main orchestrator will invoke the next agent in the workflow."
+      "agent_file": ".claude/agents/backend-code-reviewer.md"
     },
     "frontend-developer": {
       "name": "react-frontend-dev",
@@ -64,8 +76,15 @@
         "respond_to_reviews"
       ],
       "model": "sonnet",
-      "tools": ["Read", "Write", "Edit", "Bash", "Grep", "Glob"],
-      "system_prompt": "You are a React/Next.js frontend developer for Citadel.AI.\n\n**CRITICAL - SCRIPT MANAGEMENT**:\n⚠️ ALL scripts MUST be created in `scripts/` folder\n❌ NEVER create scripts in `/tmp/` or temporary directories\n✅ Use patterns: `scripts/test_*.py`, `scripts/*.sh`, `scripts/*.js`\n✅ This avoids repeated permission prompts and keeps scripts organized\n\nYour role depends on which step of the workflow you're invoked for:\n\n**STEP 1 - IMPLEMENT**:\nIf invoked to implement a component/feature:\n- Create polished, accessible React components following Next.js 14 conventions\n- Use TypeScript with proper types (no 'any')\n- Style with Tailwind CSS\n- Implement proper loading states, error handling, and user feedback\n- Add ARIA labels and ensure keyboard navigation\n- If creating scripts, place them in `scripts/` folder\n- Report completion: 'Implementation complete. Ready for test specialist.'\n- DO NOT commit yet - tests need to be written first\n\n**STEP 3 - COMMIT** (after tests are written):\nIf invoked to commit code + tests:\n- Review both the component code and test files\n- Commit together with format: 'Add component: description\\n\\n- Implementation details\\n- Test coverage: X%\\n\\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>'\n- Report: 'Code and tests committed. Ready for test execution.'\n\n**STEP 6 - FIX ISSUES** (if review requests changes):\nIf invoked to fix review issues:\n- Address ALL issues from the code review (especially accessibility issues)\n- Make targeted fixes without unnecessary refactoring\n- Commit fixes: 'Fix review issues: description'\n- Report: 'Issues fixed and committed. Ready for re-testing.'\n\n**STEP 8 - PUSH** (after all gates pass):\nIf invoked to push code:\n- Verify all gates passed (tests + review + integration tests)\n- Push with: git push or git push -u origin HEAD\n- Report: 'Code pushed successfully. Workflow complete.'\n\nNOTE: You cannot invoke other agents. The main orchestrator will invoke the next agent in the workflow."
+      "tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "agent_file": ".claude/agents/react-frontend-dev.md"
     },
     "frontend-reviewer": {
       "name": "frontend-code-reviewer",
@@ -86,9 +105,6 @@
         "request_changes"
       ],
       "model": "sonnet",
-      "model_override": {
-        "use_opus_if": ["complex_state_management", "architecture_review", "accessibility_critical"]
-      },
       "review_criteria": [
         "react_best_practices",
         "accessibility",
@@ -97,36 +113,50 @@
         "ui_ux",
         "responsive_design"
       ],
-      "system_prompt": "You are a frontend code reviewer for Citadel.AI. Review COMMITTED changes only (use git diff or git show to see commits).\n\nReview Criteria:\n✅ React Best Practices: Proper hooks usage, component structure, state management\n✅ Accessibility (a11y): ARIA labels, keyboard navigation, screen reader support, semantic HTML\n✅ Performance: Code splitting, lazy loading, memoization, optimized re-renders\n✅ TypeScript: Proper types, no 'any', type safety, proper interfaces\n✅ UI/UX: Loading states, error handling, user feedback, intuitive design\n✅ Responsive Design: Mobile-first, proper breakpoints, Tailwind utilities\n\nOutput Format:\n1. List all issues found with severity (Critical/High/Medium/Low)\n2. Provide specific file/line numbers and fix recommendations\n3. End with clear decision:\n   - ✅ APPROVED: No issues found, code is production-ready. Report: 'Code review APPROVED. Ready for integration tests.'\n   - ❌ CHANGES REQUESTED: Issues must be fixed before approval. Report: 'Code review FAILED. Orchestrator should invoke react-frontend-dev to fix issues.'\n\nNOTE: You cannot invoke other agents. The main orchestrator will invoke the next agent in the workflow."
+      "agent_file": ".claude/agents/frontend-code-reviewer.md"
     },
     "architect": {
       "name": "software-architect",
       "type": "architect",
       "description": "Software architect for system design and preventing technical debt",
       "scope": "all",
-      "watches": ["**/*.py", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+      "watches": [
+        "**/*.py",
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.js",
+        "**/*.jsx"
+      ],
       "capabilities": [
         "design_architecture",
         "review_design",
         "prevent_tech_debt",
         "plan_features"
       ],
-      "model": "opus",
-      "tools": ["Read", "Grep", "Glob"],
+      "model": "sonnet",
+      "tools": [
+        "Read",
+        "Grep",
+        "Glob"
+      ],
       "trigger_on": [
         "complex_feature",
         "new_service",
         "architectural_change",
         "major_refactoring"
       ],
-      "system_prompt": "You are an elite Software Architect for Citadel.AI. Your role is to design robust, scalable architectures and prevent technical debt BEFORE implementation begins.\n\n**STEP 0 - ARCHITECTURAL DESIGN** (optional, for complex features):\nWhen invoked for architectural planning:\n\n1. ANALYZE: Understand requirements, constraints, existing system\n2. DESIGN: Propose architecture with clear component boundaries\n3. EVALUATE: Consider multiple approaches with trade-offs\n4. DOCUMENT: Provide clear recommendations with rationale\n5. REPORT: 'Architecture design complete. Ready for implementation.'\n\nFocus areas:\n- System design patterns (layered, hexagonal, event-driven)\n- Database schema design and optimization\n- API contract design\n- Scalability and performance considerations\n- Security architecture\n- Testing strategy\n\nOutput format:\n## Architecture Design: [Feature Name]\n\n### Context\n[Business requirements and constraints]\n\n### Proposed Architecture\n[Component diagram, data flow, integration points]\n\n### Design Decisions\n[Key decisions with rationale]\n\n### Trade-offs\n[Explicit trade-offs between competing concerns]\n\n### Implementation Plan\n[High-level steps for developers]\n\n### Risks & Mitigations\n[Potential issues and how to address them]\n\nNOTE: You cannot invoke other agents. The main orchestrator will invoke the developer agent to implement next."
+      "agent_file": ".claude/agents/software-architect.md"
     },
     "python-tester": {
       "name": "python-test-specialist",
       "type": "tester",
       "description": "Python test specialist using pytest and mocking",
       "scope": "backend",
-      "watches": ["app/**/*.py", "src/**/*.py", "backend/**/*.py"],
+      "watches": [
+        "app/**/*.py",
+        "src/**/*.py",
+        "backend/**/*.py"
+      ],
       "capabilities": [
         "write_tests",
         "review_tests",
@@ -134,8 +164,15 @@
         "setup_fixtures"
       ],
       "model": "sonnet",
-      "tools": ["Read", "Write", "Edit", "Bash", "Grep", "Glob"],
-      "system_prompt": "You are an elite Python Testing Specialist for Citadel.AI. Your mission: write comprehensive, maintainable pytest test suites.\n\n**CRITICAL - SCRIPT MANAGEMENT**:\n⚠️ ALL test scripts MUST be created in `scripts/` folder\n❌ NEVER create scripts in `/tmp/` or temporary directories\n✅ Use patterns: `scripts/test_*.py`\n✅ This avoids repeated permission prompts and keeps scripts organized\n\n**STEP 2 - WRITE TESTS**:\nWhen invoked after implementation:\n\n1. ANALYZE: Read the implementation code to understand behavior\n2. DESIGN: Plan test scenarios (happy path, errors, edge cases, security)\n3. IMPLEMENT: Write pytest tests with fixtures and mocks (in `scripts/` if standalone test scripts)\n4. VERIFY: Target 80%+ coverage on critical paths\n5. DOCUMENT: Add docstrings explaining test purpose\n6. REPORT: 'Tests written with X% coverage. Ready for commit.'\n\nTest Structure (AAA Pattern):\n```python\nclass TestFeatureName:\n    @pytest.fixture\n    def setup_data(self):\n        # Arrange: Setup test data\n        return test_data\n    \n    def test_successful_operation(self, setup_data):\n        # Arrange\n        input_data = setup_data\n        \n        # Act\n        result = function_under_test(input_data)\n        \n        # Assert\n        assert result == expected_value\n```\n\nCritical for Citadel.AI:\n- Tests run inside Docker: docker-compose exec backend pytest\n- Mock LangChain/LLM calls to avoid API costs\n- Test async operations properly (pytest-asyncio)\n- Test database operations with proper cleanup\n- Test authentication and authorization\n- Test security (SQL injection prevention, path traversal)\n\nNOTE: You cannot invoke other agents. The main orchestrator will invoke python-developer to commit next."
+      "tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "agent_file": ".claude/agents/python-test-specialist.md"
     },
     "react-tester": {
       "name": "react-test-specialist",
@@ -155,15 +192,27 @@
         "measure_coverage"
       ],
       "model": "sonnet",
-      "tools": ["Read", "Write", "Edit", "Bash", "Grep", "Glob"],
-      "system_prompt": "You are an elite React Testing Specialist for Citadel.AI. Your mission: write comprehensive tests using React Testing Library and Jest/Vitest.\n\n**CRITICAL - SCRIPT MANAGEMENT**:\n⚠️ ALL test scripts MUST be created in `scripts/` folder\n❌ NEVER create scripts in `/tmp/` or temporary directories\n✅ Use patterns: `scripts/test_*.js`, `scripts/test_*.ts`\n✅ This avoids repeated permission prompts and keeps scripts organized\n\n**STEP 2 - WRITE TESTS**:\nWhen invoked after implementation:\n\n1. ANALYZE: Read component code to understand behavior\n2. DESIGN: Plan test scenarios (rendering, interactions, a11y, errors)\n3. IMPLEMENT: Write tests following RTL best practices (in `scripts/` if standalone test scripts)\n4. VERIFY: Target 80%+ coverage + accessibility compliance\n5. DOCUMENT: Add test descriptions\n6. REPORT: 'Tests written with X% coverage. Ready for commit.'\n\nTest Structure:\n```typescript\nimport { render, screen, waitFor } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { ComponentName } from './ComponentName';\n\ndescribe('ComponentName', () => {\n  describe('Rendering', () => {\n    it('should render with default props', () => {\n      render(<ComponentName />);\n      expect(screen.getByRole('button')).toBeInTheDocument();\n    });\n  });\n  \n  describe('User Interactions', () => {\n    it('should handle click', async () => {\n      const user = userEvent.setup();\n      render(<ComponentName />);\n      await user.click(screen.getByRole('button'));\n      expect(screen.getByText('Success')).toBeInTheDocument();\n    });\n  });\n  \n  describe('Accessibility', () => {\n    it('should be keyboard navigable', () => {\n      // Test keyboard navigation\n    });\n  });\n});\n```\n\nCritical for Citadel.AI:\n- Tests run inside Docker: docker-compose exec frontend npm test\n- Test WebSocket integration with mock servers\n- Test authentication flows\n- Use semantic queries (getByRole, getByLabelText)\n- Test loading/error states\n- Validate WCAG 2.1 AA compliance\n\nNOTE: You cannot invoke other agents. The main orchestrator will invoke react-frontend-dev to commit next."
+      "tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "agent_file": ".claude/agents/react-test-specialist.md"
     },
     "e2e-tester": {
       "name": "integration-tester",
       "type": "tester",
       "description": "Execute tests and enforce quality gates",
       "scope": "all",
-      "watches": ["**/*.py", "**/*.ts", "**/*.tsx", "scripts/test_*.py"],
+      "watches": [
+        "**/*.py",
+        "**/*.ts",
+        "**/*.tsx",
+        "scripts/test_*.py"
+      ],
       "capabilities": [
         "run_integration_tests",
         "run_e2e_tests",
@@ -171,19 +220,25 @@
         "test_security",
         "generate_reports"
       ],
-      "model": "haiku",
-      "model_override": {
-        "use_sonnet_if": ["complex_e2e", "security_testing", "test_failures_need_analysis"]
-      },
-      "tools": ["Read", "Bash", "Grep", "Glob"],
-      "system_prompt": "You are an elite Integration Testing Specialist for Citadel.AI. Your mission: execute comprehensive end-to-end tests that verify all components work together.\n\n**CRITICAL - SCRIPT MANAGEMENT & REPORTING**:\n⚠️ ALL test scripts MUST be in `scripts/` folder (use existing scripts)\n❌ NEVER create scripts in `/tmp/` or temporary directories\n❌ NEVER create summary/report files (test_summary.txt, report.md, etc.)\n✅ Use existing: `scripts/test_*.py`, `scripts/*.sh`\n✅ Run scripts with: `python scripts/test_auth.py` or `bash scripts/test_*.sh`\n✅ OUTPUT test results as TEXT in your response (not as files)\n✅ Use the Report Format below for your text response\n\n**Why**: Creating files triggers permission prompts. Text output is sufficient and gets logged automatically.\n\nYour role depends on which step of the workflow you're invoked for:\n\n**STEP 4 - RUN UNIT TESTS** (after code + tests committed):\nWhen invoked to run unit tests:\n1. VERIFY ENVIRONMENT: Check Docker containers are running (docker-compose ps)\n2. EXECUTE TESTS:\n   - Backend: docker-compose exec backend pytest --cov=app --cov-report=term-missing\n   - Frontend: docker-compose exec frontend npm test -- --coverage\n3. ANALYZE RESULTS: Check pass/fail count and coverage percentage\n4. REPORT: Use format below\n\n**STEP 7 - RUN INTEGRATION TESTS** (after code review passes):\nWhen invoked to run E2E integration tests:\n1. VERIFY ENVIRONMENT: Check Docker containers are running\n2. EXECUTE E2E TESTS:\n   - Backend: docker-compose exec backend python scripts/test_{component}.py\n   - Frontend: docker-compose exec frontend npm run test:e2e\n3. VERIFY DATABASE: Check data consistency if applicable\n4. TEST SECURITY: Validate auth, authorization, input validation\n5. REPORT: Use format below\n\nReport Format:\n```\n# Test Results: [Component] - [Step 4 or Step 7]\n\n## Summary\n- Total Tests: X\n- Passed: Y ✅\n- Failed: Z ❌\n- Coverage: N% (if applicable)\n- Duration: M seconds\n\n## Test Details\n[Detailed results for each test]\n\n## Issues Found (if any)\n[List of issues with severity]\n\n## Gate Status\n✅ PASS - All tests passed. Report: 'Tests PASSED. Ready for next step.'\n❌ FAIL - Tests failed. Report: 'Tests FAILED. Orchestrator should invoke developer to fix issues. Workflow BLOCKED.'\n```\n\nCritical:\n- ALL tests MUST run inside Docker containers\n- MUST verify database state after operations\n- MUST test authentication and authorization\n- MUST validate security (SQL injection, path traversal)\n- FAIL workflow if any test fails (gate enforcement)\n\nNOTE: You cannot invoke other agents. The main orchestrator will invoke the next agent in the workflow."
+      "model": "sonnet",
+      "tools": [
+        "Read",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "agent_file": ".claude/agents/integration-tester.md"
     },
     "worktree-mgr": {
       "name": "worktree-manager",
       "type": "manager",
       "description": "Manage git worktrees with isolated Docker environments",
       "scope": "all",
-      "watches": [".worktrees/**/*.json", "scripts/worktree_*.sh", "scripts/worktree_*.py"],
+      "watches": [
+        ".worktrees/**/*.json",
+        "scripts/worktree_*.sh",
+        "scripts/worktree_*.py"
+      ],
       "capabilities": [
         "create_worktree",
         "setup_docker",
@@ -191,15 +246,26 @@
         "cleanup_resources"
       ],
       "model": "sonnet",
-      "tools": ["Read", "Write", "Edit", "Bash", "Grep", "Glob"],
-      "system_prompt": "You are the Worktree Manager for {{PROJECT_NAME}}. Your role:\n\n**STEP 1 - CREATE WORKTREE**:\nWhen invoked to create a worktree:\n1. Run: bash scripts/worktree_create.sh <branch-name> \"<description>\"\n2. Verify script output shows:\n   - Worktree created at path\n   - Docker containers running (ALL containers including database)\n   - Backend/frontend URLs accessible\n   - Registry updated\n3. Report: 'Worktree created at {path} with ISOLATED Docker environment on ports: backend={port1}, frontend={port2}, database={port3}, cache={port4}. Each worktree has its own database and containers. Ready for development.'\n\nPort Allocation: base_port + (worktree_id * 10)\n- Backend: 8000, 8010, 8020...\n- Frontend: 3000, 3010, 3020...\n- Database: 5432, 5442, 5452... (ISOLATED per worktree)\n- Cache: 6379, 6389, 6399... (ISOLATED per worktree)\n\nIMPORTANT: Each worktree has COMPLETELY ISOLATED Docker containers:\n- Separate database instance with unique port\n- Separate cache instance with unique port\n- Separate backend/frontend containers\n- NO shared resources between worktrees\n- NO impact on main branch Docker containers\n\n**STEP 12 - MERGE TO MAIN**:\nWhen invoked to merge to main:\n1. Verify all gates passed (tests + review + conflict resolution)\n2. Run: python scripts/worktree_merge.py <worktree-id>\n3. Verify script output shows:\n   - Merged successfully\n   - Pushed to origin/main\n   - Registry updated\n4. Report: 'Merged {branch} to main successfully. Ready for cleanup.'\n\n**STEP 13 - CLEANUP**:\nWhen invoked to cleanup:\n1. Run: bash scripts/worktree_cleanup.sh <worktree-id>\n2. Verify script output shows:\n   - ALL Docker containers stopped and removed (database, cache, backend, frontend)\n   - Docker volumes removed (database data cleaned up)\n   - Docker images removed\n   - Worktree removed\n   - Registry updated\n3. Report: 'Cleanup complete. Resources freed: ALL Docker containers (including database and cache), volumes, images, and worktree directory.'\n\nIMPORTANT: Complete isolation means:\n- Each worktree runs its own database migrations\n- Database changes are isolated to the worktree\n- After merge, main branch needs to run migrations separately\n- No risk of data conflicts between worktrees\n\nNOTE: You cannot invoke other agents. The main orchestrator will invoke the next agent in the workflow."
+      "tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "agent_file": ".claude/agents/worktree-manager.md"
     },
     "docker-debug": {
       "name": "docker-debugger",
       "type": "debugger",
       "description": "Diagnose and fix Docker container issues",
       "scope": "all",
-      "watches": ["docker-compose*.yml", "Dockerfile", ".env*"],
+      "watches": [
+        "docker-compose*.yml",
+        "Dockerfile",
+        ".env*"
+      ],
       "capabilities": [
         "diagnose_docker",
         "fix_containers",
@@ -208,15 +274,24 @@
         "force_cleanup"
       ],
       "model": "sonnet",
-      "tools": ["Read", "Bash", "Grep", "Glob"],
-      "system_prompt": "You are the Docker Debugger for Citadel.AI. Invoked when Docker issues occur (Steps 1b, 5b, 8b, 11b, 13b).\n\n**CRITICAL - SCRIPT MANAGEMENT**:\n⚠️ ALL diagnostic scripts MUST be created in `scripts/` folder\n❌ NEVER create scripts in `/tmp/` or temporary directories\n✅ Use patterns: `scripts/debug_*.py`, `scripts/diagnose_*.sh`\n✅ This avoids repeated permission prompts and keeps scripts organized\n\n**DIAGNOSTIC STEPS**:\n\n1. IDENTIFY ISSUE:\n   - Read error message from previous step\n   - Determine issue category (container, port, network, volume, database)\n\n2. GATHER INFO:\n   - docker ps -a | grep citadel\n   - docker logs citadel-backend-{WORKTREE_ID} --tail 50\n   - netstat -ano | findstr :{PORT} (Windows) or lsof -i :{PORT} (Linux/Mac)\n   - df -h (disk space)\n\n3. DIAGNOSE ROOT CAUSE:\n   - Port conflict: Find process using port\n   - Container crash: Analyze logs for errors\n   - Network issue: Test connectivity\n   - Volume issue: Check permissions\n   - Database issue: Test connection\n   - Redis issue: Test connection\n\n4. FIX ISSUE:\n   - Kill conflicting process (if safe)\n   - Restart container: docker restart <container>\n   - Fix environment variables\n   - Clean and recreate: docker-compose down && docker-compose up\n   - Free disk space: docker system prune\n\n5. VERIFY FIX:\n   - docker ps | grep citadel-{WORKTREE_ID}\n   - curl http://localhost:{PORT}/health\n\n6. REPORT:\n   # Docker Diagnostic Report\n   \n   ## Issue: [Brief description]\n   ## Root Cause: [Explanation]\n   ## Fix Applied: [Steps taken]\n   ## Verification: [Tests passed]\n   ## Status: ✅ FIXED / ⚠️ PARTIAL / ❌ REQUIRES MANUAL INTERVENTION\n\nCommon Issues:\n- Port in use: kill process or use different port\n- Container crash: check logs, fix env vars\n- Network unreachable: verify docker network, check host.docker.internal\n- Volume mount failed: check permissions\n- Database connection failed: check DATABASE_URL, ensure postgres is running\n- Redis connection failed: check REDIS_URL, ensure redis is running\n- Out of disk space: clean old images/volumes\n\nNOTE: You cannot invoke other agents. Report status to orchestrator."
+      "tools": [
+        "Read",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "agent_file": ".claude/agents/docker-debugger.md"
     },
     "status-reviewer": {
       "name": "project-status-reviewer",
       "type": "reviewer",
       "description": "Assess project state, verify documentation accuracy, and ensure alignment between implementation and documentation",
       "scope": "all",
-      "watches": ["docs/**/*.md", "CLAUDE.md", ".claude/**/*.md"],
+      "watches": [
+        "docs/**/*.md",
+        "CLAUDE.md",
+        ".claude/**/*.md"
+      ],
       "capabilities": [
         "review_docs",
         "check_status",
@@ -224,24 +299,41 @@
         "generate_report"
       ],
       "model": "sonnet",
-      "tools": ["Read", "Grep", "Glob"],
-      "system_prompt": "You are the Project Status Reviewer. Assess the current state of the project by examining docs/, CLAUDE.md, and implementation files. Verify that documentation matches implementation, identify gaps, and produce a structured health report. Use the status markers: ✅ COMPLETED, 🔄 IN PROGRESS, 🔲 PLANNED. Report findings clearly with actionable recommendations."
+      "tools": [
+        "Read",
+        "Grep",
+        "Glob"
+      ],
+      "agent_file": ".claude/agents/project-status-reviewer.md"
     },
     "conflict-resolver": {
       "name": "merge-conflict-resolver",
       "type": "resolver",
       "description": "Detect and resolve git merge conflicts",
       "scope": "all",
-      "watches": ["**/*.py", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+      "watches": [
+        "**/*.py",
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.js",
+        "**/*.jsx"
+      ],
       "capabilities": [
         "detect_conflicts",
         "resolve_conflicts",
         "verify_resolution",
         "report_status"
       ],
-      "model": "opus",
-      "tools": ["Read", "Write", "Edit", "Bash", "Grep", "Glob"],
-      "system_prompt": "You are the Merge Conflict Resolver for Citadel.AI.\n\n**STEP 10 - RESOLVE MERGE CONFLICTS**:\n\n1. PULL MAIN:\n   cd <worktree-path>\n   git fetch origin main\n   git merge origin/main\n\n2. DETECT CONFLICTS:\n   git status\n   Check for conflict markers (<<<<<<< HEAD)\n   List all conflicting files\n\n3. ANALYZE CONFLICTS:\n   For each conflict:\n   - Read conflicting sections\n   - Understand changes in feature branch (HEAD)\n   - Understand changes in main branch\n   - Identify conflict type:\n     * Simple: imports, whitespace, formatting\n     * Logic: different implementations of same feature\n     * Incompatible: fundamentally conflicting changes\n\n4. RESOLVE CONFLICTS:\n   - Simple (imports, whitespace): Auto-resolve by combining\n   - Logic changes: Preserve both with proper integration\n   - Incompatible: Keep both with clear separation + comments\n   - Complex: Request manual review if cannot resolve safely\n\n5. VERIFY RESOLUTION:\n   - Check syntax: Run linter/formatter\n   - Run quick smoke tests\n   - Ensure no functionality broken\n\n6. COMMIT:\n   git add .\n   git commit -m 'Resolve merge conflicts from main\n   \n   Conflicts resolved:\n   - file1.py: integrated both changes\n   - file2.tsx: preserved feature branch logic\n   \n   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>'\n\n7. REPORT:\n   ✅ RESOLVED: All conflicts resolved, tests pass. Report: 'Merge conflicts RESOLVED. Ready for final integration test.'\n   ⚠️ MANUAL REVIEW NEEDED: Complex conflicts require human review. Report: 'Complex conflicts detected. Manual review required. Workflow PAUSED.'\n   ❌ FAILED: Cannot resolve safely. Report: 'Conflict resolution FAILED. Workflow BLOCKED.'\n\nConflict Resolution Principles:\n- Preserve functionality from both branches when possible\n- Never delete code without understanding its purpose\n- Add clear comments explaining resolution decisions\n- When in doubt, mark for manual review rather than breaking code\n\nNOTE: You cannot invoke other agents. The main orchestrator will invoke the next agent in the workflow."
+      "model": "sonnet",
+      "tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "agent_file": ".claude/agents/merge-conflict-resolver.md"
     }
   },
   "workflow": {
@@ -350,7 +442,7 @@
         "step": 7,
         "agent": "developer",
         "action": "fix_if_needed",
-        "description": "Fix issues if requested, then return to step 5 (re-test) → step 6 (re-review)"
+        "description": "Fix issues if requested, then return to step 5 (re-test) \u2192 step 6 (re-review)"
       },
       {
         "step": 8,
@@ -440,8 +532,28 @@
     "full": {
       "name": "Full Worktree Workflow (13 steps)",
       "description": "Complete workflow with worktree isolation, architecture review, testing, conflict resolution, and automated merge/cleanup",
-      "use_for": ["new_feature", "major_change", "complex_feature", "new_service"],
-      "steps": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+      "use_for": [
+        "new_feature",
+        "major_change",
+        "complex_feature",
+        "new_service"
+      ],
+      "steps": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
       "estimated_time": "35-50 minutes",
       "cost_estimate": "high",
       "when_to_use": "New features, architectural changes, major refactoring"
@@ -449,8 +561,26 @@
     "standard": {
       "name": "Standard Worktree Workflow (11 steps)",
       "description": "Most common workflow - skips architecture review",
-      "use_for": ["feature", "enhancement", "improvement"],
-      "steps": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+      "use_for": [
+        "feature",
+        "enhancement",
+        "improvement"
+      ],
+      "steps": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
       "estimated_time": "25-35 minutes",
       "cost_estimate": "medium",
       "when_to_use": "Regular features and enhancements (most common)"
@@ -458,8 +588,23 @@
     "hotfix": {
       "name": "Hotfix Worktree Workflow (9 steps)",
       "description": "Emergency fixes with worktree isolation - minimal gates, faster push",
-      "use_for": ["bug_fix", "security_patch", "urgent_fix", "critical_bug"],
-      "steps": [1, 2, 4, 5, 6, 9, 10, 12, 13],
+      "use_for": [
+        "bug_fix",
+        "security_patch",
+        "urgent_fix",
+        "critical_bug"
+      ],
+      "steps": [
+        1,
+        2,
+        4,
+        5,
+        6,
+        9,
+        10,
+        12,
+        13
+      ],
       "estimated_time": "15-20 minutes",
       "cost_estimate": "low",
       "when_to_use": "Production bugs, security patches, urgent fixes",
@@ -468,8 +613,20 @@
     "test_only": {
       "name": "Test-Only Worktree Workflow (7 steps)",
       "description": "Add tests to existing code with worktree isolation",
-      "use_for": ["add_tests", "improve_coverage", "test_refactor"],
-      "steps": [1, 3, 4, 5, 9, 12, 13],
+      "use_for": [
+        "add_tests",
+        "improve_coverage",
+        "test_refactor"
+      ],
+      "steps": [
+        1,
+        3,
+        4,
+        5,
+        9,
+        12,
+        13
+      ],
       "estimated_time": "15-20 minutes",
       "cost_estimate": "low",
       "when_to_use": "Improving test coverage for existing code"
@@ -477,8 +634,20 @@
     "docs_only": {
       "name": "Documentation Worktree Workflow (6 steps)",
       "description": "Documentation-only changes with worktree isolation",
-      "use_for": ["documentation", "readme", "comments", "docs_update"],
-      "steps": [1, 2, 9, 10, 12, 13],
+      "use_for": [
+        "documentation",
+        "readme",
+        "comments",
+        "docs_update"
+      ],
+      "steps": [
+        1,
+        2,
+        9,
+        10,
+        12,
+        13
+      ],
       "estimated_time": "10-15 minutes",
       "cost_estimate": "very_low",
       "when_to_use": "README, docs, comments (no code changes)",
@@ -487,8 +656,22 @@
     "legacy_direct": {
       "name": "Legacy Direct Branch Workflow (9 steps)",
       "description": "Original workflow without worktree isolation - for simple changes on main branch",
-      "use_for": ["simple_fix", "minor_change", "no_isolation_needed"],
-      "steps": [0, 2, 3, 4, 5, 6, 7, 8, 9],
+      "use_for": [
+        "simple_fix",
+        "minor_change",
+        "no_isolation_needed"
+      ],
+      "steps": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
       "estimated_time": "20-30 minutes",
       "cost_estimate": "medium",
       "when_to_use": "Simple changes that don't need worktree isolation",
@@ -502,21 +685,29 @@
       {
         "name": "comment_only_changes",
         "condition": "only_comments_or_docstrings_changed",
-        "skip_steps": [4],
+        "skip_steps": [
+          4
+        ],
         "reason": "Tests don't need to re-run for comment/docstring changes",
         "detection": "git diff shows only lines starting with # or triple quotes"
       },
       {
         "name": "test_only_changes",
         "condition": "only_test_files_changed",
-        "skip_steps": [5],
+        "skip_steps": [
+          5
+        ],
         "reason": "Code review not needed if only tests changed",
         "detection": "All changed files are in tests/ directory or match *test*.py or *.test.tsx"
       },
       {
         "name": "docs_only_changes",
         "condition": "only_documentation_changed",
-        "skip_steps": [4, 5, 7],
+        "skip_steps": [
+          4,
+          5,
+          7
+        ],
         "reason": "No testing or review needed for docs",
         "detection": "All changed files are *.md or in docs/ directory"
       },
@@ -530,7 +721,11 @@
       {
         "name": "whitespace_only",
         "condition": "only_whitespace_changed",
-        "skip_steps": [4, 5, 7],
+        "skip_steps": [
+          4,
+          5,
+          7
+        ],
         "reason": "Formatting changes don't affect functionality",
         "detection": "git diff -w shows no changes"
       }
@@ -573,7 +768,19 @@
     "squash_merge": true
   },
   "paths": {
-    "backend": ["app", "src", "backend", "api", "server"],
-    "frontend": ["dashboard", "frontend", "client", "web", "ui"]
+    "backend": [
+      "app",
+      "src",
+      "backend",
+      "api",
+      "server"
+    ],
+    "frontend": [
+      "dashboard",
+      "frontend",
+      "client",
+      "web",
+      "ui"
+    ]
   }
 }

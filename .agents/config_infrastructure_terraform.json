@@ -4,12 +4,22 @@
       "type": "infrastructure-developer",
       "description": "Terraform infrastructure developer",
       "model": "sonnet",
-      "system_prompt": "You are a Terraform infrastructure developer. Use modules for reusability, implement variable validation, use remote state with locking, tag all resources consistently, and run security scans (tfsec, checkov).",
-      "file_patterns": ["**/*.tf", "**/*.tfvars"],
-      "tools": ["Read", "Edit", "Write", "Bash"],
+      "file_patterns": [
+        "**/*.tf",
+        "**/*.tfvars"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ],
       "preferences": {
         "formatter": "terraform fmt",
-        "security_tools": ["tfsec", "checkov"],
+        "security_tools": [
+          "tfsec",
+          "checkov"
+        ],
         "test_framework": "terraform test"
       }
     },
@@ -17,27 +27,40 @@
       "type": "test-specialist",
       "description": "Terraform test specialist using terraform test and compliance checks",
       "model": "sonnet",
-      "system_prompt": "Write comprehensive Terraform validation tests using terraform test (Terraform 1.6+) and compliance tests.",
-      "file_patterns": ["**/*.tftest.hcl"],
-      "tools": ["Read", "Edit", "Write", "Bash"]
+      "file_patterns": [
+        "**/*.tftest.hcl"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ]
     },
     "infrastructure-code-reviewer": {
       "type": "code-reviewer",
       "description": "Infrastructure code reviewer for security, compliance, and cost optimization",
       "model": "sonnet",
-      "system_prompt": "Review Terraform code for security (IAM least privilege, encryption), cost optimization, high availability, compliance (tagging, logging), and documentation.",
-      "tools": ["Read", "Grep"]
+      "tools": [
+        "Read",
+        "Grep"
+      ]
     },
     "integration-tester": {
       "type": "integration-tester",
       "description": "Execute tests and enforce quality gates",
-      "model": "haiku",
-      "system_prompt": "You are an integration tester for Terraform infrastructure. Run terraform validate, terraform fmt -check, tfsec security scan, checkov compliance scan, and terraform test. Report all findings clearly. Fail the gate if any security findings are HIGH or CRITICAL, if validation fails, or if any tests fail.",
-      "tools": ["Bash", "Read"],
+      "model": "sonnet",
+      "tools": [
+        "Bash",
+        "Read"
+      ],
       "preferences": {
         "validate_command": "terraform validate",
         "plan_command": "terraform plan -out=tfplan",
-        "security_commands": ["tfsec .", "checkov -d ."],
+        "security_commands": [
+          "tfsec .",
+          "checkov -d ."
+        ],
         "test_command": "terraform test"
       }
     }
