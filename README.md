@@ -2,6 +2,15 @@
 
 A modular, language-specific template for setting up Claude Code AI agents, workflows, and documentation structure in any project.
 
+[![Test Installer](https://github.com/TheKathan/claude-flow-kit/actions/workflows/installer-test.yml/badge.svg)](https://github.com/TheKathan/claude-flow-kit/actions/workflows/installer-test.yml)
+[![Lint Markdown](https://github.com/TheKathan/claude-flow-kit/actions/workflows/markdown-lint.yml/badge.svg)](https://github.com/TheKathan/claude-flow-kit/actions/workflows/markdown-lint.yml)
+[![Validate Configs](https://github.com/TheKathan/claude-flow-kit/actions/workflows/validate-configs.yml/badge.svg)](https://github.com/TheKathan/claude-flow-kit/actions/workflows/validate-configs.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+[![Python 3.7+](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-compatible-blueviolet)](https://claude.ai/claude-code)
+
+---
+
 ## 🎯 What This Template Provides
 
 - **Modular Architecture** - Pick only backend, frontend, or infrastructure components you need
@@ -11,6 +20,8 @@ A modular, language-specific template for setting up Claude Code AI agents, work
 - **Downloadable Installer** - Run from anywhere, no repo cloning needed
 - **Quality Gates** - Automated testing, code review, and integration checks
 - **All Components Optional** - Backend-only, frontend-only, or any combination
+
+---
 
 ## 🚀 Quick Start
 
@@ -34,6 +45,7 @@ python3 install.py
 ```
 
 The installer will prompt you for:
+
 - **Project information** (name, description, repository URL)
 - **Backend** (Python/Node.js/.NET/Go or none)
 - **Frontend** (React/Vue/Angular or none)
@@ -79,25 +91,31 @@ git add CLAUDE.md .claude/ .agents/ docs/ scripts/
 git commit -m "Add Claude Code configuration"
 ```
 
+---
+
 ## 🤖 Available Agents
 
-The template includes language-specific agents that are automatically configured based on your selections:
+The template includes language-specific agents automatically configured based on your selections:
 
 ### Backend Development Agents
+
 - **python-developer** / **python-test-specialist** - Python/FastAPI development
 - **dotnet-developer** / **dotnet-test-specialist** - .NET/ASP.NET Core development
 - **nodejs-developer** / **nodejs-test-specialist** - Node.js/Express development
 - **go-developer** / **go-test-specialist** - Go development
 
 ### Frontend Development Agents
+
 - **react-frontend-dev** / **react-test-specialist** - React/Next.js development
 - **vue-developer** / **vue-test-specialist** - Vue/Nuxt development
 - **angular-developer** / **angular-test-specialist** - Angular development
 
 ### Infrastructure Agents
+
 - **terraform-developer** / **terraform-test-specialist** - Terraform/IaC development
 
 ### Common Agents (Included in All Configurations)
+
 - **backend-code-reviewer** - Review backend code
 - **frontend-code-reviewer** - Review frontend code (if frontend selected)
 - **infrastructure-code-reviewer** - Review infrastructure code (if infrastructure selected)
@@ -108,13 +126,15 @@ The template includes language-specific agents that are automatically configured
 - **merge-conflict-resolver** - Resolve merge conflicts (opus model)
 - **integration-tester** - Execute E2E tests (haiku model for cost savings)
 
+---
+
 ## 🔄 Workflow Support
 
 ### 13-Step Worktree Workflow
 
 All workflows follow the same structure:
 
-```
+```text
 Step 0:  [OPTIONAL] software-architect      → Design architecture
 Step 1:  worktree-manager                   → Create worktree + Docker
 Step 2:  {language}-developer               → Implement feature
@@ -134,11 +154,13 @@ Step 13: worktree-manager                   → Cleanup worktree + Docker
 ### Merge Strategies
 
 **Direct Merge to Current Branch (Default)**:
+
 - Worktrees merge back to the branch they were created from
 - Supports nested feature development
 - Example: On `feature/parent` → create `feature/child` → merges to `feature/parent`
 
 **PR to Main (Optional)**:
+
 - Create Pull Request to main (always main, regardless of current branch)
 - Requires human approval before merge
 - Auto-cleanup after PR is merged
@@ -152,11 +174,14 @@ Step 13: worktree-manager                   → Cleanup worktree + Docker
 
 See your language-specific workflow file in `docs/` for detailed commands.
 
+---
+
 ## 🔧 Troubleshooting
 
 ### Installation Issues
 
 **Installer fails to download:**
+
 ```bash
 # Check network connection
 curl -I https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py
@@ -167,6 +192,7 @@ python3 install.py
 ```
 
 **Python not found:**
+
 ```bash
 # Use Python 3 explicitly
 python3 install.py
@@ -176,28 +202,33 @@ python --version  # Should be 3.7+
 ```
 
 **No components selected:**
+
 - You must select at least one component (backend, frontend, or infrastructure)
 - Rerun installer and select your desired components
 
 ### Agent Configuration Issues
 
 **Check configuration:**
+
 1. Verify `.agents/config.json` is valid JSON
 2. Check file watch patterns match your project structure
 3. Ensure model names are correct (haiku/sonnet/opus)
 
 **Merged config missing agents:**
+
 - The installer only includes agents for selected components
 - Rerun installer if you need additional components
 
 ### Worktree Scripts Issues
 
 **Scripts not executable:**
+
 ```bash
 chmod +x scripts/*.py
 ```
 
 **GitHub CLI (gh) not found:**
+
 ```bash
 # Install GitHub CLI for PR workflow
 # macOS: brew install gh
@@ -207,6 +238,8 @@ chmod +x scripts/*.py
 # Authenticate
 gh auth login
 ```
+
+---
 
 ## 🤝 Contributing
 
@@ -219,6 +252,8 @@ Contributions are welcome! To add new languages or frameworks:
 5. Update installer with detection logic
 6. Submit pull request
 
+---
+
 ## 📝 License
 
 This project is licensed under the [GNU General Public License v3.0](LICENSE).
@@ -226,5 +261,5 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 ---
 
 **Version**: 2.0.0
-**Last Updated**: 2026-02-12
+**Last Updated**: 2026-02-21
 **Status**: Production Ready
