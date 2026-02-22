@@ -147,6 +147,60 @@
       ],
       "agent_file": ".claude/agents/software-architect.md"
     },
+    "ruby-developer": {
+      "name": "ruby-developer",
+      "type": "developer",
+      "description": "Ruby/Rails backend developer",
+      "scope": "backend",
+      "watches": [
+        "app/**/*.rb",
+        "lib/**/*.rb"
+      ],
+      "reviewer": "backend-reviewer",
+      "capabilities": [
+        "write_code",
+        "fix_issues",
+        "run_tests",
+        "create_pr",
+        "respond_to_reviews"
+      ],
+      "model": "sonnet",
+      "tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "agent_file": ".claude/agents/ruby-developer.md"
+    },
+    "ruby-tester": {
+      "name": "ruby-test-specialist",
+      "type": "tester",
+      "description": "Ruby test specialist using RSpec and FactoryBot",
+      "scope": "backend",
+      "watches": [
+        "spec/**/*_spec.rb",
+        "spec/factories/**/*.rb"
+      ],
+      "capabilities": [
+        "write_tests",
+        "review_tests",
+        "measure_coverage",
+        "setup_fixtures"
+      ],
+      "model": "sonnet",
+      "tools": [
+        "Read",
+        "Write",
+        "Edit",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "agent_file": ".claude/agents/ruby-test-specialist.md"
+    },
     "python-tester": {
       "name": "python-test-specialist",
       "type": "tester",

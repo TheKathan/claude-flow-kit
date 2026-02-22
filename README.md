@@ -103,6 +103,7 @@ The template includes language-specific agents automatically configured based on
 - **dotnet-developer** / **dotnet-test-specialist** - .NET/ASP.NET Core development
 - **nodejs-developer** / **nodejs-test-specialist** - Node.js/Express development
 - **go-developer** / **go-test-specialist** - Go development
+- **ruby-developer** / **ruby-test-specialist** - Ruby/Rails development
 
 ### Frontend Development Agents
 

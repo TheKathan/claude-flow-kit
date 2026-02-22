@@ -65,6 +65,8 @@ def detect_language(backend_language: Optional[str]) -> Optional[str]:
         return "nodejs"
     elif "go" in language_lower or "golang" in language_lower:
         return "go"
+    elif "ruby" in language_lower or "rails" in language_lower:
+        return "ruby"
     return None
 
 def detect_frontend_framework(frontend_framework: Optional[str]) -> Optional[str]:
@@ -193,7 +195,8 @@ def main():
         print("2. Node.js (Express, NestJS, Fastify)")
         print("3. .NET (ASP.NET Core)")
         print("4. Go (Gin, Echo, Fiber)")
-        print("5. Other (manual setup)")
+        print("5. Ruby (Rails, Sinatra, Hanami)")
+        print("6. Other (manual setup)")
         backend_choice = prompt("Backend choice", "1")
 
         if backend_choice == "1":
@@ -212,6 +215,10 @@ def main():
             backend_framework = prompt("Backend framework", "Gin")
             backend_language = prompt("Backend language", "Go 1.21")
             backend_folder = prompt("Backend code folder", "cmd/api")
+        elif backend_choice == "5":
+            backend_framework = prompt("Backend framework", "Rails 7")
+            backend_language = prompt("Backend language", "Ruby 3.3")
+            backend_folder = prompt("Backend code folder", "app")
         else:
             print("  Manual backend setup selected - no backend workflow will be downloaded")
             has_backend = False
@@ -363,6 +370,7 @@ def main():
         "nodejs":  ["nodejs-developer.md", "nodejs-test-specialist.md", "backend-code-reviewer.md"],
         "dotnet":  ["dotnet-developer.md", "dotnet-test-specialist.md", "backend-code-reviewer.md"],
         "go":      ["go-developer.md", "go-test-specialist.md", "backend-code-reviewer.md"],
+        "ruby":    ["ruby-developer.md", "ruby-test-specialist.md", "backend-code-reviewer.md"],
     }
     if backend_lang and backend_lang in backend_agent_map:
         for agent in backend_agent_map[backend_lang]:

@@ -24,6 +24,7 @@
 {{#if BACKEND_LANGUAGE includes "C#"}}- .NET 8+ SDK{{/if}}
 {{#if BACKEND_LANGUAGE includes "Node"}}- Node.js 20+{{/if}}
 {{#if BACKEND_LANGUAGE includes "Go"}}- Go 1.21+{{/if}}
+{{#if BACKEND_LANGUAGE includes "Ruby"}}- Ruby 3.1+{{/if}}
 
 ### Installation
 
@@ -72,6 +73,10 @@ docker-compose ps
 {{#if BACKEND_LANGUAGE includes "Go"}}
 - **[Go Workflow](docs/WORKFLOW_BACKEND_GO.md)** - 13-step workflow for Go backend
 - **[Go Guide](.claude/GO_GUIDE.md)** - Go coding standards
+{{/if}}
+{{#if BACKEND_LANGUAGE includes "Ruby"}}
+- **[Ruby Workflow](docs/WORKFLOW_BACKEND_RUBY.md)** - 13-step workflow for Ruby/Rails backend
+- **[Ruby Guide](.claude/RUBY_GUIDE.md)** - Ruby coding standards
 {{/if}}
 
 {{#if HAS_FRONTEND}}#### Frontend Workflow

@@ -1,0 +1,96 @@
+{
+  "agents": {
+    "ruby-developer": {
+      "type": "backend-developer",
+      "description": "Ruby/Rails backend developer",
+      "model": "sonnet",
+      "file_patterns": [
+        "**/*.rb",
+        "**/*.gemspec",
+        "**/Gemfile"
+      ],
+      "excluded_patterns": [
+        "**/spec/**",
+        "**/db/migrate/**",
+        "**/vendor/**"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "preferences": {
+        "formatter": "rubocop",
+        "linter": "rubocop",
+        "test_framework": "rspec",
+        "coverage_tool": "simplecov"
+      }
+    },
+    "ruby-test-specialist": {
+      "type": "test-specialist",
+      "description": "Ruby test specialist using RSpec and FactoryBot",
+      "model": "sonnet",
+      "file_patterns": [
+        "**/spec/**/*_spec.rb",
+        "**/spec/factories/**/*.rb"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ],
+      "preferences": {
+        "test_framework": "rspec",
+        "mock_library": "rspec-mocks",
+        "factory_library": "factory_bot_rails",
+        "coverage_tool": "simplecov"
+      }
+    },
+    "backend-code-reviewer": {
+      "type": "code-reviewer",
+      "description": "Backend code reviewer for security and best practices",
+      "model": "sonnet",
+      "file_patterns": [
+        "**/*.rb"
+      ],
+      "tools": [
+        "Read",
+        "Grep",
+        "Glob"
+      ],
+      "preferences": {
+        "review_focus": [
+          "security",
+          "performance",
+          "best_practices",
+          "architecture"
+        ]
+      }
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "description": "Execute tests and enforce quality gates",
+      "model": "sonnet",
+      "tools": [
+        "Bash",
+        "Read"
+      ],
+      "preferences": {
+        "test_command": "bundle exec rspec --format progress",
+        "lint_command": "bundle exec rubocop",
+        "coverage_tool": "simplecov"
+      }
+    }
+  },
+  "settings": {
+    "auto_push_on_approval": true,
+    "require_tests_pass": true,
+    "require_integration_tests_pass": true,
+    "max_review_cycles": 3,
+    "coverage_threshold": 80
+  }
+}
