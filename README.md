@@ -30,13 +30,13 @@ A modular, language-specific template for setting up Claude Code AI agents, work
 
 ## 🎯 What This Template Provides
 
-- **Modular Architecture** - Pick only backend, frontend, or infrastructure components you need
-- **Language-Specific Workflows** - Python, .NET, Node.js, Go, Rust, Ruby, React, Vue, Angular, Tauri, Terraform
-- **13-Step Worktree Workflow** - Isolated development with quality gates
-- **PR Workflow Support** - Optional PR-to-main workflow with human approval
-- **Downloadable Installer** - Run from anywhere, no repo cloning needed
-- **Quality Gates** - Automated testing, code review, and integration checks
-- **All Components Optional** - Backend-only, frontend-only, or any combination
+- **Modular, pick-what-you-need setup** — Select only the backend, frontend, and infrastructure components relevant to your project. Nothing gets installed that you didn't ask for.
+- **Language-specific agents and workflows** — Dedicated developer, test, and reviewer agents for Python, .NET, Node.js, Go, Rust, Ruby, React, Vue, Angular, Tauri, and Terraform — each pre-configured with idiomatic conventions for that stack.
+- **14-step worktree workflow** — Every feature runs in an isolated git worktree with five blocking quality gates: unit tests, code review, integration tests, conflict resolution, and a final integration check before merge.
+- **Self-improving via skill auto-creation** — The `skill-creator` agent runs after each workflow and evaluates whether any multi-step pattern is worth saving as a reusable slash command or sub-agent. The more you use the template, the more specialized it becomes for your stack.
+- **Downloadable one-file installer** — A single `install.py` bootstraps everything from scratch. No repo cloning, no manual file copying.
+- **PR-to-main support** — Optionally route merges through a pull request with human approval instead of merging directly.
+- **Fully optional components** — Backend-only, frontend-only, full-stack, or infra-only — any combination works.
 
 ---
 
