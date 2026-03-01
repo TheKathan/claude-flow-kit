@@ -144,10 +144,10 @@ The template includes language-specific agents automatically configured based on
 - **infrastructure-code-reviewer** - Review infrastructure code (if infrastructure selected)
 - **software-architect** - Design architecture (opus model)
 - **worktree-manager** - Manage isolated worktrees
-- **pr-manager** - Manage GitHub Pull Requests
 - **docker-debugger** - Fix Docker issues
 - **merge-conflict-resolver** - Resolve merge conflicts (opus model)
 - **integration-tester** - Execute E2E tests (haiku model for cost savings)
+- **project-status-reviewer** - Assess project state and verify documentation accuracy
 - **skill-creator** - Detect and codify reusable patterns as new slash commands or agents
 
 ---
@@ -175,7 +175,7 @@ After every `standard` or `full` workflow, **Step 14** runs `skill-creator` auto
 
 ## ⌨️ Using the `/workflow` Command
 
-After installation, Claude Code has a `/workflow` slash command that drives the entire 13-step process hands-free. Open Claude Code in your project directory and type:
+After installation, Claude Code has a `/workflow` slash command that drives the entire 14-step process hands-free. Open Claude Code in your project directory and type:
 
 ```
 /workflow <describe your task>
@@ -201,8 +201,8 @@ The command auto-detects the right variant from keywords in your task. You can a
 
 | Variant | Auto-detected from | Steps | Time |
 |---|---|---|---|
-| **standard** | *(default — anything else)* | 1→2→3→4→5→6→7→9→10→12→13 | 25-35 min |
-| **full** | "new service", "architecture", "redesign", "migrate" | 0→1→2→3→4→5→6→7→8→9→10→11→12→13 | 35-50 min |
+| **standard** | *(default — anything else)* | 1→2→3→4→5→6→7→9→10→12→13→14 | 25-35 min |
+| **full** | "new service", "architecture", "redesign", "migrate" | 0→1→2→3→4→5→6→7→8→9→10→11→12→13→14 | 35-50 min |
 | **hotfix** | "fix", "bug", "crash", "urgent" | 1→2→4→5→6→7→9→10→12→13 | 15-20 min |
 | **tests** | "add tests", "coverage", "test-only" | 1→3→4→5→9→12→13 | 15-20 min |
 | **docs** | "docs", "readme", "documentation" | 1→2→9→12→13 | 10-15 min |
@@ -333,7 +333,7 @@ If a gate fails, the relevant developer agent is automatically invoked to fix th
 
 ## 🔄 Workflow Steps Reference
 
-All workflows follow the same 13-step structure. See `docs/WORKFLOW_GUIDE.md` and your language-specific `docs/WORKFLOW_BACKEND_*.md` / `docs/WORKFLOW_FRONTEND_*.md` for detailed per-step commands.
+All workflows follow the same 14-step structure. See `docs/WORKFLOW_GUIDE.md` and your language-specific `docs/WORKFLOW_BACKEND_*.md` / `docs/WORKFLOW_FRONTEND_*.md` for detailed per-step commands.
 
 ```text
 Step 0:  [OPTIONAL] software-architect      → Design architecture
@@ -350,6 +350,7 @@ Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final integration test [GATE]
 Step 12: worktree-manager                   → Merge to base branch, push
 Step 13: worktree-manager                   → Cleanup worktree (+ Docker)
+Step 14: skill-creator                      → Discover reusable patterns [standard/full only]
 ```
 
 ### Merge Strategies
