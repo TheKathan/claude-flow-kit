@@ -25,6 +25,8 @@
 {{#if BACKEND_LANGUAGE includes "Node"}}- Node.js 20+{{/if}}
 {{#if BACKEND_LANGUAGE includes "Go"}}- Go 1.21+{{/if}}
 {{#if BACKEND_LANGUAGE includes "Ruby"}}- Ruby 3.1+{{/if}}
+{{#if BACKEND_LANGUAGE includes "Rust"}}- Rust 1.75+ (via rustup){{/if}}
+{{#if FRONTEND_FRAMEWORK includes "Tauri"}}- Rust 1.75+ (via rustup), Node.js 20+{{/if}}
 
 ### Installation
 
@@ -78,6 +80,10 @@ docker-compose ps
 - **[Ruby Workflow](docs/WORKFLOW_BACKEND_RUBY.md)** - 13-step workflow for Ruby/Rails backend
 - **[Ruby Guide](.claude/RUBY_GUIDE.md)** - Ruby coding standards
 {{/if}}
+{{#if BACKEND_LANGUAGE includes "Rust"}}
+- **[Rust Workflow](docs/WORKFLOW_BACKEND_RUST.md)** - 13-step workflow for Rust backend
+- **[Rust Guide](.claude/RUST_GUIDE.md)** - Rust coding standards
+{{/if}}
 
 {{#if HAS_FRONTEND}}#### Frontend Workflow
 {{#if FRONTEND_FRAMEWORK includes "React" or FRONTEND_FRAMEWORK includes "Next"}}
@@ -91,6 +97,11 @@ docker-compose ps
 {{#if FRONTEND_FRAMEWORK includes "Angular"}}
 - **[Angular Workflow](docs/WORKFLOW_FRONTEND_ANGULAR.md)** - 13-step workflow for Angular frontend
 - **[Angular Guide](.claude/ANGULAR_GUIDE.md)** - Angular coding standards
+{{/if}}
+{{#if FRONTEND_FRAMEWORK includes "Tauri"}}
+- **[Tauri Workflow](docs/WORKFLOW_FRONTEND_TAURI.md)** - 13-step workflow for Tauri desktop apps
+- **[Tauri Guide](.claude/TAURI_GUIDE.md)** - Tauri development standards
+- **[Rust Guide](.claude/RUST_GUIDE.md)** - Rust coding standards (Tauri backend)
 {{/if}}
 {{/if}}
 

@@ -1,0 +1,92 @@
+{
+  "agents": {
+    "rust-developer": {
+      "type": "backend-developer",
+      "description": "Rust/Tauri backend developer for Tauri command handlers and app state",
+      "model": "sonnet",
+      "file_patterns": [
+        "src-tauri/**/*.rs",
+        "src-tauri/Cargo.toml"
+      ],
+      "excluded_patterns": [
+        "**/target/**"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "preferences": {
+        "formatter": "cargo fmt --manifest-path src-tauri/Cargo.toml",
+        "linter": "cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings",
+        "test_command": "cargo test --manifest-path src-tauri/Cargo.toml",
+        "build_command": "npm run tauri build"
+      }
+    },
+    "rust-test-specialist": {
+      "type": "test-specialist",
+      "description": "Rust test specialist for Tauri command and backend testing",
+      "model": "sonnet",
+      "file_patterns": [
+        "src-tauri/**/*_test.rs",
+        "src-tauri/**/tests/**/*.rs"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ]
+    },
+    "frontend-code-reviewer": {
+      "type": "code-reviewer",
+      "description": "Frontend code reviewer for Tauri web frontend and command integration",
+      "model": "sonnet",
+      "file_patterns": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.vue",
+        "src-tauri/**/*.rs"
+      ],
+      "tools": [
+        "Read",
+        "Grep",
+        "Glob"
+      ],
+      "preferences": {
+        "review_focus": [
+          "tauri_security",
+          "csp_compliance",
+          "command_type_safety",
+          "error_handling",
+          "accessibility"
+        ]
+      }
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "description": "Execute Tauri frontend and Rust backend tests",
+      "model": "sonnet",
+      "tools": [
+        "Bash",
+        "Read"
+      ],
+      "preferences": {
+        "frontend_test_command": "npm test",
+        "backend_test_command": "cargo test --manifest-path src-tauri/Cargo.toml",
+        "lint_command": "npm run lint && cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings",
+        "build_command": "npm run tauri build"
+      }
+    }
+  },
+  "settings": {
+    "auto_push_on_approval": true,
+    "require_tests_pass": true,
+    "require_integration_tests_pass": true,
+    "max_review_cycles": 3,
+    "coverage_threshold": 80
+  }
+}

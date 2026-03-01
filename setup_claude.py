@@ -4,13 +4,26 @@ Claude Code Template Setup Script
 
 Interactive script to customize the Claude Code template for your project.
 Replaces placeholders with your project-specific values.
+
+Usage:
+  Linux/macOS : python3 setup_claude.py
+  PowerShell  : python setup_claude.py
 """
 
 import json
 import os
 import re
+import sys
 from pathlib import Path
 from typing import Dict
+
+# Ensure UTF-8 output on Windows (emoji in print statements)
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except AttributeError:
+        pass  # Python < 3.7 — best-effort
 
 def prompt(question: str, default: str = "") -> str:
     """Prompt user for input with optional default."""
@@ -42,12 +55,18 @@ def detect_language(backend_language: str) -> str:
         return "nodejs"
     elif "go" in language_lower or "golang" in language_lower:
         return "go"
+    elif "rust" in language_lower:
+        return "rust"
+    elif "ruby" in language_lower or "rails" in language_lower:
+        return "ruby"
     return "python"  # default fallback
 
 def detect_frontend_framework(frontend_framework: str) -> str:
     """Detect frontend framework identifier."""
     framework_lower = frontend_framework.lower()
-    if "react" in framework_lower or "next" in framework_lower:
+    if "tauri" in framework_lower:
+        return "tauri"
+    elif "react" in framework_lower or "next" in framework_lower:
         return "react"
     elif "vue" in framework_lower or "nuxt" in framework_lower:
         return "vue"
@@ -169,7 +188,10 @@ def main():
     print("1. Python (FastAPI, Django, Flask)")
     print("2. Node.js (Express, NestJS, Fastify)")
     print("3. .NET (ASP.NET Core)")
-    print("4. Other")
+    print("4. Go (Gin, Echo, Fiber)")
+    print("5. Rust (Axum, Actix-web)")
+    print("6. Ruby (Rails, Sinatra)")
+    print("7. Other")
     backend_choice = prompt("Backend choice", "1")
 
     # Set defaults based on choice
@@ -185,6 +207,18 @@ def main():
         backend_framework = prompt("Backend framework", "ASP.NET Core 8")
         backend_language = prompt("Backend language", "C# 12")
         backend_folder = prompt("Backend code folder", "src")
+    elif backend_choice == "4":
+        backend_framework = prompt("Backend framework", "Gin")
+        backend_language = prompt("Backend language", "Go 1.21")
+        backend_folder = prompt("Backend code folder", "cmd")
+    elif backend_choice == "5":
+        backend_framework = prompt("Backend framework", "Axum")
+        backend_language = prompt("Backend language", "Rust")
+        backend_folder = prompt("Backend code folder", "src")
+    elif backend_choice == "6":
+        backend_framework = prompt("Backend framework", "Rails")
+        backend_language = prompt("Backend language", "Ruby 3.3")
+        backend_folder = prompt("Backend code folder", "app")
     else:
         backend_framework = prompt("Backend framework", "FastAPI")
         backend_language = prompt("Backend language", "Python 3.11")
@@ -193,9 +227,33 @@ def main():
     has_frontend = yes_no("Does your project have a frontend?", True)
 
     if has_frontend:
-        frontend_framework = prompt("Frontend framework", "Next.js 14")
-        frontend_language = prompt("Frontend language", "TypeScript")
-        frontend_folder = prompt("Frontend code folder", "dashboard")
+        print("Choose frontend framework:")
+        print("1. React / Next.js")
+        print("2. Vue / Nuxt")
+        print("3. Angular")
+        print("4. Tauri (desktop app with Rust backend)")
+        print("5. Other")
+        frontend_choice = prompt("Frontend choice", "1")
+        if frontend_choice == "1":
+            frontend_framework = prompt("Frontend framework", "Next.js 14")
+            frontend_language = prompt("Frontend language", "TypeScript")
+            frontend_folder = prompt("Frontend code folder", "src")
+        elif frontend_choice == "2":
+            frontend_framework = prompt("Frontend framework", "Vue 3")
+            frontend_language = prompt("Frontend language", "TypeScript")
+            frontend_folder = prompt("Frontend code folder", "src")
+        elif frontend_choice == "3":
+            frontend_framework = prompt("Frontend framework", "Angular")
+            frontend_language = prompt("Frontend language", "TypeScript")
+            frontend_folder = prompt("Frontend code folder", "src")
+        elif frontend_choice == "4":
+            frontend_framework = prompt("Frontend framework", "Tauri")
+            frontend_language = prompt("Frontend language", "TypeScript + Rust")
+            frontend_folder = prompt("Frontend code folder", "src")
+        else:
+            frontend_framework = prompt("Frontend framework", "Next.js 14")
+            frontend_language = prompt("Frontend language", "TypeScript")
+            frontend_folder = prompt("Frontend code folder", "dashboard")
     else:
         frontend_framework = "N/A"
         frontend_language = "N/A"

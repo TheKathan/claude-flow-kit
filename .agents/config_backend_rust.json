@@ -1,0 +1,99 @@
+{
+  "agents": {
+    "rust-developer": {
+      "type": "backend-developer",
+      "description": "Rust backend developer using Axum, Tokio, and SQLx following idiomatic Rust principles",
+      "model": "sonnet",
+      "file_patterns": [
+        "**/*.rs",
+        "**/Cargo.toml",
+        "**/Cargo.lock"
+      ],
+      "excluded_patterns": [
+        "**/target/**",
+        "**/*_test.rs"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash",
+        "Grep",
+        "Glob"
+      ],
+      "preferences": {
+        "formatter": "cargo fmt",
+        "linter": "cargo clippy -- -D warnings",
+        "test_command": "cargo test",
+        "audit_command": "cargo audit"
+      }
+    },
+    "rust-test-specialist": {
+      "type": "test-specialist",
+      "description": "Rust test specialist using built-in test framework, mockall, wiremock, and criterion",
+      "model": "sonnet",
+      "file_patterns": [
+        "**/*_test.rs",
+        "**/tests/**/*.rs"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ],
+      "preferences": {
+        "test_framework": "cargo test",
+        "mock_library": "mockall",
+        "http_mock": "wiremock",
+        "benchmark": "criterion",
+        "coverage_tool": "cargo tarpaulin"
+      }
+    },
+    "backend-code-reviewer": {
+      "type": "code-reviewer",
+      "description": "Backend code reviewer for Rust safety, security, and idiomatic patterns",
+      "model": "sonnet",
+      "file_patterns": [
+        "**/*.rs"
+      ],
+      "tools": [
+        "Read",
+        "Grep",
+        "Glob"
+      ],
+      "preferences": {
+        "review_focus": [
+          "memory_safety",
+          "error_handling",
+          "security",
+          "performance",
+          "idiomatic_rust"
+        ]
+      }
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "description": "Execute Rust tests and enforce quality gates",
+      "model": "sonnet",
+      "tools": [
+        "Bash",
+        "Read"
+      ],
+      "preferences": {
+        "test_command": "cargo test",
+        "lint_command": "cargo clippy -- -D warnings",
+        "format_command": "cargo fmt --check",
+        "coverage_tool": "cargo tarpaulin --out Html",
+        "coverage_threshold": 80
+      }
+    }
+  },
+  "settings": {
+    "auto_push_on_approval": true,
+    "require_tests_pass": true,
+    "require_integration_tests_pass": true,
+    "max_review_cycles": 3,
+    "coverage_threshold": 80
+  }
+}

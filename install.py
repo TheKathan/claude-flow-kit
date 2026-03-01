@@ -2,19 +2,32 @@
 """
 Claude Code Template Installer
 
-Download and run:
-  curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py | python3
-
-Or download first:
-  curl -O https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py
+Linux / macOS:
+  curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py -o install.py
   python3 install.py
+
+Windows (PowerShell):
+  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py" -OutFile "install.py"
+  python install.py
+
+Note: Do NOT pipe directly via `curl ... | python3`.  The installer is
+interactive and requires terminal input, which breaks when stdin is a pipe.
 """
 
 import os
+import sys
 import json
 import urllib.request
 from pathlib import Path
 from typing import Dict, List, Optional
+
+# Ensure UTF-8 output on Windows (emoji in print statements)
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except AttributeError:
+        pass  # Python < 3.7 — best-effort
 
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main"
 
@@ -65,6 +78,8 @@ def detect_language(backend_language: Optional[str]) -> Optional[str]:
         return "nodejs"
     elif "go" in language_lower or "golang" in language_lower:
         return "go"
+    elif "rust" in language_lower:
+        return "rust"
     elif "ruby" in language_lower or "rails" in language_lower:
         return "ruby"
     return None
@@ -75,7 +90,9 @@ def detect_frontend_framework(frontend_framework: Optional[str]) -> Optional[str
         return None
 
     framework_lower = frontend_framework.lower()
-    if "react" in framework_lower or "next" in framework_lower:
+    if "tauri" in framework_lower:
+        return "tauri"
+    elif "react" in framework_lower or "next" in framework_lower:
         return "react"
     elif "vue" in framework_lower or "nuxt" in framework_lower:
         return "vue"
@@ -195,8 +212,9 @@ def main():
         print("2. Node.js (Express, NestJS, Fastify)")
         print("3. .NET (ASP.NET Core)")
         print("4. Go (Gin, Echo, Fiber)")
-        print("5. Ruby (Rails, Sinatra, Hanami)")
-        print("6. Other (manual setup)")
+        print("5. Rust (Axum, Actix-web)")
+        print("6. Ruby (Rails, Sinatra, Hanami)")
+        print("7. Other (manual setup)")
         backend_choice = prompt("Backend choice", "1")
 
         if backend_choice == "1":
@@ -216,6 +234,10 @@ def main():
             backend_language = prompt("Backend language", "Go 1.21")
             backend_folder = prompt("Backend code folder", "cmd/api")
         elif backend_choice == "5":
+            backend_framework = prompt("Backend framework", "Axum")
+            backend_language = prompt("Backend language", "Rust")
+            backend_folder = prompt("Backend code folder", "src")
+        elif backend_choice == "6":
             backend_framework = prompt("Backend framework", "Rails 7")
             backend_language = prompt("Backend language", "Ruby 3.3")
             backend_folder = prompt("Backend code folder", "app")
@@ -232,21 +254,26 @@ def main():
         print("1. React / Next.js")
         print("2. Vue / Nuxt")
         print("3. Angular")
-        print("4. Other (manual setup)")
+        print("4. Tauri (desktop app — Rust backend + web frontend)")
+        print("5. Other (manual setup)")
         frontend_choice = prompt("Frontend choice", "1")
 
         if frontend_choice == "1":
             frontend_framework = prompt("Frontend framework", "Next.js 14")
             frontend_language = prompt("Frontend language", "TypeScript")
-            frontend_folder = prompt("Frontend code folder", "dashboard")
+            frontend_folder = prompt("Frontend code folder", "src")
         elif frontend_choice == "2":
             frontend_framework = prompt("Frontend framework", "Vue 3")
             frontend_language = prompt("Frontend language", "TypeScript")
-            frontend_folder = prompt("Frontend code folder", "frontend")
+            frontend_folder = prompt("Frontend code folder", "src")
         elif frontend_choice == "3":
             frontend_framework = prompt("Frontend framework", "Angular 17")
             frontend_language = prompt("Frontend language", "TypeScript")
-            frontend_folder = prompt("Frontend code folder", "frontend")
+            frontend_folder = prompt("Frontend code folder", "src")
+        elif frontend_choice == "4":
+            frontend_framework = prompt("Frontend framework", "Tauri")
+            frontend_language = prompt("Frontend language", "TypeScript + Rust")
+            frontend_folder = prompt("Frontend code folder", "src")
         else:
             print("  Manual frontend setup selected - no frontend workflow will be downloaded")
             has_frontend = False
@@ -370,6 +397,7 @@ def main():
         "nodejs":  ["nodejs-developer.md", "nodejs-test-specialist.md", "backend-code-reviewer.md"],
         "dotnet":  ["dotnet-developer.md", "dotnet-test-specialist.md", "backend-code-reviewer.md"],
         "go":      ["go-developer.md", "go-test-specialist.md", "backend-code-reviewer.md"],
+        "rust":    ["rust-developer.md", "rust-test-specialist.md", "backend-code-reviewer.md"],
         "ruby":    ["ruby-developer.md", "ruby-test-specialist.md", "backend-code-reviewer.md"],
     }
     if backend_lang and backend_lang in backend_agent_map:
@@ -377,10 +405,12 @@ def main():
             download_file(f"{GITHUB_RAW_URL}/.claude/agents/{agent}", agents_dir / agent)
 
     # Frontend agents — conditional on selected framework
+    # Tauri uses rust-developer for src-tauri/ and frontend-code-reviewer for the web layer
     frontend_agent_map = {
         "react":   ["react-frontend-dev.md", "react-test-specialist.md", "frontend-code-reviewer.md"],
         "vue":     ["vue-developer.md", "vue-test-specialist.md", "frontend-code-reviewer.md"],
         "angular": ["angular-developer.md", "angular-test-specialist.md", "frontend-code-reviewer.md"],
+        "tauri":   ["rust-developer.md", "rust-test-specialist.md", "frontend-code-reviewer.md"],
     }
     if frontend_lang and frontend_lang in frontend_agent_map:
         for agent in frontend_agent_map[frontend_lang]:
@@ -405,6 +435,9 @@ def main():
         download_file(f"{GITHUB_RAW_URL}/docs/{workflow_file}", current_dir / "docs" / workflow_file)
         guide_file = f"{frontend_lang.upper()}_GUIDE.md"
         download_file(f"{GITHUB_RAW_URL}/.claude/{guide_file}", current_dir / ".claude" / guide_file)
+        # Tauri apps have a Rust backend (src-tauri/) — also download the Rust guide
+        if frontend_lang == "tauri":
+            download_file(f"{GITHUB_RAW_URL}/.claude/RUST_GUIDE.md", current_dir / ".claude" / "RUST_GUIDE.md")
 
     if infra_tool:
         workflow_file = f"WORKFLOW_INFRASTRUCTURE_{infra_tool.upper()}.md"
@@ -529,8 +562,9 @@ def main():
     print(f"   .claude/agents/    ← agent definitions       ⚠️  HIDDEN DIRECTORY")
     print(f"   .claude/commands/  ← slash commands          ⚠️  HIDDEN DIRECTORY")
     print(f"   .agents/           ← agent configs           ⚠️  HIDDEN DIRECTORY")
-    print(f"\n⚠️  Note: .claude/ and .agents/ start with a dot — they are hidden")
-    print(f"   on Mac/Linux. Use 'ls -la' to see them, not plain 'ls'.")
+    print(f"\n⚠️  Note: .claude/ and .agents/ start with a dot — they are hidden directories.")
+    print(f"   Linux/macOS : ls -la")
+    print(f"   PowerShell  : Get-ChildItem -Force")
     print(f"\n📋 Components installed:")
     if backend_lang:
         print(f"   - Backend: {backend_lang} → docs/WORKFLOW_BACKEND_{backend_lang.upper()}.md")

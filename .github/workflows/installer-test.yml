@@ -22,63 +22,236 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test-installer:
+  # ── Syntax / import checks (fast, no network) ───────────────────────────────
+  lint:
+    name: Syntax check
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: install.py imports cleanly
+        run: python -c "import install; print('install.py OK')"
+      - name: setup_claude.py imports cleanly
+        run: python -c "import setup_claude; print('setup_claude.py OK')"
+
+  # ── Cross-platform installer run (network downloads best-effort) ─────────────
+  test-installer:
+    name: Installer — ${{ matrix.os }} — ${{ matrix.scenario }}
+    needs: lint
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        scenario:
+          - python-backend
+          - nodejs-backend
+          - rust-backend
+          - react-frontend
+          - tauri-frontend
+          - rust-backend-react-frontend
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Test installer runs without errors
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # ── Write installer input file (cross-platform via Python) ──────────────
+      #
+      # Installer prompt order (install.py):
+      #   1. Project name          [default: MyProject]
+      #   2. Project description   [default: A great project]
+      #   3. Repository URL        [default: https://github.com/user/repo]
+      #   4. Does your project have a backend? [Y/n]  (default=True)
+      #      4a. Backend choice (1-7)
+      #      4b. Framework    [default]
+      #      4c. Language     [default]
+      #      4d. Folder       [default]
+      #   5. Does your project have a frontend? [y/N]  (default=False)
+      #      5a. Frontend choice (1-5)
+      #      5b. Framework    [default]
+      #      5c. Language     [default]
+      #      5d. Folder       [default]
+      #   6. Does your project use Infrastructure-as-Code? [y/N]  (default=False)
+      #   7. Does your project use Docker? [Y/n]  (default=True)
+      #   8. Main branch name      [default: main]
+      #
+      # "\n" = accept default for that prompt.
+
+      - name: Write input file
+        shell: python
         run: |
-          # Test that installer can be imported and basic validation works
-          python -c "import sys; sys.path.insert(0, '.'); import install; print('Installer imports successfully')"
+          import os, pathlib
 
-      - name: Test installer with backend-only (non-interactive)
+          # Common header: project info (3 prompts — all defaults)
+          header = "\n\n\n"
+          # Common footer (3 prompts):
+          #   has_infrastructure? [y/N] default=False → \n  (no)
+          #   uses_docker?        [Y/n] default=True  → n\n (no — avoid Docker deps in CI)
+          #   main_branch         [main]              → \n  (default)
+          footer = "\nn\n\n"
+
+          scenarios = {
+            "python-backend": (
+              header
+              + "\n"       # has_backend = yes (default)
+              + "1\n"      # Python
+              + "\n\n\n"   # framework / language / folder defaults
+              + "n\n"      # has_frontend = no (override default=False is already no, but explicit)
+              + footer
+            ),
+            "nodejs-backend": (
+              header
+              + "\n"
+              + "2\n"      # Node.js
+              + "\n\n\n"
+              + "n\n"
+              + footer
+            ),
+            "rust-backend": (
+              header
+              + "\n"
+              + "5\n"      # Rust
+              + "\n\n\n"
+              + "n\n"
+              + footer
+            ),
+            "react-frontend": (
+              header
+              + "n\n"      # has_backend = no (override default=True)
+              + "y\n"      # has_frontend = yes
+              + "1\n"      # React
+              + "\n\n\n"
+              + footer
+            ),
+            "tauri-frontend": (
+              header
+              + "n\n"      # has_backend = no
+              + "y\n"      # has_frontend = yes
+              + "4\n"      # Tauri
+              + "\n\n\n"
+              + footer
+            ),
+            "rust-backend-react-frontend": (
+              header
+              + "\n"       # has_backend = yes
+              + "5\n"      # Rust
+              + "\n\n\n"
+              + "y\n"      # has_frontend = yes
+              + "1\n"      # React
+              + "\n\n\n"
+              + footer
+            ),
+          }
+
+          scenario = os.environ["SCENARIO"]
+          test_dir = os.environ["TEST_DIR"]
+          os.makedirs(test_dir, exist_ok=True)
+          pathlib.Path(f"{test_dir}/input.txt").write_text(
+              scenarios[scenario], encoding="utf-8"
+          )
+          print(f"Written input for scenario: {scenario}")
+        env:
+          SCENARIO: ${{ matrix.scenario }}
+          TEST_DIR: test-${{ matrix.scenario }}
+
+      # ── Run installer (bash available on all GH runners via Git) ────────────
+      # NOTE: download steps may 404 on PRs (files not yet on main).
+      #       We allow failure here; the lint job above is the hard gate.
+      - name: Run installer
+        shell: bash
+        working-directory: test-${{ matrix.scenario }}
+        run: python ../install.py < input.txt || echo "Installer exited (downloads may have failed — see output above)"
+        env:
+          PYTHONUTF8: "1"
+
+      # ── Report which expected files were created (informational) ─────────────
+      # This step never fails the build — it just reports what landed so you
+      # can see at a glance whether downloads succeeded (post-merge on main).
+      - name: Report output files
+        shell: python
         run: |
-          # Create a test directory
-          mkdir -p test-install-backend
-          cd test-install-backend
+          import os, pathlib
 
-          # Create input file for non-interactive testing
-          cat > input.txt <<'HEREDOC'
-          test-project
-          Test project description
-          https://github.com/test/test-project
-          1
-          1
-          n
-          n
-          n
-          main
-          HEREDOC
+          scenario = os.environ["SCENARIO"]
+          test_dir = pathlib.Path(os.environ["TEST_DIR"])
 
-          # Run installer with input
-          python ../install.py < input.txt || echo "Installer completed"
+          # Files expected after a successful download run
+          expected = {
+            "python-backend": [
+                "CLAUDE.md", ".agents/config.json",
+                "docs/WORKFLOW_BACKEND_PYTHON.md", ".claude/PYTHON_GUIDE.md",
+            ],
+            "nodejs-backend": [
+                "CLAUDE.md", ".agents/config.json",
+                "docs/WORKFLOW_BACKEND_NODEJS.md", ".claude/NODEJS_GUIDE.md",
+            ],
+            "rust-backend": [
+                "CLAUDE.md", ".agents/config.json",
+                "docs/WORKFLOW_BACKEND_RUST.md", ".claude/RUST_GUIDE.md",
+            ],
+            "react-frontend": [
+                "CLAUDE.md", ".agents/config.json",
+                "docs/WORKFLOW_FRONTEND_REACT.md", ".claude/REACT_GUIDE.md",
+            ],
+            "tauri-frontend": [
+                "CLAUDE.md", ".agents/config.json",
+                "docs/WORKFLOW_FRONTEND_TAURI.md", ".claude/TAURI_GUIDE.md",
+                ".claude/RUST_GUIDE.md",
+            ],
+            "rust-backend-react-frontend": [
+                "CLAUDE.md", ".agents/config.json",
+                "docs/WORKFLOW_BACKEND_RUST.md",  ".claude/RUST_GUIDE.md",
+                "docs/WORKFLOW_FRONTEND_REACT.md", ".claude/REACT_GUIDE.md",
+            ],
+          }
 
-      - name: Test installer with frontend-only (non-interactive)
+          files = expected.get(scenario, [])
+          present = [f for f in files if (test_dir / f).exists()]
+          missing = [f for f in files if not (test_dir / f).exists()]
+
+          print(f"Scenario '{scenario}' on {os.environ.get('RUNNER_OS','?')}:")
+          print(f"  Present ({len(present)}/{len(files)}): {present}")
+          if missing:
+              print(f"  Missing (download failures or pre-merge PR run): {missing}")
+          else:
+              print(f"  All expected files present!")
+        env:
+          SCENARIO: ${{ matrix.scenario }}
+          TEST_DIR: test-${{ matrix.scenario }}
+
+  # ── setup_claude.py smoke test (ubuntu only — same logic across platforms) ──
+  test-setup-script:
+    name: setup_claude.py smoke test
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Verify setup_claude.py imports and detect functions work
         run: |
-          # Create a test directory
-          mkdir -p test-install-frontend
-          cd test-install-frontend
+          python - <<'EOF'
+          import setup_claude
 
-          # Create input file for non-interactive testing
-          cat > input.txt <<'HEREDOC'
-          test-frontend-project
-          Test frontend project
-          https://github.com/test/test-frontend
-          n
-          1
-          1
-          n
-          n
-          main
-          HEREDOC
+          # detect_language
+          assert setup_claude.detect_language("Python 3.11") == "python"
+          assert setup_claude.detect_language("Node.js 20") == "nodejs"
+          assert setup_claude.detect_language("C# 12") == "dotnet"
+          assert setup_claude.detect_language("Go 1.21") == "go"
+          assert setup_claude.detect_language("Rust") == "rust"
 
-          # Run installer with input
-          python ../install.py < input.txt || echo "Installer completed"
+          # detect_frontend_framework
+          assert setup_claude.detect_frontend_framework("Next.js 14") == "react"
+          assert setup_claude.detect_frontend_framework("Vue 3") == "vue"
+          assert setup_claude.detect_frontend_framework("Angular") == "angular"
+          assert setup_claude.detect_frontend_framework("Tauri") == "tauri"
 
-      - name: Verify setup_claude.py runs
-        run: |
-          # Test that setup_claude.py can be imported
-          python -c "import sys; sys.path.insert(0, '.'); import setup_claude; print('Setup script imports successfully')"
+          print("All detect functions pass")
+          EOF

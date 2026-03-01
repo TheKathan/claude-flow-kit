@@ -14,7 +14,7 @@ A modular, language-specific template for setting up Claude Code AI agents, work
 ## 🎯 What This Template Provides
 
 - **Modular Architecture** - Pick only backend, frontend, or infrastructure components you need
-- **Language-Specific Workflows** - Python, .NET, Node.js, Go, React, Vue, Angular, Terraform
+- **Language-Specific Workflows** - Python, .NET, Node.js, Go, Rust, Ruby, React, Vue, Angular, Tauri, Terraform
 - **13-Step Worktree Workflow** - Isolated development with quality gates
 - **PR Workflow Support** - Optional PR-to-main workflow with human approval
 - **Downloadable Installer** - Run from anywhere, no repo cloning needed
@@ -27,58 +27,83 @@ A modular, language-specific template for setting up Claude Code AI agents, work
 
 ### Option 1: Downloadable Installer (Recommended)
 
-Run the installer directly from GitHub - no need to clone the repository:
+Download and run the installer — no repo cloning needed.
+
+> **Important**: Do **not** pipe directly via `curl ... | python3`. The installer is interactive and needs terminal input; piping breaks stdin.
+
+#### Linux / macOS
 
 ```bash
-# Download and run installer in one command
-curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py | python3
-```
-
-Or download first, then run:
-
-```bash
-# Download the installer
-curl -O https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py
-
-# Run the installer
+curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py -o install.py
 python3 install.py
 ```
+
+#### Windows — PowerShell
+
+```powershell
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py" -OutFile "install.py"
+python install.py
+```
+
+#### Windows — Command Prompt (cmd)
+
+```cmd
+curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py -o install.py
+python install.py
+```
+
+> **Tip (Windows)**: If you see garbled characters, run `chcp 65001` first to switch the console to UTF-8, or set `PYTHONUTF8=1` before running.
+
+---
 
 The installer will prompt you for:
 
 - **Project information** (name, description, repository URL)
-- **Backend** (Python/Node.js/.NET/Go or none)
-- **Frontend** (React/Vue/Angular or none)
+- **Backend** (Python / Node.js / .NET / Go / Rust / Ruby or none)
+- **Frontend** (React / Vue / Angular / Tauri or none)
 - **Infrastructure** (Terraform or none)
 - **Docker usage** (yes/no)
 - **Git configuration** (main branch name)
 
 The installer downloads **only** the components you select to your current directory.
 
+---
+
 ### Option 2: Clone and Setup Locally
 
-For development or customization:
+For development or customization of the template itself.
+
+#### Linux / macOS
 
 ```bash
-# Clone repository
 git clone https://github.com/TheKathan/claude-flow-kit.git
 cd claude-flow-kit
+python3 setup_claude.py
+```
 
-# Run setup script
+#### Windows — PowerShell
+
+```powershell
+git clone https://github.com/TheKathan/claude-flow-kit.git
+cd claude-flow-kit
 python setup_claude.py
 ```
+
+---
 
 ### What Gets Installed
 
 Based on your selections, the installer creates:
 
-- **CLAUDE.md** - Navigation hub for your project
-- **Workflow files** - Language-specific development guides
-- **Agent configurations** - AI agents for your tech stack
-- **Documentation templates** - Ready to customize
-- **Worktree scripts** - Automated workflow management
+- **CLAUDE.md** — Navigation hub for your project
+- **Workflow files** — Language-specific development guides
+- **Agent configurations** — AI agents for your tech stack
+- **Documentation templates** — Ready to customize
+- **Worktree scripts** — Automated workflow management
 
-That's it! You get only what you need - no clutter.
+You get only what you need — no clutter.
+
+---
 
 ### After Installation
 
@@ -87,9 +112,15 @@ That's it! You get only what you need - no clutter.
 3. Start building with Claude Code agents
 
 ```bash
+# Works on Linux, macOS, and Windows (Git Bash / PowerShell / cmd)
 git add CLAUDE.md .claude/ .agents/ docs/ scripts/
 git commit -m "Add Claude Code configuration"
 ```
+
+> **Note**: `.claude/` and `.agents/` are hidden directories (dot-prefix).
+> - **Linux/macOS**: `ls -la` to see them
+> - **PowerShell**: `Get-ChildItem -Force`
+> - **cmd**: `dir /a`
 
 ---
 
@@ -99,17 +130,19 @@ The template includes language-specific agents automatically configured based on
 
 ### Backend Development Agents
 
-- **python-developer** / **python-test-specialist** - Python/FastAPI development
-- **dotnet-developer** / **dotnet-test-specialist** - .NET/ASP.NET Core development
-- **nodejs-developer** / **nodejs-test-specialist** - Node.js/Express development
-- **go-developer** / **go-test-specialist** - Go development
-- **ruby-developer** / **ruby-test-specialist** - Ruby/Rails development
+- **python-developer** / **python-test-specialist** — Python/FastAPI development
+- **dotnet-developer** / **dotnet-test-specialist** — .NET/ASP.NET Core development
+- **nodejs-developer** / **nodejs-test-specialist** — Node.js/Express development
+- **go-developer** / **go-test-specialist** — Go development
+- **rust-developer** / **rust-test-specialist** — Rust/Axum development
+- **ruby-developer** / **ruby-test-specialist** — Ruby/Rails development
 
 ### Frontend Development Agents
 
-- **react-frontend-dev** / **react-test-specialist** - React/Next.js development
-- **vue-developer** / **vue-test-specialist** - Vue/Nuxt development
-- **angular-developer** / **angular-test-specialist** - Angular development
+- **react-frontend-dev** / **react-test-specialist** — React/Next.js development
+- **vue-developer** / **vue-test-specialist** — Vue/Nuxt development
+- **angular-developer** / **angular-test-specialist** — Angular development
+- **rust-developer** / **rust-test-specialist** — Tauri desktop apps (src-tauri/ Rust backend)
 
 ### Infrastructure Agents
 
@@ -129,27 +162,183 @@ The template includes language-specific agents automatically configured based on
 
 ---
 
-## 🔄 Workflow Support
+## ⌨️ Using the `/workflow` Command
 
-### 13-Step Worktree Workflow
+After installation, Claude Code has a `/workflow` slash command that drives the entire 13-step process hands-free. Open Claude Code in your project directory and type:
 
-All workflows follow the same structure:
+```
+/workflow <describe your task>
+```
+
+Claude reads your task, picks the right workflow variant, and orchestrates all the agents automatically — from creating an isolated worktree through testing, code review, conflict resolution, merge, and cleanup.
+
+---
+
+### Basic Syntax
+
+```
+/workflow <task description>
+```
+
+The description is plain English. Be specific about what you want.
+
+---
+
+### Workflow Variants
+
+The command auto-detects the right variant from keywords in your task. You can also prefix explicitly.
+
+| Variant | Auto-detected from | Steps | Time |
+|---|---|---|---|
+| **standard** | *(default — anything else)* | 1→2→3→4→5→6→7→9→10→12→13 | 25-35 min |
+| **full** | "new service", "architecture", "redesign", "migrate" | 0→1→2→3→4→5→6→7→8→9→10→11→12→13 | 35-50 min |
+| **hotfix** | "fix", "bug", "crash", "urgent" | 1→2→4→5→6→7→9→10→12→13 | 15-20 min |
+| **tests** | "add tests", "coverage", "test-only" | 1→3→4→5→9→12→13 | 15-20 min |
+| **docs** | "docs", "readme", "documentation" | 1→2→9→12→13 | 10-15 min |
+
+To **force a variant**, prefix the task with its name:
+
+```
+/workflow full add user authentication with JWT
+/workflow hotfix login endpoint returns 500 on empty password
+/workflow tests improve coverage on the payment service
+```
+
+---
+
+### Examples
+
+#### Python / FastAPI
+
+```
+/workflow add a POST /api/users endpoint with email validation and password hashing
+```
+
+```
+/workflow hotfix fix the user lookup query that crashes on special characters
+```
+
+#### Node.js / Express
+
+```
+/workflow add JWT refresh token rotation to the auth service
+```
+
+#### Rust / Axum
+
+```
+/workflow add a rate-limiting middleware using tower to the Axum router
+```
+
+```
+/workflow full design and implement a file storage service with S3 integration
+```
+
+#### React / Next.js
+
+```
+/workflow add a paginated data table component with sorting and filtering
+```
+
+```
+/workflow hotfix fix the dashboard crash when the API returns an empty array
+```
+
+#### Tauri (Rust + Web)
+
+```
+/workflow add a read_recent_files Tauri command that returns the 10 most recently opened files
+```
+
+```
+/workflow full design the file watcher feature that sends events from Rust to the frontend
+```
+
+#### Vue / Nuxt
+
+```
+/workflow add a notification toast composable with auto-dismiss
+```
+
+#### Angular
+
+```
+/workflow add a reactive form with server-side validation for the profile settings page
+```
+
+#### Infrastructure (Terraform)
+
+```
+/workflow full provision an S3 bucket with versioning, encryption, and lifecycle rules
+```
+
+---
+
+### What Happens When You Run `/workflow`
+
+1. **Variant selection** — Claude analyses the task and picks `standard`, `full`, `hotfix`, `tests`, or `docs`, then states the chosen variant and step sequence.
+
+2. **Worktree created** — an isolated git branch (e.g., `feature/user-auth`) and worktree are created so your main branch is never touched mid-work.
+
+3. **Implementation** — the right developer agent (`python-developer`, `rust-developer`, `react-frontend-dev`, etc.) writes the code inside the worktree.
+
+4. **Tests written** — the matching test specialist writes unit tests targeting 80%+ coverage.
+
+5. **Quality gates** — `integration-tester` runs the test suite; `backend-code-reviewer` or `frontend-code-reviewer` reviews the code. Both gates must pass.
+
+6. **Conflicts resolved** — `merge-conflict-resolver` pulls the latest base branch and resolves any conflicts automatically.
+
+7. **Merge & cleanup** — `worktree-manager` merges to your base branch, pushes, and removes the worktree.
+
+8. **Summary** — Claude reports what was built, the branch name, variant used, and any issues encountered.
+
+---
+
+### Quality Gates (Blocking)
+
+The workflow cannot advance past a failed gate without resolution:
+
+| Gate | Step | Must Pass |
+|---|---|---|
+| Unit tests | 5 | 0 failures, ≥80% coverage |
+| Code review | 6 | Approved |
+| Integration tests | 8 | 0 failures *(full variant only)* |
+| Conflict resolution | 10 | All conflicts resolved |
+| Final integration | 11 | 0 failures *(full variant only)* |
+
+If a gate fails, the relevant developer agent is automatically invoked to fix the issue, then the gate retries. After 3 failed cycles the workflow pauses and reports to you.
+
+---
+
+### Tips
+
+- **Be specific** in your task description — "add user auth" is okay, "add JWT authentication with refresh tokens and blacklisting" triggers better architecture decisions.
+- **Use `full`** for new services, schema changes, or any feature that touches multiple layers.
+- **Use `hotfix`** for bugs — it skips test writing (tests should already exist) and moves faster.
+- **Working on a PR branch?** The worktree will branch from your current branch and merge back to it, not to `main`.
+- **Stuck mid-workflow?** Tell Claude which step you're on and it will resume from there.
+
+---
+
+## 🔄 Workflow Steps Reference
+
+All workflows follow the same 13-step structure. See `docs/WORKFLOW_GUIDE.md` and your language-specific `docs/WORKFLOW_BACKEND_*.md` / `docs/WORKFLOW_FRONTEND_*.md` for detailed per-step commands.
 
 ```text
 Step 0:  [OPTIONAL] software-architect      → Design architecture
-Step 1:  worktree-manager                   → Create worktree + Docker
+Step 1:  worktree-manager                   → Create worktree (+ Docker if used)
 Step 2:  {language}-developer               → Implement feature
 Step 3:  {language}-test-specialist         → Write comprehensive tests
 Step 4:  {language}-developer               → Commit code + tests
 Step 5:  integration-tester                 → Run unit tests [GATE]
 Step 6:  {area}-code-reviewer               → Review code [GATE]
-Step 7:  {language}-developer               → Fix if needed (loop to 5-6)
+Step 7:  {language}-developer               → Fix if needed (loop back to 5-6)
 Step 8:  integration-tester                 → Run integration tests [GATE]
 Step 9:  {language}-developer               → Push to feature branch
 Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final integration test [GATE]
-Step 12: worktree-manager                   → Merge to main, push
-Step 13: worktree-manager                   → Cleanup worktree + Docker
+Step 12: worktree-manager                   → Merge to base branch, push
+Step 13: worktree-manager                   → Cleanup worktree (+ Docker)
 ```
 
 ### Merge Strategies
@@ -167,45 +356,69 @@ Step 13: worktree-manager                   → Cleanup worktree + Docker
 - Auto-cleanup after PR is merged
 - Configure with `merge_strategy: "pr-to-main"` in `.agents/config.json`
 
-### Workflow Variants
-
-- **Standard Workflow (13 steps)** - Most common (25-35 min)
-- **Hotfix Workflow (9 steps)** - Urgent fixes (15-20 min)
-- **Architecture-First (14 steps)** - New services (35-50 min)
-
-See your language-specific workflow file in `docs/` for detailed commands.
-
 ---
 
 ## 🔧 Troubleshooting
 
 ### Installation Issues
 
-**Installer fails to download:**
+**`EOFError` or installer exits immediately:**
+
+The installer is interactive and needs a real terminal. Never pipe it:
 
 ```bash
-# Check network connection
+# Wrong — breaks stdin:
+curl -sSL .../install.py | python3
+
+# Correct — download first, then run:
+# Linux/macOS:
+curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py -o install.py
+python3 install.py
+
+# PowerShell:
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py" -OutFile "install.py"
+python install.py
+```
+
+**Installer fails to download files:**
+
+```bash
+# Linux/macOS — check connectivity:
 curl -I https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py
 
-# Try downloading manually first
-curl -O https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py
-python3 install.py
+# PowerShell — check connectivity:
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py" -Method Head
 ```
 
 **Python not found:**
 
 ```bash
-# Use Python 3 explicitly
-python3 install.py
+# Linux/macOS:
+python3 --version   # must be 3.7+
+which python3
 
-# Or check Python version
-python --version  # Should be 3.7+
+# PowerShell / cmd:
+python --version    # must be 3.7+
+# Download from https://www.python.org/downloads/ if missing
+```
+
+**Garbled characters on Windows (emoji not rendering):**
+
+```powershell
+# Option A — set UTF-8 console before running:
+chcp 65001
+python install.py
+
+# Option B — set environment variable:
+$env:PYTHONUTF8 = "1"
+python install.py
 ```
 
 **No components selected:**
 
-- You must select at least one component (backend, frontend, or infrastructure)
-- Rerun installer and select your desired components
+You must select at least one component (backend, frontend, or infrastructure). Re-run the installer and make a selection.
+
+---
 
 ### Agent Configuration Issues
 
@@ -213,30 +426,38 @@ python --version  # Should be 3.7+
 
 1. Verify `.agents/config.json` is valid JSON
 2. Check file watch patterns match your project structure
-3. Ensure model names are correct (haiku/sonnet/opus)
+3. Ensure model names are correct (`haiku` / `sonnet` / `opus`)
 
 **Merged config missing agents:**
 
-- The installer only includes agents for selected components
-- Rerun installer if you need additional components
+The installer only includes agents for selected components. Re-run if you need to add more.
+
+---
 
 ### Worktree Scripts Issues
 
-**Scripts not executable:**
+**Scripts not executable (Linux/macOS only):**
 
 ```bash
 chmod +x scripts/*.py
 ```
 
-**GitHub CLI (gh) not found:**
+Windows does not require this — Python scripts run directly via `python scripts/worktree_create.py`.
+
+**GitHub CLI (`gh`) not found:**
 
 ```bash
-# Install GitHub CLI for PR workflow
-# macOS: brew install gh
-# Linux: See https://github.com/cli/cli#installation
-# Windows: See https://github.com/cli/cli#installation
+# macOS:
+brew install gh
 
-# Authenticate
+# Linux (Debian/Ubuntu):
+sudo apt install gh
+
+# Windows (PowerShell — requires winget):
+winget install GitHub.cli
+# or: choco install gh
+
+# Authenticate on any platform:
 gh auth login
 ```
 
