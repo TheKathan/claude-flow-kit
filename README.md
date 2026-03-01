@@ -42,8 +42,6 @@ A modular, language-specific template for setting up Claude Code AI agents, work
 
 ## 🚀 Quick Start
 
-### Option 1: Downloadable Installer (Recommended)
-
 Download and run the installer — no repo cloning needed.
 
 #### Linux / macOS
@@ -79,28 +77,6 @@ The installer will prompt you for:
 - **Git configuration** (main branch name)
 
 The installer downloads **only** the components you select to your current directory.
-
----
-
-### Option 2: Clone and Setup Locally
-
-For development or customization of the template itself.
-
-#### Linux / macOS
-
-```bash
-git clone https://github.com/TheKathan/claude-flow-kit.git
-cd claude-flow-kit
-python3 setup_claude.py
-```
-
-#### Windows — PowerShell
-
-```powershell
-git clone https://github.com/TheKathan/claude-flow-kit.git
-cd claude-flow-kit
-python setup_claude.py
-```
 
 ---
 
