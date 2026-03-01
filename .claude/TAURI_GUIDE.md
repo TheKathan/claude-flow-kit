@@ -310,9 +310,9 @@ test('reads file content', async () => {
 
 - [Tauri Documentation](https://tauri.app/v1/guides/) — Official Tauri docs
 - [Tauri API Reference](https://tauri.app/v1/api/js/) — JavaScript API
-- [Rust Guide](.claude/RUST_GUIDE.md) — Rust coding standards
-- [React Guide](.claude/REACT_GUIDE.md) — Frontend standards (if using React)
-- [Vue Guide](.claude/VUE_GUIDE.md) — Frontend standards (if using Vue)
+- [Rust Guide](RUST_GUIDE.md) — Rust coding standards
+- [React Guide](REACT_GUIDE.md) — Frontend standards (if using React)
+- [Vue Guide](VUE_GUIDE.md) — Frontend standards (if using Vue)
 
 ---
 
