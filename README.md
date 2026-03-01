@@ -517,6 +517,6 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ---
 
-**Version**: 2.0.0
-**Last Updated**: 2026-02-21
+**Version**: 2.1.0
+**Last Updated**: 2026-03-01
 **Status**: Production Ready
