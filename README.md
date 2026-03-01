@@ -9,6 +9,23 @@ A modular, language-specific template for setting up Claude Code AI agents, work
 [![Python 3.7+](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-compatible-blueviolet)](https://claude.ai/claude-code)
 
+**Backend**
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-339933?logo=nodedotjs&logoColor=white)
+![.NET](https://img.shields.io/badge/.NET-512BD4?logo=dotnet&logoColor=white)
+![Go](https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white)
+![Rust](https://img.shields.io/badge/Rust-000000?logo=rust&logoColor=white)
+![Ruby](https://img.shields.io/badge/Ruby-CC342D?logo=ruby&logoColor=white)
+
+**Frontend**
+![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
+![Vue](https://img.shields.io/badge/Vue-4FC08D?logo=vuedotjs&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-DD0031?logo=angular&logoColor=white)
+![Tauri](https://img.shields.io/badge/Tauri-24C8D8?logo=tauri&logoColor=white)
+
+**Infrastructure**
+![Terraform](https://img.shields.io/badge/Terraform-844FBA?logo=terraform&logoColor=white)
+
 ---
 
 ## 🎯 What This Template Provides
@@ -28,8 +45,6 @@ A modular, language-specific template for setting up Claude Code AI agents, work
 ### Option 1: Downloadable Installer (Recommended)
 
 Download and run the installer — no repo cloning needed.
-
-> **Important**: Do **not** pipe directly via `curl ... | python3`. The installer is interactive and needs terminal input; piping breaks stdin.
 
 #### Linux / macOS
 
@@ -51,8 +66,6 @@ python install.py
 curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py -o install.py
 python install.py
 ```
-
-> **Tip (Windows)**: If you see garbled characters, run `chcp 65001` first to switch the console to UTF-8, or set `PYTHONUTF8=1` before running.
 
 ---
 
