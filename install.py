@@ -378,6 +378,7 @@ def main():
         "merge-conflict-resolver.md",
         "integration-tester.md",
         "project-status-reviewer.md",
+        "skill-creator.md",
     ]
     for agent in common_agents:
         download_file(f"{GITHUB_RAW_URL}/.claude/agents/{agent}", agents_dir / agent)
@@ -452,6 +453,7 @@ def main():
     _COMMON_AGENT_KEYS = {
         "architect", "worktree-mgr", "docker-debug",
         "e2e-tester", "status-reviewer", "conflict-resolver",
+        "skill-creator",
     }
 
     # Download main config.json as the base to preserve workflow/gates/etc. sections

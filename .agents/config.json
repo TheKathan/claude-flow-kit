@@ -388,6 +388,20 @@
         "Glob"
       ],
       "agent_file": ".claude/agents/merge-conflict-resolver.md"
+    },
+    "skill-creator": {
+      "name": "skill-creator",
+      "type": "meta",
+      "description": "Evaluate and codify reusable development patterns as new Claude Code skills",
+      "scope": "all",
+      "watches": [
+        ".claude/commands/**/*.md",
+        ".claude/agents/**/*.md"
+      ],
+      "capabilities": ["evaluate_patterns", "create_commands", "create_agents"],
+      "model": "sonnet",
+      "tools": ["Read", "Write", "Glob", "Grep", "Bash"],
+      "agent_file": ".claude/agents/skill-creator.md"
     }
   },
   "workflow": {

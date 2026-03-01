@@ -172,6 +172,28 @@ The template includes language-specific agents automatically configured based on
 - **docker-debugger** - Fix Docker issues
 - **merge-conflict-resolver** - Resolve merge conflicts (opus model)
 - **integration-tester** - Execute E2E tests (haiku model for cost savings)
+- **skill-creator** - Detect and codify reusable patterns as new slash commands or agents
+
+---
+
+## Self-Improving Workflow: Skill Auto-Creation
+
+Any sub-agent can invoke `skill-creator` mid-task when it recognizes a multi-step pattern worth capturing — for example, a `python-developer` that has scaffolded the same Celery task structure three times, or a `rust-developer` that keeps repeating the same Axum handler boilerplate. `skill-creator` applies four gates (non-trivial, generalizable, not already covered, durable) before writing anything. Only patterns that pass all four result in a new file under `.claude/commands/` or `.claude/agents/`.
+
+After every `standard` or `full` workflow, **Step 14** runs `skill-creator` automatically in post-workflow mode: it reviews the git diff and task summary and self-determines whether a new skill is warranted. `hotfix`, `tests`, and `docs` variants skip Step 14 by design. The step is always non-blocking — a declined evaluation is not a failure. Skills created at runtime can be committed and pushed like any other project file.
+
+**Example skills that can emerge organically:**
+
+```
+# After implementing DB migrations repeatedly:
+→ skill-creator creates .claude/commands/generate-migration.md
+
+# After scaffolding JWT auth in two different projects:
+→ skill-creator creates .claude/commands/scaffold-jwt-auth.md
+
+# After a sub-agent repeatedly debugs Docker health-check failures:
+→ skill-creator creates .claude/agents/healthcheck-debugger.md
+```
 
 ---
 

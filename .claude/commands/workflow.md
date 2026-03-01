@@ -10,8 +10,8 @@ Inspect the task and pick the right variant. If the task starts with a variant k
 
 | Variant | When to use | Steps |
 |---------|-------------|-------|
-| **standard** | Regular features and enhancements (default) | 1→2→3→4→5→6→7→9→10→12→13 |
-| **full** | New services, major architecture changes | 0→1→2→3→4→5→6→7→8→9→10→11→12→13 |
+| **standard** | Regular features and enhancements (default) | 1→2→3→4→5→6→7→9→10→12→13→14 |
+| **full** | New services, major architecture changes | 0→1→2→3→4→5→6→7→8→9→10→11→12→13→14 |
 | **hotfix** | Production bugs, urgent fixes | 1→2→4→5→6→7→9→10→12→13 |
 | **tests** | Adding tests to existing code | 1→3→4→5→9→12→13 |
 | **docs** | Documentation-only changes | 1→2→9→12→13 |
@@ -111,6 +111,18 @@ Merge the feature branch to the base branch and push.
 ### Step 13 — Cleanup
 **Agent**: `worktree-manager`
 Remove the worktree and associated resources. If cleanup fails → invoke `docker-debugger` (Step 13b) for force cleanup.
+
+### Step 14 — Skill Discovery *(optional — standard and full variants only)*
+**Agent**: `skill-creator`
+
+After cleanup, invoke the `skill-creator` agent with:
+1. The original task description from `$ARGUMENTS`
+2. Output of `git log --oneline` for the merged feature branch
+3. A brief summary of non-obvious multi-step patterns that emerged during Steps 2–7
+
+The agent self-assesses against its four gates and either writes a new skill file to `.claude/commands/` or `.claude/agents/`, or declines with a written reason. **This step is non-blocking** — a declined evaluation is not a failure.
+
+**Skip this step if**: variant is `hotfix`, `tests`, or `docs`; or the workflow completed with unresolved failures.
 
 ---
 
