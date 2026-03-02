@@ -8,7 +8,7 @@
 
 ## Overview
 
-This guide covers the 13-step worktree-based workflow for **Angular frontend development**. This workflow integrates:
+This guide covers the 14-step worktree-based workflow for **Angular frontend development**. This workflow integrates:
 - **Worktree isolation** (each feature gets its own worktree, with an optional Docker environment for containerized projects)
 - **Architectural planning** (optional for complex features)
 - **Automated test writing** (mandatory with Jasmine/Karma)
@@ -56,7 +56,7 @@ Every Angular feature:
 
 ---
 
-## 13-Step Angular Frontend Workflow
+## 14-Step Angular Frontend Workflow
 
 ```
 Step 0:  [OPTIONAL] software-architect      → Design architecture
@@ -629,14 +629,30 @@ python scripts/worktree_cleanup.py feature-name
 
 ---
 
+### Step 14: Skill Discovery *(standard and full variants only)*
+
+**Agent**: skill-creator
+
+**Actions**:
+1. Review the original task description and `git log --oneline` for the merged branch
+2. Identify any multi-step patterns that emerged during Steps 2–7
+3. Apply four gates: non-trivial, generalizable, not already covered, durable
+4. Write a new skill to `.claude/commands/` or `.claude/agents/` if all gates pass, or decline with a written reason
+
+**This step is non-blocking** — a declined evaluation is not a failure.
+
+**Skip if**: variant is `hotfix`, `tests`, or `docs`; or the workflow completed with unresolved failures.
+
+---
+
 ## Workflow Variants
 
-### Standard Workflow (11 steps)
-**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
+### Standard Workflow (13 steps)
+**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13 → 14
 **Use For**: Regular features (80% of work)
 **Note**: Skips E2E tests (Step 8) — use when existing E2E coverage is sufficient
 
-### Full Workflow (13 steps)
+### Full Workflow (14 steps)
 **Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
 **Use For**: New components, services, routes, or complex features
 **Note**: Includes all quality gates including E2E

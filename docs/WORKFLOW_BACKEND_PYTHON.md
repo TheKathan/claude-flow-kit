@@ -8,7 +8,7 @@
 
 ## Overview
 
-This guide covers the 13-step worktree-based workflow for **Python/FastAPI backend development**. This workflow integrates:
+This guide covers the 14-step worktree-based workflow for **Python/FastAPI backend development**. This workflow integrates:
 - **Worktree isolation** (each feature gets its own worktree, with Docker environment for Docker projects)
 - **Architectural planning** (optional for complex features)
 - **Automated test writing** (mandatory with pytest)
@@ -56,7 +56,7 @@ Every backend feature:
 
 ---
 
-## 13-Step Python Backend Workflow
+## 14-Step Python Backend Workflow
 
 ```
 Step 0:  [OPTIONAL] software-architect      → Design architecture
@@ -539,20 +539,36 @@ python scripts/worktree_cleanup.py feature-name
 
 ---
 
+### Step 14: Skill Discovery *(standard and full variants only)*
+
+**Agent**: skill-creator
+
+**Actions**:
+1. Review the original task description and `git log --oneline` for the merged branch
+2. Identify any multi-step patterns that emerged during Steps 2–7
+3. Apply four gates: non-trivial, generalizable, not already covered, durable
+4. Write a new skill to `.claude/commands/` or `.claude/agents/` if all gates pass, or decline with a written reason
+
+**This step is non-blocking** — a declined evaluation is not a failure.
+
+**Skip if**: variant is `hotfix`, `tests`, or `docs`; or the workflow completed with unresolved failures.
+
+---
+
 ## Workflow Variants
 
-### Standard Workflow (11 steps) ⭐ Most Common
+### Standard Workflow (13 steps) ⭐ Most Common
 
-**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
+**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13 → 14
 
 **Use For**: Regular Python backend features, enhancements (80% of work)
 **Time**: 25-35 minutes
 **Cost**: Medium
 **Note**: Skips E2E tests (Step 8) and final integration test (Step 11)
 
-### Full Workflow (13 steps)
+### Full Workflow (14 steps)
 
-**Steps**: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
+**Steps**: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14
 
 **Use For**: New Python services, architectural changes, database schema changes
 **Time**: 35-50 minutes

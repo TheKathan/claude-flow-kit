@@ -8,7 +8,7 @@
 
 ## Overview
 
-This guide covers the 13-step worktree-based workflow for **Terraform infrastructure-as-code development**. This workflow integrates:
+This guide covers the 14-step worktree-based workflow for **Terraform infrastructure-as-code development**. This workflow integrates:
 - **Worktree isolation** (each infrastructure change gets its own worktree)
 - **Architectural planning** (optional for complex infrastructure)
 - **Automated validation and testing** (mandatory with terraform validate/plan/test)
@@ -58,7 +58,7 @@ Every infrastructure change:
 
 ---
 
-## 13-Step Terraform Infrastructure Workflow
+## 14-Step Terraform Infrastructure Workflow
 
 ```
 Step 0:  [OPTIONAL] software-architect      → Design infrastructure architecture
@@ -752,14 +752,30 @@ rm -f tfplan tfplan-final
 
 ---
 
+### Step 14: Skill Discovery *(standard and full variants only)*
+
+**Agent**: skill-creator
+
+**Actions**:
+1. Review the original task description and `git log --oneline` for the merged branch
+2. Identify any multi-step patterns that emerged during Steps 2–7
+3. Apply four gates: non-trivial, generalizable, not already covered, durable
+4. Write a new skill to `.claude/commands/` or `.claude/agents/` if all gates pass, or decline with a written reason
+
+**This step is non-blocking** — a declined evaluation is not a failure.
+
+**Skip if**: variant is `hotfix`, `tests`, or `docs`; or the workflow completed with unresolved failures.
+
+---
+
 ## Workflow Variants
 
-### Standard Workflow (11 steps)
-**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
+### Standard Workflow (13 steps)
+**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13 → 14
 **Use For**: Regular infrastructure changes (80% of work)
 **Note**: Skips Terratest (Step 8) — use when native `terraform test` coverage is sufficient
 
-### Full Workflow (13 steps)
+### Full Workflow (14 steps)
 **Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
 **Use For**: New modules, network changes, multi-region deployments, major refactors
 **Note**: Includes all quality gates including Terratest

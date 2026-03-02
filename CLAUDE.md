@@ -61,45 +61,45 @@ docker-compose ps
 
 #### Backend Workflow
 {{#if BACKEND_LANGUAGE includes "Python"}}
-- **[Python Workflow](docs/WORKFLOW_BACKEND_PYTHON.md)** - 13-step workflow for Python/FastAPI backend
+- **[Python Workflow](docs/WORKFLOW_BACKEND_PYTHON.md)** - 14-step workflow for Python/FastAPI backend
 - **[Python Guide](.claude/PYTHON_GUIDE.md)** - Python coding standards
 {{/if}}
 {{#if BACKEND_LANGUAGE includes "C#"}}
-- **[.NET Workflow](docs/WORKFLOW_BACKEND_DOTNET.md)** - 13-step workflow for .NET/ASP.NET Core backend
+- **[.NET Workflow](docs/WORKFLOW_BACKEND_DOTNET.md)** - 14-step workflow for .NET/ASP.NET Core backend
 - **[.NET Guide](.claude/DOTNET_GUIDE.md)** - C# coding standards
 {{/if}}
 {{#if BACKEND_LANGUAGE includes "Node"}}
-- **[Node.js Workflow](docs/WORKFLOW_BACKEND_NODEJS.md)** - 13-step workflow for Node.js/Express backend
+- **[Node.js Workflow](docs/WORKFLOW_BACKEND_NODEJS.md)** - 14-step workflow for Node.js/Express backend
 - **[Node.js Guide](.claude/NODEJS_GUIDE.md)** - Node.js coding standards
 {{/if}}
 {{#if BACKEND_LANGUAGE includes "Go"}}
-- **[Go Workflow](docs/WORKFLOW_BACKEND_GO.md)** - 13-step workflow for Go backend
+- **[Go Workflow](docs/WORKFLOW_BACKEND_GO.md)** - 14-step workflow for Go backend
 - **[Go Guide](.claude/GO_GUIDE.md)** - Go coding standards
 {{/if}}
 {{#if BACKEND_LANGUAGE includes "Ruby"}}
-- **[Ruby Workflow](docs/WORKFLOW_BACKEND_RUBY.md)** - 13-step workflow for Ruby/Rails backend
+- **[Ruby Workflow](docs/WORKFLOW_BACKEND_RUBY.md)** - 14-step workflow for Ruby/Rails backend
 - **[Ruby Guide](.claude/RUBY_GUIDE.md)** - Ruby coding standards
 {{/if}}
 {{#if BACKEND_LANGUAGE includes "Rust"}}
-- **[Rust Workflow](docs/WORKFLOW_BACKEND_RUST.md)** - 13-step workflow for Rust backend
+- **[Rust Workflow](docs/WORKFLOW_BACKEND_RUST.md)** - 14-step workflow for Rust backend
 - **[Rust Guide](.claude/RUST_GUIDE.md)** - Rust coding standards
 {{/if}}
 
 {{#if HAS_FRONTEND}}#### Frontend Workflow
 {{#if FRONTEND_FRAMEWORK includes "React" or FRONTEND_FRAMEWORK includes "Next"}}
-- **[React Workflow](docs/WORKFLOW_FRONTEND_REACT.md)** - 13-step workflow for React/Next.js frontend
+- **[React Workflow](docs/WORKFLOW_FRONTEND_REACT.md)** - 14-step workflow for React/Next.js frontend
 - **[React Guide](.claude/REACT_GUIDE.md)** - React coding standards
 {{/if}}
 {{#if FRONTEND_FRAMEWORK includes "Vue"}}
-- **[Vue Workflow](docs/WORKFLOW_FRONTEND_VUE.md)** - 13-step workflow for Vue.js/Nuxt frontend
+- **[Vue Workflow](docs/WORKFLOW_FRONTEND_VUE.md)** - 14-step workflow for Vue.js/Nuxt frontend
 - **[Vue Guide](.claude/VUE_GUIDE.md)** - Vue coding standards
 {{/if}}
 {{#if FRONTEND_FRAMEWORK includes "Angular"}}
-- **[Angular Workflow](docs/WORKFLOW_FRONTEND_ANGULAR.md)** - 13-step workflow for Angular frontend
+- **[Angular Workflow](docs/WORKFLOW_FRONTEND_ANGULAR.md)** - 14-step workflow for Angular frontend
 - **[Angular Guide](.claude/ANGULAR_GUIDE.md)** - Angular coding standards
 {{/if}}
 {{#if FRONTEND_FRAMEWORK includes "Tauri"}}
-- **[Tauri Workflow](docs/WORKFLOW_FRONTEND_TAURI.md)** - 13-step workflow for Tauri desktop apps
+- **[Tauri Workflow](docs/WORKFLOW_FRONTEND_TAURI.md)** - 14-step workflow for Tauri desktop apps
 - **[Tauri Guide](.claude/TAURI_GUIDE.md)** - Tauri development standards
 - **[Rust Guide](.claude/RUST_GUIDE.md)** - Rust coding standards (Tauri backend)
 {{/if}}
@@ -127,7 +127,7 @@ docker-compose ps
 
 ## 🤖 Development Workflow Overview
 
-This project uses specialized AI agents following a **13-step worktree-based workflow** with quality gates.
+This project uses specialized AI agents following a **14-step worktree-based workflow** with quality gates.
 
 ### Workflow Principles
 
@@ -136,7 +136,7 @@ This project uses specialized AI agents following a **13-step worktree-based wor
 - **Automated conflict resolution** before merge
 - **Automated cleanup** after merge
 
-### 13-Step Workflow
+### 14-Step Workflow
 
 All workflows follow the same structure:
 
@@ -155,6 +155,7 @@ Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final integration test [GATE]
 Step 12: worktree-manager                   → Merge to {{MAIN_BRANCH}}, push
 Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKER}} + Docker{{/if}}
+Step 14: skill-creator                      → Discover reusable patterns [standard/full only]
 ```
 
 **Quality Gates** (⚠️ Blocking):
@@ -170,8 +171,8 @@ Step 13: worktree-manager                   → Cleanup worktree{{#if USES_DOCKE
 
 ## Workflow Variants
 
-- **Standard Workflow (11 steps)** - Regular features (80% of work) - 25-35 min
-- **Full Workflow (13 steps)** - New services, architectural changes - 35-50 min
+- **Standard Workflow (13 steps)** - Regular features (80% of work) - 25-35 min
+- **Full Workflow (14 steps)** - New services, architectural changes - 35-50 min
 - **Hotfix Workflow (9 steps)** - Production bugs, urgent fixes - 15-20 min
 
 **Details** → See your workflow guide

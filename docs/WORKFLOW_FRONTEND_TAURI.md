@@ -8,7 +8,7 @@
 
 ## Overview
 
-This guide covers the 13-step worktree-based workflow for **Tauri desktop application development**. Tauri apps have two layers that must both be maintained:
+This guide covers the 14-step worktree-based workflow for **Tauri desktop application development**. Tauri apps have two layers that must both be maintained:
 
 - **Rust backend** (`src-tauri/`) — Tauri commands, app state, native OS integration
 - **Web frontend** (`src/`) — React, Vue, or Angular UI communicating via Tauri's IPC
@@ -63,7 +63,7 @@ Every Tauri feature:
 
 ---
 
-## 13-Step Tauri Workflow
+## 14-Step Tauri Workflow
 
 ```
 Step 0:  [OPTIONAL] software-architect      → Design architecture
@@ -82,6 +82,7 @@ Step 10: merge-conflict-resolver            → Resolve conflicts [GATE]
 Step 11: integration-tester                 → Final build test [GATE]
 Step 12: worktree-manager                   → Merge to base branch, push
 Step 13: worktree-manager                   → Cleanup worktree
+Step 14: skill-creator                      → Discover reusable patterns [standard/full only]
 ```
 
 ---
@@ -432,16 +433,32 @@ python scripts/worktree_cleanup.py feature-name
 
 ---
 
+### Step 14: Skill Discovery *(standard and full variants only)*
+
+**Agent**: skill-creator
+
+**Actions**:
+1. Review the original task description and `git log --oneline` for the merged branch
+2. Identify any multi-step patterns that emerged during Steps 2–7
+3. Apply four gates: non-trivial, generalizable, not already covered, durable
+4. Write a new skill to `.claude/commands/` or `.claude/agents/` if all gates pass, or decline with a written reason
+
+**This step is non-blocking** — a declined evaluation is not a failure.
+
+**Skip if**: variant is `hotfix`, `tests`, or `docs`; or the workflow completed with unresolved failures.
+
+---
+
 ## Workflow Variants
 
-### Standard Workflow (11 steps) ⭐ Most Common
+### Standard Workflow (13 steps) ⭐ Most Common
 
 **Steps**: 1 → 2a/2b → 3a/3b → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
 
 **Use For**: Regular Tauri features (80% of work)
 **Time**: 25-35 minutes
 
-### Full Workflow (13 steps)
+### Full Workflow (14 steps)
 
 **Steps**: 0 → 1 → 2a/2b → 3a/3b → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
 

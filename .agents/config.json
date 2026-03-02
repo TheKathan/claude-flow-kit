@@ -598,8 +598,8 @@
   },
   "workflow_variants": {
     "full": {
-      "name": "Full Worktree Workflow (13 steps)",
-      "description": "Complete workflow with worktree isolation, architecture review, testing, conflict resolution, and automated merge/cleanup",
+      "name": "Full Worktree Workflow (14 steps)",
+      "description": "Complete workflow with worktree isolation, architecture review, testing, conflict resolution, automated merge/cleanup, and skill discovery",
       "use_for": [
         "new_feature",
         "major_change",
@@ -620,15 +620,16 @@
         10,
         11,
         12,
-        13
+        13,
+        14
       ],
       "estimated_time": "35-50 minutes",
       "cost_estimate": "high",
       "when_to_use": "New features, architectural changes, major refactoring"
     },
     "standard": {
-      "name": "Standard Worktree Workflow (11 steps)",
-      "description": "Most common workflow - skips architecture review",
+      "name": "Standard Worktree Workflow (13 steps)",
+      "description": "Most common workflow - skips architecture review and E2E integration tests",
       "use_for": [
         "feature",
         "enhancement",
@@ -642,12 +643,11 @@
         5,
         6,
         7,
-        8,
         9,
         10,
-        11,
         12,
-        13
+        13,
+        14
       ],
       "estimated_time": "25-35 minutes",
       "cost_estimate": "medium",
@@ -825,15 +825,6 @@
       ],
       "severity_threshold": "medium"
     }
-  },
-  "pr_settings": {
-    "auto_create": true,
-    "branch_prefix": {
-      "backend": "backend/",
-      "frontend": "frontend/"
-    },
-    "default_base": "main",
-    "squash_merge": true
   },
   "paths": {
     "backend": [

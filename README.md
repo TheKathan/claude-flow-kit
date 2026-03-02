@@ -35,7 +35,6 @@ A modular, language-specific template for setting up Claude Code AI agents, work
 - **14-step worktree workflow** — Every feature runs in an isolated git worktree with five blocking quality gates: unit tests, code review, integration tests, conflict resolution, and a final integration check before merge.
 - **Self-improving via skill auto-creation** — The `skill-creator` agent runs after each workflow and evaluates whether any multi-step pattern is worth saving as a reusable slash command or sub-agent. The more you use the template, the more specialized it becomes for your stack.
 - **Downloadable one-file installer** — A single `install.py` bootstraps everything from scratch. No repo cloning, no manual file copying.
-- **PR-to-main support** — Optionally route merges through a pull request with human approval instead of merging directly.
 - **Fully optional components** — Backend-only, frontend-only, full-stack, or infra-only — any combination works.
 
 ---
@@ -353,20 +352,12 @@ Step 13: worktree-manager                   → Cleanup worktree (+ Docker)
 Step 14: skill-creator                      → Discover reusable patterns [standard/full only]
 ```
 
-### Merge Strategies
+### Merge Strategy
 
-**Direct Merge to Current Branch (Default)**:
+Worktrees merge back to the branch they were created from — supporting nested feature development:
 
-- Worktrees merge back to the branch they were created from
-- Supports nested feature development
-- Example: On `feature/parent` → create `feature/child` → merges to `feature/parent`
-
-**PR to Main (Optional)**:
-
-- Create Pull Request to main (always main, regardless of current branch)
-- Requires human approval before merge
-- Auto-cleanup after PR is merged
-- Configure with `merge_strategy: "pr-to-main"` in `.agents/config.json`
+- On `main` → creates `feature/foo` → merges back to `main`
+- On `feature/parent` → creates `feature/child` → merges back to `feature/parent`
 
 ---
 

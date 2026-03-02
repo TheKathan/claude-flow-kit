@@ -8,7 +8,7 @@
 
 ## Overview
 
-{{PROJECT_NAME}} uses an enhanced 13-step worktree-based workflow that integrates:
+{{PROJECT_NAME}} uses an enhanced 14-step worktree-based workflow that integrates:
 - **Worktree isolation** (each feature gets its own worktree, with Docker environment for Docker projects)
 - **Architectural planning** (optional for complex features)
 - **Automated test writing** (mandatory)
@@ -61,7 +61,7 @@ Every feature:
 
 ---
 
-## 13-Step Workflow
+## 14-Step Workflow
 
 ### Backend Workflow
 
@@ -85,6 +85,7 @@ Step 11b: [DOCKER/ON-FAILURE] docker-debugger → Debug integration issues
 Step 12: worktree-manager                   → Merge to base branch, push
 Step 13: worktree-manager                   → Cleanup worktree
 Step 13b: [DOCKER/ON-FAILURE] docker-debugger → Force cleanup
+Step 14: skill-creator                      → Discover reusable patterns [standard/full only]
 ```
 
 > `b` steps only activate for Docker projects when container failures occur.
@@ -413,22 +414,36 @@ python scripts/worktree_cleanup.py feature-name
 - Removes containers, images, volumes
 - Ensures clean state
 
+### Step 14: Skill Discovery *(standard and full variants only)*
+
+**Agent**: skill-creator
+
+**Actions**:
+1. Review the original task description and `git log --oneline` for the merged branch
+2. Identify any multi-step patterns that emerged during Steps 2–7
+3. Apply four gates: non-trivial, generalizable, not already covered, durable
+4. Write a new skill to `.claude/commands/` or `.claude/agents/` if all gates pass, or decline with a written reason
+
+**This step is non-blocking** — a declined evaluation is not a failure.
+
+**Skip if**: variant is `hotfix`, `tests`, or `docs`; or the workflow completed with unresolved failures.
+
 ---
 
 ## Workflow Variants
 
-### Standard Workflow (11 steps) ⭐ Most Common
+### Standard Workflow (13 steps) ⭐ Most Common
 
-**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13
+**Steps**: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 9 → 10 → 12 → 13 → 14
 
 **Use For**: Regular features, enhancements (80% of work)
 **Time**: 25-35 minutes
 **Cost**: Medium
 **Note**: Skips E2E tests (Step 8) and final integration test (Step 11)
 
-### Full Workflow (13 steps)
+### Full Workflow (14 steps)
 
-**Steps**: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13
+**Steps**: 0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14
 
 **Use For**: New services, architectural changes
 **Time**: 35-50 minutes

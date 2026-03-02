@@ -183,11 +183,43 @@ def _process_template(file_path: Path, replacements: Dict[str, str]):
         print(f"  ⚠️  Could not process template {file_path.name}: {e}")
 
 
+def preflight_checks():
+    """Verify the environment is ready before prompting the user."""
+    errors = []
+
+    # Python version
+    if sys.version_info < (3, 7):
+        errors.append(f"Python 3.7+ required (you have {sys.version.split()[0]})")
+
+    # git installed
+    import subprocess
+    try:
+        subprocess.run(["git", "--version"], capture_output=True, check=True)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        errors.append("git not found — install from https://git-scm.com/")
+
+    # Write permissions in current directory
+    try:
+        test_file = Path("._install_check_tmp")
+        test_file.write_text("x")
+        test_file.unlink()
+    except OSError:
+        errors.append(f"No write permission in {Path.cwd()}")
+
+    if errors:
+        print("❌ Pre-flight checks failed:")
+        for err in errors:
+            print(f"   • {err}")
+        sys.exit(1)
+
+
 def main():
     print("=" * 70)
     print("Claude Code Template Installer")
     print("=" * 70)
     print("\nThis installer will download and set up the Claude Code template.\n")
+
+    preflight_checks()
 
     # Get project information
     print("📋 Project Information")
@@ -294,12 +326,12 @@ def main():
             print("  Manual infrastructure setup selected - no infrastructure workflow will be downloaded")
             has_infrastructure = False
 
-    # Validate at least one component selected
-    if not has_backend and not has_frontend and not has_infrastructure:
-        print("\n⚠️  Warning: No components selected!")
-        print("You must select at least one component (backend, frontend, or infrastructure).")
-        print("Exiting installer.")
-        return
+    # Validate at least one component selected — re-prompt rather than exit
+    while not has_backend and not has_frontend and not has_infrastructure:
+        print("\n⚠️  No components selected. You must choose at least one to continue.")
+        has_backend = yes_no("Does your project have a backend?", True)
+        has_frontend = yes_no("Does your project have a frontend?", False)
+        has_infrastructure = yes_no("Does your project use Infrastructure-as-Code?", False)
 
     # Docker configuration
     print("\n🐳 Docker Configuration")

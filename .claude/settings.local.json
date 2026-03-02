@@ -24,7 +24,14 @@
       "Bash(git rm:*)",
       "Bash(git merge:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(python3:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(python:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run:*)",
+      "Bash(find .claude:*)"
     ]
   }
 }
