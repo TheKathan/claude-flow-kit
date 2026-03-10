@@ -34,7 +34,7 @@ A modular, language-specific template for setting up Claude Code AI agents, work
 - **Language-specific agents and workflows** — Dedicated developer, test, and reviewer agents for Python, .NET, Node.js, Go, Rust, Ruby, React, Vue, Angular, Tauri, and Terraform — each pre-configured with idiomatic conventions for that stack.
 - **14-step worktree workflow** — Every feature runs in an isolated git worktree with five blocking quality gates: unit tests, code review, integration tests, conflict resolution, and a final integration check before merge.
 - **Self-improving via skill auto-creation** — The `skill-creator` agent runs after each workflow and evaluates whether any multi-step pattern is worth saving as a reusable slash command or sub-agent. The more you use the template, the more specialized it becomes for your stack.
-- **Downloadable one-file installer** — A single `install.py` bootstraps everything from scratch. No repo cloning, no manual file copying.
+- **Downloadable one-file installer** — A single `install.py` bootstraps a new project from scratch or safely updates an existing one. No repo cloning, no manual file copying.
 - **Fully optional components** — Backend-only, frontend-only, full-stack, or infra-only — any combination works.
 
 ---
@@ -76,6 +76,25 @@ The installer will prompt you for:
 - **Git configuration** (main branch name)
 
 The installer downloads **only** the components you select to your current directory.
+
+---
+
+### Updating an Existing Installation
+
+Run the installer again in any directory that already has a Claude setup — it auto-detects existing files and switches to **update mode**:
+
+```bash
+python3 install.py            # auto-detects; prompts for fresh or update
+python install.py --mode update          # force update mode
+python install.py --mode update --yes    # non-interactive (skip all customized files)
+python install.py --mode update --no-backup  # skip backup creation
+```
+
+In update mode:
+- **Agent `.md` files and scripts** — always refreshed silently (you never edit these)
+- **`CLAUDE.md`, guides, workflow docs** — prompts `[O]verwrite / [S]kip` for each existing file
+- **`.agents/config.json`** — intelligently merged: your custom agents are preserved, template agents are updated
+- **Backups** — a timestamped copy of every overwritten file is saved under `.claude/backup/` before anything is touched
 
 ---
 
@@ -433,7 +452,7 @@ You must select at least one component (backend, frontend, or infrastructure). R
 
 **Merged config missing agents:**
 
-The installer only includes agents for selected components. Re-run if you need to add more.
+The installer only includes agents for selected components. Re-run with `--mode update` to safely add more — your custom agents and edits will be preserved.
 
 ---
 
@@ -485,6 +504,6 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ---
 
-**Version**: 2.1.0
-**Last Updated**: 2026-03-01
+**Version**: 2.2.0
+**Last Updated**: 2026-03-10
 **Status**: Production Ready
