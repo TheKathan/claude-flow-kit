@@ -112,17 +112,23 @@ Merge the feature branch to the base branch and push.
 **Agent**: `worktree-manager`
 Remove the worktree and associated resources. If cleanup fails → invoke `docker-debugger` (Step 13b) for force cleanup.
 
-### Step 14 — Skill Discovery *(optional — standard and full variants only)*
+### Step 14 — Skill Discovery *(opt-in — only when a reusable pattern was identified)*
 **Agent**: `skill-creator`
 
-After cleanup, invoke the `skill-creator` agent with:
-1. The original task description from `$ARGUMENTS`
-2. Output of `git log --oneline` for the merged feature branch
-3. A brief summary of non-obvious multi-step patterns that emerged during Steps 2–7
+**Only invoke this step if** during Steps 2–7 you identified a specific, concrete multi-step pattern that:
+- You performed at least twice, OR
+- Took 10+ minutes and would clearly recur in future workflows
 
-The agent self-assesses against its four gates and either writes a new skill file to `.claude/commands/` or `.claude/agents/`, or declines with a written reason. **This step is non-blocking** — a declined evaluation is not a failure.
+If no such pattern was identified, **skip this step entirely** — do not invoke skill-creator speculatively.
 
-**Skip this step if**: variant is `hotfix`, `tests`, or `docs`; or the workflow completed with unresolved failures.
+When invoking, provide:
+1. The specific pattern you identified (not just the task description)
+2. Why you believe it's reusable (concrete examples of when it would recur)
+3. Output of `git log --oneline` for the merged feature branch
+
+The agent self-assesses against its five gates and either writes a new skill file or declines with a written reason. **This step is non-blocking** — a declined evaluation is the expected outcome most of the time.
+
+**Skip this step if**: variant is `hotfix`, `tests`, or `docs`; the workflow completed with unresolved failures; or no reusable pattern was explicitly identified during implementation.
 
 ---
 
