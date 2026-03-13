@@ -2,9 +2,13 @@
 """
 Claude Code Template Installer
 
-Linux / macOS:
+Fresh install:
   curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py -o install.py
   python3 install.py
+
+Update to latest (no prompts — reads saved config):
+  curl -sSL https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py -o install.py
+  python3 install.py --update --yes
 
 Windows (PowerShell):
   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main/install.py" -OutFile "install.py"
@@ -32,7 +36,9 @@ if sys.platform == "win32":
     except AttributeError:
         pass  # Python < 3.7 — best-effort
 
+INSTALLER_VERSION = "2.3.0"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main"
+MANIFEST_PATH = ".claude/install-manifest.json"
 
 CATEGORY_A_ALWAYS_UPDATE = "always_update"   # template files, users never edit
 CATEGORY_B_ASK_USER      = "ask_user"        # users may have customized
@@ -73,6 +79,34 @@ KNOWN_TEMPLATE_AGENT_KEYS: frozenset = frozenset({
     "frontend-code-reviewer",
     "terraform-developer", "terraform-test-specialist", "infrastructure-code-reviewer",
 })
+
+
+def save_manifest(cwd: Path, config: dict):
+    """Save installation config to manifest for future updates."""
+    path = cwd / MANIFEST_PATH
+    now = datetime.datetime.now().isoformat()
+    # Preserve original install timestamp on updates
+    existing = load_manifest(cwd)
+    installed_at = existing.get("installed_at", now) if existing else now
+    manifest = {
+        "installer_version": INSTALLER_VERSION,
+        "installed_at": installed_at,
+        "updated_at": now,
+        **config,
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+
+def load_manifest(cwd: Path) -> Optional[dict]:
+    """Load installation manifest. Returns None if not found or invalid."""
+    path = cwd / MANIFEST_PATH
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
 
 
 def _rel_str(path: Path, cwd: Path) -> str:
@@ -263,8 +297,8 @@ except AttributeError:
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Claude Code Template Installer")
-    p.add_argument("--mode", choices=["fresh", "update"], default=None,
-        help="fresh=overwrite all (default for new projects), update=safe update")
+    p.add_argument("--update", action="store_true", default=False,
+        help="Update existing installation using saved config (skips prompts if manifest exists)")
     p.add_argument("--backup", default=True, action=argparse.BooleanOptionalAction,
         help="Create timestamped backup before overwriting (default: on)")
     p.add_argument("--yes", action="store_true", default=False,
@@ -408,8 +442,8 @@ def main():
     current_dir = Path.cwd()
     existing = detect_existing_installation(current_dir)
 
-    if args.mode is not None:
-        install_mode = args.mode
+    if args.update:
+        install_mode = "update"
     elif not existing:
         install_mode = "fresh"
     else:
@@ -430,127 +464,163 @@ def main():
         return download_file_with_policy(
             url, dest, current_dir, install_mode, backup_mgr, args.yes, user_choices)
 
-    # Get project information
-    print("📋 Project Information")
-    print("-" * 70)
-    project_name = prompt("Project name", "MyProject")
-    project_description = prompt("Project description", "A great project")
-    repo_url = prompt("Repository URL (optional)", "https://github.com/user/repo")
+    # --- Load manifest for update mode ---
+    manifest = load_manifest(current_dir) if install_mode == "update" else None
 
-    # Component selection - ALL OPTIONAL
-    print("\n🎯 Component Selection (ALL OPTIONAL)")
-    print("-" * 70)
-    print("You can choose backend, frontend, infrastructure, or any combination.")
-    print("All components are optional - select only what you need.\n")
+    if manifest and install_mode == "update":
+        # Fast-path: reuse saved config, skip all prompts
+        prev_version = manifest.get("installer_version", "unknown")
+        print(f"\n📦 Manifest found (installed v{prev_version}, updating to v{INSTALLER_VERSION})")
+        project_name = manifest["project_name"]
+        project_description = manifest["project_description"]
+        repo_url = manifest["repo_url"]
+        backend_language = manifest.get("backend_language")
+        backend_framework = manifest.get("backend_framework")
+        backend_folder = manifest.get("backend_folder")
+        frontend_framework = manifest.get("frontend_framework")
+        frontend_language = manifest.get("frontend_language")
+        frontend_folder = manifest.get("frontend_folder")
+        infrastructure_tool = manifest.get("infrastructure_tool")
+        uses_docker = manifest.get("uses_docker", False)
+        main_branch = manifest.get("main_branch", "main")
+        has_backend = backend_language is not None
+        has_frontend = frontend_framework is not None
+        has_infrastructure = infrastructure_tool is not None
 
-    # Backend selection (OPTIONAL)
-    has_backend = yes_no("Does your project have a backend?", True)
+        print(f"  Project: {project_name}")
+        if has_backend:
+            print(f"  Backend: {backend_framework} ({backend_language})")
+        if has_frontend:
+            print(f"  Frontend: {frontend_framework} ({frontend_language})")
+        if has_infrastructure:
+            print(f"  Infrastructure: {infrastructure_tool}")
+        if not args.yes:
+            if not yes_no("\n  Proceed with these settings?", True):
+                print("  Re-running with fresh prompts...\n")
+                manifest = None  # fall through to interactive prompts
 
-    backend_language, backend_framework, backend_folder = None, None, None
-    if has_backend:
-        print("\nChoose backend type:")
-        print("1. Python (FastAPI, Django, Flask)")
-        print("2. Node.js (Express, NestJS, Fastify)")
-        print("3. .NET (ASP.NET Core)")
-        print("4. Go (Gin, Echo, Fiber)")
-        print("5. Rust (Axum, Actix-web)")
-        print("6. Ruby (Rails, Sinatra, Hanami)")
-        print("7. Other (manual setup)")
-        backend_choice = prompt("Backend choice", "1")
+    if manifest is None or install_mode == "fresh":
+        # Interactive prompts (fresh install or user opted out of manifest)
+        print("📋 Project Information")
+        print("-" * 70)
+        project_name = prompt("Project name", "MyProject")
+        project_description = prompt("Project description", "A great project")
+        repo_url = prompt("Repository URL (optional)", "https://github.com/user/repo")
 
-        if backend_choice == "1":
-            backend_framework = prompt("Backend framework", "FastAPI")
-            backend_language = prompt("Backend language", "Python 3.11")
-            backend_folder = prompt("Backend code folder", "app")
-        elif backend_choice == "2":
-            backend_framework = prompt("Backend framework", "Express.js")
-            backend_language = prompt("Backend language", "Node.js 20")
-            backend_folder = prompt("Backend code folder", "src")
-        elif backend_choice == "3":
-            backend_framework = prompt("Backend framework", "ASP.NET Core 8")
-            backend_language = prompt("Backend language", "C# 12")
-            backend_folder = prompt("Backend code folder", "src")
-        elif backend_choice == "4":
-            backend_framework = prompt("Backend framework", "Gin")
-            backend_language = prompt("Backend language", "Go 1.21")
-            backend_folder = prompt("Backend code folder", "cmd/api")
-        elif backend_choice == "5":
-            backend_framework = prompt("Backend framework", "Axum")
-            backend_language = prompt("Backend language", "Rust")
-            backend_folder = prompt("Backend code folder", "src")
-        elif backend_choice == "6":
-            backend_framework = prompt("Backend framework", "Rails 7")
-            backend_language = prompt("Backend language", "Ruby 3.3")
-            backend_folder = prompt("Backend code folder", "app")
-        else:
-            print("  Manual backend setup selected - no backend workflow will be downloaded")
-            has_backend = False
+        # Component selection - ALL OPTIONAL
+        print("\n🎯 Component Selection (ALL OPTIONAL)")
+        print("-" * 70)
+        print("You can choose backend, frontend, infrastructure, or any combination.")
+        print("All components are optional - select only what you need.\n")
 
-    # Frontend selection (OPTIONAL)
-    has_frontend = yes_no("\nDoes your project have a frontend?", False)
-
-    frontend_framework, frontend_language, frontend_folder = None, None, None
-    if has_frontend:
-        print("\nChoose frontend framework:")
-        print("1. React / Next.js")
-        print("2. Vue / Nuxt")
-        print("3. Angular")
-        print("4. Tauri (desktop app — Rust backend + web frontend)")
-        print("5. Other (manual setup)")
-        frontend_choice = prompt("Frontend choice", "1")
-
-        if frontend_choice == "1":
-            frontend_framework = prompt("Frontend framework", "Next.js 14")
-            frontend_language = prompt("Frontend language", "TypeScript")
-            frontend_folder = prompt("Frontend code folder", "src")
-        elif frontend_choice == "2":
-            frontend_framework = prompt("Frontend framework", "Vue 3")
-            frontend_language = prompt("Frontend language", "TypeScript")
-            frontend_folder = prompt("Frontend code folder", "src")
-        elif frontend_choice == "3":
-            frontend_framework = prompt("Frontend framework", "Angular 17")
-            frontend_language = prompt("Frontend language", "TypeScript")
-            frontend_folder = prompt("Frontend code folder", "src")
-        elif frontend_choice == "4":
-            frontend_framework = prompt("Frontend framework", "Tauri")
-            frontend_language = prompt("Frontend language", "TypeScript + Rust")
-            frontend_folder = prompt("Frontend code folder", "src")
-        else:
-            print("  Manual frontend setup selected - no frontend workflow will be downloaded")
-            has_frontend = False
-
-    # Infrastructure selection (OPTIONAL)
-    has_infrastructure = yes_no("\nDoes your project use Infrastructure-as-Code?", False)
-
-    infrastructure_tool = None
-    if has_infrastructure:
-        print("\nChoose infrastructure tool:")
-        print("1. Terraform")
-        print("2. Other (manual setup)")
-        infra_choice = prompt("Choice", "1")
-
-        if infra_choice == "1":
-            infrastructure_tool = "Terraform"
-        else:
-            print("  Manual infrastructure setup selected - no infrastructure workflow will be downloaded")
-            has_infrastructure = False
-
-    # Validate at least one component selected — re-prompt rather than exit
-    while not has_backend and not has_frontend and not has_infrastructure:
-        print("\n⚠️  No components selected. You must choose at least one to continue.")
+        # Backend selection (OPTIONAL)
         has_backend = yes_no("Does your project have a backend?", True)
-        has_frontend = yes_no("Does your project have a frontend?", False)
-        has_infrastructure = yes_no("Does your project use Infrastructure-as-Code?", False)
 
-    # Docker configuration
-    print("\n🐳 Docker Configuration")
-    print("-" * 70)
-    uses_docker = yes_no("Does your project use Docker?", True)
+        backend_language, backend_framework, backend_folder = None, None, None
+        if has_backend:
+            print("\nChoose backend type:")
+            print("1. Python (FastAPI, Django, Flask)")
+            print("2. Node.js (Express, NestJS, Fastify)")
+            print("3. .NET (ASP.NET Core)")
+            print("4. Go (Gin, Echo, Fiber)")
+            print("5. Rust (Axum, Actix-web)")
+            print("6. Ruby (Rails, Sinatra, Hanami)")
+            print("7. Other (manual setup)")
+            backend_choice = prompt("Backend choice", "1")
 
-    # Git configuration
-    print("\n🌿 Git Configuration")
-    print("-" * 70)
-    main_branch = prompt("Main branch name", "main")
+            if backend_choice == "1":
+                backend_framework = prompt("Backend framework", "FastAPI")
+                backend_language = prompt("Backend language", "Python 3.11")
+                backend_folder = prompt("Backend code folder", "app")
+            elif backend_choice == "2":
+                backend_framework = prompt("Backend framework", "Express.js")
+                backend_language = prompt("Backend language", "Node.js 20")
+                backend_folder = prompt("Backend code folder", "src")
+            elif backend_choice == "3":
+                backend_framework = prompt("Backend framework", "ASP.NET Core 8")
+                backend_language = prompt("Backend language", "C# 12")
+                backend_folder = prompt("Backend code folder", "src")
+            elif backend_choice == "4":
+                backend_framework = prompt("Backend framework", "Gin")
+                backend_language = prompt("Backend language", "Go 1.21")
+                backend_folder = prompt("Backend code folder", "cmd/api")
+            elif backend_choice == "5":
+                backend_framework = prompt("Backend framework", "Axum")
+                backend_language = prompt("Backend language", "Rust")
+                backend_folder = prompt("Backend code folder", "src")
+            elif backend_choice == "6":
+                backend_framework = prompt("Backend framework", "Rails 7")
+                backend_language = prompt("Backend language", "Ruby 3.3")
+                backend_folder = prompt("Backend code folder", "app")
+            else:
+                print("  Manual backend setup selected - no backend workflow will be downloaded")
+                has_backend = False
+
+        # Frontend selection (OPTIONAL)
+        has_frontend = yes_no("\nDoes your project have a frontend?", False)
+
+        frontend_framework, frontend_language, frontend_folder = None, None, None
+        if has_frontend:
+            print("\nChoose frontend framework:")
+            print("1. React / Next.js")
+            print("2. Vue / Nuxt")
+            print("3. Angular")
+            print("4. Tauri (desktop app — Rust backend + web frontend)")
+            print("5. Other (manual setup)")
+            frontend_choice = prompt("Frontend choice", "1")
+
+            if frontend_choice == "1":
+                frontend_framework = prompt("Frontend framework", "Next.js 14")
+                frontend_language = prompt("Frontend language", "TypeScript")
+                frontend_folder = prompt("Frontend code folder", "src")
+            elif frontend_choice == "2":
+                frontend_framework = prompt("Frontend framework", "Vue 3")
+                frontend_language = prompt("Frontend language", "TypeScript")
+                frontend_folder = prompt("Frontend code folder", "src")
+            elif frontend_choice == "3":
+                frontend_framework = prompt("Frontend framework", "Angular 17")
+                frontend_language = prompt("Frontend language", "TypeScript")
+                frontend_folder = prompt("Frontend code folder", "src")
+            elif frontend_choice == "4":
+                frontend_framework = prompt("Frontend framework", "Tauri")
+                frontend_language = prompt("Frontend language", "TypeScript + Rust")
+                frontend_folder = prompt("Frontend code folder", "src")
+            else:
+                print("  Manual frontend setup selected - no frontend workflow will be downloaded")
+                has_frontend = False
+
+        # Infrastructure selection (OPTIONAL)
+        has_infrastructure = yes_no("\nDoes your project use Infrastructure-as-Code?", False)
+
+        infrastructure_tool = None
+        if has_infrastructure:
+            print("\nChoose infrastructure tool:")
+            print("1. Terraform")
+            print("2. Other (manual setup)")
+            infra_choice = prompt("Choice", "1")
+
+            if infra_choice == "1":
+                infrastructure_tool = "Terraform"
+            else:
+                print("  Manual infrastructure setup selected - no infrastructure workflow will be downloaded")
+                has_infrastructure = False
+
+        # Validate at least one component selected — re-prompt rather than exit
+        while not has_backend and not has_frontend and not has_infrastructure:
+            print("\n⚠️  No components selected. You must choose at least one to continue.")
+            has_backend = yes_no("Does your project have a backend?", True)
+            has_frontend = yes_no("Does your project have a frontend?", False)
+            has_infrastructure = yes_no("Does your project use Infrastructure-as-Code?", False)
+
+        # Docker configuration
+        print("\n🐳 Docker Configuration")
+        print("-" * 70)
+        uses_docker = yes_no("Does your project use Docker?", True)
+
+        # Git configuration
+        print("\n🌿 Git Configuration")
+        print("-" * 70)
+        main_branch = prompt("Main branch name", "main")
 
     # Detect selected components
     backend_lang = detect_language(backend_language) if has_backend else None
@@ -828,6 +898,22 @@ def main():
             print(f"  Backups: {backup_mgr._root.relative_to(current_dir)}")
         print("  Tip: add '.claude/backup/' to .gitignore")
 
+    # Save manifest for future updates
+    save_manifest(current_dir, {
+        "project_name": project_name,
+        "project_description": project_description,
+        "repo_url": repo_url,
+        "backend_language": backend_language,
+        "backend_framework": backend_framework,
+        "backend_folder": backend_folder,
+        "frontend_framework": frontend_framework,
+        "frontend_language": frontend_language,
+        "frontend_folder": frontend_folder,
+        "infrastructure_tool": infrastructure_tool,
+        "uses_docker": uses_docker,
+        "main_branch": main_branch,
+    })
+
     print("\n" + "=" * 70)
     print("✅ Installation Complete!")
     print("=" * 70)
@@ -864,8 +950,10 @@ def main():
     print("4. Add your project-specific content")
     print("5. Commit: git add CLAUDE.md .claude/ .agents/ docs/ scripts/")
     print("6. Start using Claude Code with your configured agents!")
-    print("\n💡 Slash command installed: type /workflow <task> to start the 13-step workflow")
+    print("\n💡 Slash command installed: type /workflow <task> to start the 14-step workflow")
     print("   Example: /workflow implement user authentication with JWT")
+    print(f"\n🔄 To update later, re-download install.py and run:")
+    print(f"   python install.py --update --yes")
     print()
 
 if __name__ == "__main__":
