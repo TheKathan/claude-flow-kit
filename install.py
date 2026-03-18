@@ -366,12 +366,17 @@ def download_file_with_policy(
 
     if rel in user_choices:
         choice = user_choices[rel]
+    elif user_choices.get("_overwrite_all"):
+        choice = "o"
     else:
         print(f"\n  Exists: {rel}")
-        print("  [O]verwrite (loses your edits)  [S]kip (keep yours) — default: Skip")
+        print("  [O]verwrite  [S]kip  [A]ll (overwrite all remaining) — default: Skip")
         choice = ""
-        while choice not in ("o", "s"):
-            choice = input("  [S/o]: ").strip().lower() or "s"
+        while choice not in ("o", "s", "a"):
+            choice = input("  [S/o/a]: ").strip().lower() or "s"
+        if choice == "a":
+            user_choices["_overwrite_all"] = True
+            choice = "o"
         user_choices[rel] = choice
 
     if choice == "s":
