@@ -487,7 +487,9 @@ gh auth login
 
 ## 🤝 Contributing
 
-Contributions are welcome! To add new languages or frameworks:
+Contributions are welcome! Please read our **[Contributing Guide](CONTRIBUTING.md)** for details on the process.
+
+To add a new language or framework:
 
 1. Fork the repository
 2. Add workflow file (`docs/WORKFLOW_{TYPE}_{LANG}.md`)
@@ -495,6 +497,10 @@ Contributions are welcome! To add new languages or frameworks:
 4. Add agent config (`.agents/config_{type}_{lang}.json`)
 5. Update installer with detection logic
 6. Submit pull request
+
+Please note that this project follows a **[Code of Conduct](CODE_OF_CONDUCT.md)**.
+
+For reporting vulnerabilities, see our **[Security Policy](SECURITY.md)**.
 
 ---
 
