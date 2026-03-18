@@ -29,7 +29,9 @@ State the selected variant and confirm the step sequence before proceeding.
 
 ## Step 2 — Execute the Workflow
 
-Read `CLAUDE.md` and `docs/WORKFLOW_GUIDE.md` to understand the project's stack and conventions, then execute each step below in order. Use the Task tool to invoke each agent. **Do not skip steps without stating why.**
+Read `CLAUDE.md` and `docs/WORKFLOW_GUIDE.md` to understand the project's stack and conventions, then execute each step below in order.
+
+**CRITICAL**: You MUST use the Agent tool (subagent) for EVERY step that lists an **Agent**. Never perform the agent's work inline — always delegate to the specified agent via the Agent tool. This is mandatory, not optional. The only work you do directly is orchestration (deciding which step to run next, reading gate results, and reporting status).
 
 ### Step 0 — Architecture Design *(full variant only, or complex features)*
 **Agent**: `software-architect`
