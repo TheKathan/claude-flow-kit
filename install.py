@@ -24,6 +24,7 @@ import json
 import argparse
 import shutil
 import datetime
+import ssl
 import urllib.request
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -38,6 +39,20 @@ if sys.platform == "win32":
 
 INSTALLER_VERSION = "2.3.0"
 GITHUB_RAW_URL = "https://raw.githubusercontent.com/TheKathan/claude-flow-kit/main"
+
+
+def _ssl_context() -> ssl.SSLContext:
+    """Return an SSL context that validates certificates.
+
+    On macOS, Python's bundled OpenSSL does not use the system keychain, so
+    urlopen can fail with CERTIFICATE_VERIFY_FAILED.  We try certifi first
+    (widely installed), then fall back to the stdlib default context.
+    """
+    try:
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
 MANIFEST_PATH = ".claude/install-manifest.json"
 
 CATEGORY_A_ALWAYS_UPDATE = "always_update"   # template files, users never edit
@@ -76,6 +91,7 @@ KNOWN_TEMPLATE_AGENT_KEYS: frozenset = frozenset({
     "react-frontend-dev", "react-test-specialist", "react-tester",
     "vue-developer", "vue-test-specialist",
     "angular-developer", "angular-test-specialist",
+    "svelte-developer", "svelte-test-specialist",
     "frontend-code-reviewer",
     "terraform-developer", "terraform-test-specialist", "infrastructure-code-reviewer",
 })
@@ -151,7 +167,7 @@ def yes_no(question: str, default: bool = True) -> bool:
 def download_file(url: str, dest: Path) -> bool:
     """Download file from URL to destination."""
     try:
-        with urllib.request.urlopen(url) as response:
+        with urllib.request.urlopen(url, context=_ssl_context()) as response:
             content = response.read()
 
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -196,6 +212,8 @@ def detect_frontend_framework(frontend_framework: Optional[str]) -> Optional[str
         return "vue"
     elif "angular" in framework_lower:
         return "angular"
+    elif "svelte" in framework_lower:
+        return "svelte"
     return None
 
 def detect_infrastructure_tool(infrastructure_tool: Optional[str]) -> Optional[str]:
@@ -570,8 +588,9 @@ def main():
             print("1. React / Next.js")
             print("2. Vue / Nuxt")
             print("3. Angular")
-            print("4. Tauri (desktop app — Rust backend + web frontend)")
-            print("5. Other (manual setup)")
+            print("4. Svelte / SvelteKit")
+            print("5. Tauri (desktop app — Rust backend + web frontend)")
+            print("6. Other (manual setup)")
             frontend_choice = prompt("Frontend choice", "1")
 
             if frontend_choice == "1":
@@ -587,6 +606,10 @@ def main():
                 frontend_language = prompt("Frontend language", "TypeScript")
                 frontend_folder = prompt("Frontend code folder", "src")
             elif frontend_choice == "4":
+                frontend_framework = prompt("Frontend framework", "SvelteKit")
+                frontend_language = prompt("Frontend language", "TypeScript")
+                frontend_folder = prompt("Frontend code folder", "src")
+            elif frontend_choice == "5":
                 frontend_framework = prompt("Frontend framework", "Tauri")
                 frontend_language = prompt("Frontend language", "TypeScript + Rust")
                 frontend_folder = prompt("Frontend code folder", "src")
@@ -726,6 +749,7 @@ def main():
         "react":   ["react-frontend-dev.md", "react-test-specialist.md", "frontend-code-reviewer.md"],
         "vue":     ["vue-developer.md", "vue-test-specialist.md", "frontend-code-reviewer.md"],
         "angular": ["angular-developer.md", "angular-test-specialist.md", "frontend-code-reviewer.md"],
+        "svelte":  ["svelte-developer.md", "svelte-test-specialist.md", "frontend-code-reviewer.md"],
         "tauri":   ["rust-developer.md", "rust-test-specialist.md", "frontend-code-reviewer.md"],
     }
     if frontend_lang and frontend_lang in frontend_agent_map:
@@ -784,7 +808,7 @@ def main():
     # Download main config.json as the base to preserve workflow/gates/etc. sections
     base_config_url = f"{GITHUB_RAW_URL}/.agents/config.json"
     try:
-        with urllib.request.urlopen(base_config_url) as response:
+        with urllib.request.urlopen(base_config_url, context=_ssl_context()) as response:
             merged_config = json.loads(response.read())
             # Keep only common orchestration agents; stack-specific ones come from
             # component configs below so we don't include mismatched generics.
@@ -800,7 +824,7 @@ def main():
     if backend_lang:
         config_url = f"{GITHUB_RAW_URL}/.agents/config_backend_{backend_lang}.json"
         try:
-            with urllib.request.urlopen(config_url) as response:
+            with urllib.request.urlopen(config_url, context=_ssl_context()) as response:
                 raw_content = response.read()
                 backend_config = json.loads(raw_content)
                 merged_config['agents'].update(backend_config.get('agents', {}))
@@ -813,7 +837,7 @@ def main():
     if frontend_lang:
         config_url = f"{GITHUB_RAW_URL}/.agents/config_frontend_{frontend_lang}.json"
         try:
-            with urllib.request.urlopen(config_url) as response:
+            with urllib.request.urlopen(config_url, context=_ssl_context()) as response:
                 raw_content = response.read()
                 frontend_config = json.loads(raw_content)
                 merged_config['agents'].update(frontend_config.get('agents', {}))
@@ -826,7 +850,7 @@ def main():
     if infra_tool:
         config_url = f"{GITHUB_RAW_URL}/.agents/config_infrastructure_{infra_tool.lower()}.json"
         try:
-            with urllib.request.urlopen(config_url) as response:
+            with urllib.request.urlopen(config_url, context=_ssl_context()) as response:
                 raw_content = response.read()
                 infra_config = json.loads(raw_content)
                 merged_config['agents'].update(infra_config.get('agents', {}))

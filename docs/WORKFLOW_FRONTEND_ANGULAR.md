@@ -61,7 +61,7 @@ Every Angular feature:
 ```
 Step 0:  [OPTIONAL] software-architect      → Design architecture
 Step 1:  worktree-manager                   → Create worktree
-Step 1b: [DOCKER/ON-FAILURE] docker-debugger → Debug setup issues
+Step 1b: [DOCKER ONLY] docker-debugger → Setup Docker environment
 Step 2:  angular-developer                  → Implement Angular feature
 Step 3:  angular-test-specialist            → Write Jasmine/Karma tests
 Step 4:  angular-developer                  → Commit code + tests
@@ -80,7 +80,7 @@ Step 13: worktree-manager                   → Cleanup worktree
 Step 13b: [DOCKER/ON-FAILURE] docker-debugger → Force cleanup
 ```
 
-> `b` steps only activate for Docker projects when container failures occur.
+> Step 1b activates for all Docker projects (dedicated Docker setup). Steps 5b, 8b, 11b, 13b only activate for Docker projects when container failures occur.
 
 ---
 
@@ -130,12 +130,13 @@ python scripts/worktree_create.py feature-name
 - Dependencies installed (`npm ci`)
 - Development environment ready
 
-> *(Docker projects only)* The script automatically starts Docker containers with unique ports, providing a completely isolated Angular development environment — no shared resources.
+*(Docker projects only)* After the worktree is created, proceed to Step 1b where docker-debugger sets up the Docker environment.
 
-**On Failure** (Step 1b) *(Docker projects only)*:
-- docker-debugger diagnoses port conflicts, container issues
-- Fixes automatically if possible
-- Reports if manual intervention needed
+**Step 1b: Setup Docker Environment** *(Docker projects only)*:
+- docker-debugger creates isolated Docker environment for this worktree
+- Configures unique port mappings to avoid conflicts
+- Starts containers and verifies all services are healthy
+- Reports access URLs and port mappings
 
 ---
 

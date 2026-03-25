@@ -1,6 +1,6 @@
 ---
 name: worktree-manager
-description: "Use this agent to manage Git worktrees and their associated Docker environments (if used) throughout the development lifecycle.\\n\\n- START of a feature (Step 1): Create feature branch and isolated environment\\n- END of a feature (Steps 12-13): Merge to main and clean up\\n- Working on multiple features in parallel: Create separate worktrees\\n- Cleaning up stale worktrees and Docker resources\\n\\nExamples:\\n\\n<example>\\nuser: \"I need to implement a new authentication endpoint\"\\nassistant: \"I'll use the worktree-manager agent to set up an isolated development environment for this feature.\"\\n</example>\\n\\n<example>\\nuser: \"The feature is complete and tests are passing. Let's merge it.\"\\nassistant: \"I'll use the worktree-manager agent to merge to main and clean up the worktree environment.\"\\n</example>"
+description: "Use this agent to manage Git worktrees throughout the development lifecycle.\\n\\n- START of a feature (Step 1): Create feature branch and git worktree\\n- END of a feature (Steps 12-13): Merge to main and clean up\\n- Working on multiple features in parallel: Create separate worktrees\\n- Cleaning up stale worktrees and Docker resources\\n\\nExamples:\\n\\n<example>\\nuser: \"I need to implement a new authentication endpoint\"\\nassistant: \"I'll use the worktree-manager agent to set up an isolated development environment for this feature.\"\\n</example>\\n\\n<example>\\nuser: \"The feature is complete and tests are passing. Let's merge it.\"\\nassistant: \"I'll use the worktree-manager agent to merge to main and clean up the worktree environment.\"\\n</example>"
 model: sonnet
 color: red
 ---
@@ -17,32 +17,15 @@ When creating a new worktree environment:
 1. **Validate Prerequisites**
    - Verify Git repository is clean (no uncommitted changes in main)
    - Check for existing worktrees with the same name
-   - Ensure sufficient disk space for Docker volumes
-   - Confirm Docker daemon is running
 
 2. **Create Feature Branch and Worktree**
    - Generate a descriptive branch name following pattern: `feature/<identifier>` or `hotfix/<identifier>`
    - Create worktree in dedicated directory: `../<project-name>-<branch-name>/`
    - Verify worktree creation was successful
 
-3. **Setup Isolated Docker Environment**
-   - Copy `docker-compose.yml` and necessary config files to worktree
-   - Create unique Docker network for this worktree: `<project>-<branch>-network`
-   - Configure unique port mappings to avoid conflicts (e.g., 8001, 8081, 5433 instead of 8000, 8080, 5432)
-   - Set unique container names: `<project>-<branch>-backend`, `<project>-<branch>-frontend`, etc.
-   - Create isolated Docker volumes: `<project>-<branch>-postgres-data`
-   - Start containers with `docker-compose up -d`
-   - Verify all services are healthy
-
-4. **Initialize Environment**
-   - Run database migrations if needed
-   - Seed test data if specified
-   - Verify environment is ready for development
-
-5. **Report Configuration**
-   - Provide clear summary of created resources
-   - Document port mappings and access URLs
-   - List commands for accessing the environment
+3. **Report Configuration**
+   - Provide clear summary of the worktree and branch created
+   - Note: Docker setup is handled by the docker-debugger agent in its dedicated workflow step — do NOT create Dockerfiles, docker-compose files, or any Docker resources here
 
 ### Phase 2: Merge and Push (Step 12)
 When merging completed feature to main:
