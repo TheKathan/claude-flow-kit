@@ -25,6 +25,8 @@ import argparse
 import shutil
 import datetime
 import ssl
+import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -165,18 +167,28 @@ def yes_no(question: str, default: bool = True) -> bool:
     return response in ['y', 'yes']
 
 def download_file(url: str, dest: Path) -> bool:
-    """Download file from URL to destination."""
-    try:
-        with urllib.request.urlopen(url, context=_ssl_context()) as response:
-            content = response.read()
-
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_bytes(content)
-        print(f"  ✅ Downloaded {dest.name}")
-        return True
-    except Exception as e:
-        print(f"  ❌ Failed to download {dest.name}: {e}")
-        return False
+    """Download file from URL to destination, with retry on 429."""
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            with urllib.request.urlopen(url, context=_ssl_context()) as response:
+                content = response.read()
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(content)
+            print(f"  ✅ Downloaded {dest.name}")
+            return True
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < max_attempts - 1:
+                wait = 2 ** attempt  # 1s, 2s, 4s
+                print(f"  ⏳ Rate limited, retrying in {wait}s… ({dest.name})")
+                time.sleep(wait)
+            else:
+                print(f"  ❌ Failed to download {dest.name}: {e}")
+                return False
+        except Exception as e:
+            print(f"  ❌ Failed to download {dest.name}: {e}")
+            return False
+    return False
 
 def detect_language(backend_language: Optional[str]) -> Optional[str]:
     """Detect primary language from backend_language string."""

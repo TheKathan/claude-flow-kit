@@ -105,6 +105,9 @@ Desktop.ini
 *.backup
 *~
 
+# Worktrees (created by worktree_create.py)
+.worktrees/
+
 # Project-specific (add your own)
 # uploads/
 # data/

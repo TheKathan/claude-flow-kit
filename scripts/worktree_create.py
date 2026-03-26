@@ -7,7 +7,7 @@ Usage:
     python scripts/worktree_create.py <feature-name>
 
 Creates:
-- New worktree directory in ../worktrees/<feature-name>
+- New worktree directory in .worktrees/<feature-name>
 - Feature branch from current branch (dynamic base branch)
 - Isolated Docker environment (if Docker is used)
 - Registry entry for tracking
@@ -85,7 +85,7 @@ def create_worktree(feature_name: str) -> Optional[Dict]:
     repo_root = get_repo_root()
 
     # Create worktree directory path
-    worktrees_dir = repo_root.parent / "worktrees"
+    worktrees_dir = repo_root / ".worktrees"
     worktrees_dir.mkdir(exist_ok=True)
 
     worktree_path = worktrees_dir / feature_name
