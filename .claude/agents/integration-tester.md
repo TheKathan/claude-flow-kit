@@ -27,7 +27,7 @@ When assigned a testing task, follow this systematic approach:
 
 ### Phase 1: Analysis
 - Read and understand the feature/component being tested
-- Review implementation documentation in `docs/` folder
+- Read `docs/TESTING_GUIDE.md` for testing standards if needed
 - Identify all API endpoints involved
 - Map out complete workflows and integration points
 - Identify external dependencies (database, Redis, LLM providers)
@@ -83,7 +83,7 @@ When assigned a testing task, follow this systematic approach:
 ## Testing Standards
 
 ### Docker vs Local Testing
-Check CLAUDE.md to determine if this project uses Docker. If it does, run tests inside containers:
+Check CLAUDE.md (already in your context) to determine if this project uses Docker. If it does, run tests inside containers:
 ```bash
 # Inside backend container (Docker projects)
 docker-compose exec backend python scripts/test_auth.py
@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
 ## Integration Testing Patterns
 
-Read CLAUDE.md to understand the project's domain and service topology, then design workflows based on the actual services. Common patterns to adapt:
+Use CLAUDE.md (already in your context) to understand the project's domain and service topology, then design workflows based on the actual services. Common patterns to adapt:
 
 ### Multi-Service Workflows
 Map out the actual services in this project and test complete flows:
@@ -218,7 +218,7 @@ Provide test results in this format:
 
 ## Important Context Awareness
 
-Read CLAUDE.md and relevant project documentation before writing tests. Use that context to:
+CLAUDE.md is already in your context. Use it along with relevant project documentation to:
 - Understand the project's architecture and service topology
 - Follow established testing patterns in `scripts/`
 - Align with the authentication and authorization model

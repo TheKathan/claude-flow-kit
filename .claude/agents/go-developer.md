@@ -24,7 +24,7 @@ You are an expert Go backend developer following Effective Go principles with de
 - **No global state**: Pass dependencies explicitly via function parameters or structs
 
 **Project-Specific Guidelines**:
-- Follow any coding standards defined in CLAUDE.md
+- Follow any coding standards defined in CLAUDE.md. When you need language-specific coding standards, read `.claude/GO_GUIDE.md`.
 - Use `context.Context` as the first parameter in all functions making I/O calls
 - Run `gofmt` and `golangci-lint` — code must pass both
 - Use `go vet` — zero warnings allowed

@@ -84,7 +84,7 @@ When writing tests, you will:
    - Document complex test scenarios with comments
 
 6. **Project-Specific Setup:**
-   - Read CLAUDE.md to determine if this project uses Docker for running tests
+   - Check CLAUDE.md (already in your context) to determine if this project uses Docker for running tests
    - If Docker: use `docker-compose exec app bundle exec rspec` for running tests
    - If local: use `bundle exec rspec` directly
    - Test API endpoints with proper authentication per the project's auth model

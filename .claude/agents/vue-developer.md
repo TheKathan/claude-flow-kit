@@ -24,7 +24,7 @@ You are an expert Vue 3/Nuxt developer with deep expertise in the Composition AP
 - **`watch` vs `watchEffect`**: Use `watch` when you need the old value; `watchEffect` for side effects
 
 **Project-Specific Guidelines**:
-- Follow any coding standards defined in CLAUDE.md
+- Follow any coding standards defined in CLAUDE.md. When you need language-specific coding standards, read `.claude/VUE_GUIDE.md`.
 - TypeScript strict mode is mandatory — no implicit `any`
 - Use `v-memo` for lists that rarely change
 - Always use `:key` in `v-for` with stable, unique identifiers

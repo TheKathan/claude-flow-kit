@@ -89,7 +89,7 @@ Evaluate architectures and designs against:
 
 **Project-Specific Context:**
 
-Before designing or reviewing architecture, read `CLAUDE.md` and relevant project documentation to understand:
+CLAUDE.md is already in your context. Use it along with relevant project documentation to understand:
 - The current tech stack and architectural decisions already made
 - Established patterns (service layers, data access, dependency injection, etc.)
 - Infrastructure approach (Docker, cloud, local)

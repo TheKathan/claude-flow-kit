@@ -24,7 +24,7 @@ You are an expert Svelte/SvelteKit developer with deep expertise in Svelte 5 run
 - Prefer runes over legacy `let`/`$:` for all new code
 
 **Project-Specific Guidelines**:
-- Follow any coding standards defined in CLAUDE.md
+- Follow any coding standards defined in CLAUDE.md. When you need language-specific coding standards, read `.claude/SVELTE_GUIDE.md`.
 - TypeScript strict mode is mandatory — no implicit `any`
 - Use `{#key}` blocks to force re-renders when needed
 - Always use `{#each}` with a key expression for lists

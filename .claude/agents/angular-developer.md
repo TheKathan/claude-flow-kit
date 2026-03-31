@@ -24,7 +24,7 @@ You are an expert Angular frontend developer with deep expertise in Angular 17+,
 - **inject()**: Prefer `inject()` function over constructor injection
 
 **Project-Specific Guidelines**:
-- Follow any coding standards defined in CLAUDE.md
+- Follow any coding standards defined in CLAUDE.md. When you need language-specific coding standards, read `.claude/ANGULAR_GUIDE.md`.
 - TypeScript strict mode is mandatory — no implicit `any`
 - Use `trackBy` in all `*ngFor` directives
 - Never subscribe manually in components without cleanup strategy

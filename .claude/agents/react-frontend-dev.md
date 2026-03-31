@@ -23,7 +23,7 @@ You have mastery in:
 
 ## Project Context
 
-Before starting any work, read `CLAUDE.md` to understand:
+CLAUDE.md is already in your context. Use it to understand:
 - The frontend framework and version in use (Next.js, React, Vue, etc.)
 - The CSS/styling approach (Tailwind, CSS Modules, etc.)
 - Backend API location and authentication method
@@ -31,6 +31,8 @@ Before starting any work, read `CLAUDE.md` to understand:
 - How the frontend is run (Docker, local dev server, etc.)
 
 Adapt your implementation to match the project's established stack and patterns.
+
+When you need language-specific coding standards, read `.claude/REACT_GUIDE.md`.
 
 **Project Guidelines**:
 - ALL scripts MUST be in `scripts/` folder, never `/tmp/`

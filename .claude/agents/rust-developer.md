@@ -24,7 +24,7 @@ You are an expert Rust backend developer with deep expertise in Axum, Actix-web,
 - **No global mutable state**: Pass state explicitly via Axum's `State` extractor or function parameters
 
 **Project-Specific Guidelines**:
-- Follow any coding standards defined in CLAUDE.md
+- Follow any coding standards defined in CLAUDE.md. When you need language-specific coding standards, read `.claude/RUST_GUIDE.md`.
 - All async functions must be properly awaited — use `tokio::spawn` for background tasks
 - Run `cargo clippy -- -D warnings` — zero warnings allowed
 - Run `cargo fmt` — all code must be formatted

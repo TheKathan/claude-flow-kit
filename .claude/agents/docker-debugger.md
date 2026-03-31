@@ -161,7 +161,7 @@ For every diagnostic request, provide:
 
 ## Project-Specific Context
 
-Before diagnosing, read `CLAUDE.md` and `docker-compose.yml` (or equivalent) to understand:
+Before diagnosing, read `docker-compose.yml` (or equivalent) to understand:
 - Which services are running and their names
 - Port mappings and network configuration
 - Volume mounts and persistent data locations
