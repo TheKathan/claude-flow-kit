@@ -775,29 +775,61 @@ def main():
         for agent in ["terraform-developer.md", "terraform-test-specialist.md", "infrastructure-code-reviewer.md"]:
             _dl(f"{GITHUB_RAW_URL}/.claude/agents/{agent}", agents_dir / agent)
 
+    # Build shared replacements dict used for all template processing below
+    template_replacements = {
+        "{{PROJECT_NAME}}": project_name,
+        "{{PROJECT_DESCRIPTION}}": project_description,
+        "{{REPO_URL}}": repo_url,
+        "{{BACKEND_FRAMEWORK}}": backend_framework or "",
+        "{{BACKEND_LANGUAGE}}": backend_language or "",
+        "{{FRONTEND_FRAMEWORK}}": frontend_framework or "",
+        "{{FRONTEND_LANGUAGE}}": frontend_language or "",
+        "{{INFRASTRUCTURE_TOOL}}": infrastructure_tool or "",
+        "{{MAIN_BRANCH}}": main_branch,
+        "{{CURRENT_DATE}}": datetime.date.today().isoformat(),
+        "{{USES_DOCKER}}": "true" if uses_docker else "false",
+        "{{HAS_FRONTEND}}": "true" if has_frontend else "false",
+        "{{HAS_BACKEND}}": "true" if has_backend else "false",
+        "{{HAS_INFRASTRUCTURE}}": "true" if has_infrastructure else "false",
+    }
+
     # Download selected workflows and guides
     print("\n📋 Downloading selected workflow and guide files...")
 
     if backend_lang:
         workflow_file = f"WORKFLOW_BACKEND_{backend_lang.upper()}.md"
-        _dl(f"{GITHUB_RAW_URL}/docs/{workflow_file}", current_dir / "docs" / workflow_file)
+        dest = current_dir / "docs" / workflow_file
+        if _dl(f"{GITHUB_RAW_URL}/docs/{workflow_file}", dest):
+            _process_template(dest, template_replacements)
         guide_file = f"{backend_lang.upper()}_GUIDE.md"
-        _dl(f"{GITHUB_RAW_URL}/.claude/{guide_file}", current_dir / ".claude" / guide_file)
+        dest = current_dir / ".claude" / guide_file
+        if _dl(f"{GITHUB_RAW_URL}/.claude/{guide_file}", dest):
+            _process_template(dest, template_replacements)
 
     if frontend_lang:
         workflow_file = f"WORKFLOW_FRONTEND_{frontend_lang.upper()}.md"
-        _dl(f"{GITHUB_RAW_URL}/docs/{workflow_file}", current_dir / "docs" / workflow_file)
+        dest = current_dir / "docs" / workflow_file
+        if _dl(f"{GITHUB_RAW_URL}/docs/{workflow_file}", dest):
+            _process_template(dest, template_replacements)
         guide_file = f"{frontend_lang.upper()}_GUIDE.md"
-        _dl(f"{GITHUB_RAW_URL}/.claude/{guide_file}", current_dir / ".claude" / guide_file)
+        dest = current_dir / ".claude" / guide_file
+        if _dl(f"{GITHUB_RAW_URL}/.claude/{guide_file}", dest):
+            _process_template(dest, template_replacements)
         # Tauri apps have a Rust backend (src-tauri/) — also download the Rust guide
         if frontend_lang == "tauri":
-            _dl(f"{GITHUB_RAW_URL}/.claude/RUST_GUIDE.md", current_dir / ".claude" / "RUST_GUIDE.md")
+            dest = current_dir / ".claude" / "RUST_GUIDE.md"
+            if _dl(f"{GITHUB_RAW_URL}/.claude/RUST_GUIDE.md", dest):
+                _process_template(dest, template_replacements)
 
     if infra_tool:
         workflow_file = f"WORKFLOW_INFRASTRUCTURE_{infra_tool.upper()}.md"
-        _dl(f"{GITHUB_RAW_URL}/docs/{workflow_file}", current_dir / "docs" / workflow_file)
+        dest = current_dir / "docs" / workflow_file
+        if _dl(f"{GITHUB_RAW_URL}/docs/{workflow_file}", dest):
+            _process_template(dest, template_replacements)
         guide_file = f"{infra_tool.upper()}_GUIDE.md"
-        _dl(f"{GITHUB_RAW_URL}/.claude/{guide_file}", current_dir / ".claude" / guide_file)
+        dest = current_dir / ".claude" / guide_file
+        if _dl(f"{GITHUB_RAW_URL}/.claude/{guide_file}", dest):
+            _process_template(dest, template_replacements)
 
     # Download and merge agent configs
     print("\n🤖 Downloading and merging agent configurations...")
@@ -912,7 +944,9 @@ def main():
     if uses_docker:
         common_docs.append("DOCKER_GUIDE.md")
     for doc in common_docs:
-        _dl(f"{GITHUB_RAW_URL}/.claude/{doc}", current_dir / ".claude" / doc)
+        dest = current_dir / ".claude" / doc
+        if _dl(f"{GITHUB_RAW_URL}/.claude/{doc}", dest):
+            _process_template(dest, template_replacements)
 
     # Download slash commands
     print("\n⌨️  Downloading slash commands...")
@@ -924,10 +958,7 @@ def main():
     _dl(f"{GITHUB_RAW_URL}/docs/TESTING_GUIDE.md", current_dir / "docs" / "TESTING_GUIDE.md")
     workflow_guide = current_dir / "docs" / "WORKFLOW_GUIDE.md"
     if _dl(f"{GITHUB_RAW_URL}/docs/WORKFLOW_GUIDE.md", workflow_guide):
-        _process_template(workflow_guide, {
-            "{{PROJECT_NAME}}": project_name,
-            "{{CURRENT_DATE}}": datetime.date.today().isoformat(),
-        })
+        _process_template(workflow_guide, template_replacements)
 
     # Update mode summary
     if install_mode == "update":
