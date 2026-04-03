@@ -210,6 +210,8 @@ def detect_language(backend_language: Optional[str]) -> Optional[str]:
         return "rust"
     elif "ruby" in language_lower or "rails" in language_lower:
         return "ruby"
+    elif "swift" in language_lower:
+        return "swift"
     return None
 
 def detect_frontend_framework(frontend_framework: Optional[str]) -> Optional[str]:
@@ -228,6 +230,8 @@ def detect_frontend_framework(frontend_framework: Optional[str]) -> Optional[str
         return "angular"
     elif "svelte" in framework_lower:
         return "svelte"
+    elif "swiftui" in framework_lower or "swift" in framework_lower:
+        return "swiftui"
     return None
 
 def detect_infrastructure_tool(infrastructure_tool: Optional[str]) -> Optional[str]:
@@ -562,7 +566,8 @@ def main():
             print("4. Go (Gin, Echo, Fiber)")
             print("5. Rust (Axum, Actix-web)")
             print("6. Ruby (Rails, Sinatra, Hanami)")
-            print("7. Other (manual setup)")
+            print("7. Swift (Vapor, Hummingbird)")
+            print("8. Other (manual setup)")
             backend_choice = prompt("Backend choice", "1")
 
             if backend_choice == "1":
@@ -589,6 +594,10 @@ def main():
                 backend_framework = prompt("Backend framework", "Rails 7")
                 backend_language = prompt("Backend language", "Ruby 3.3")
                 backend_folder = prompt("Backend code folder", "app")
+            elif backend_choice == "7":
+                backend_framework = prompt("Backend framework", "Vapor")
+                backend_language = prompt("Backend language", "Swift 5.9")
+                backend_folder = prompt("Backend code folder", "Sources")
             else:
                 print("  Manual backend setup selected - no backend workflow will be downloaded")
                 has_backend = False
@@ -604,7 +613,8 @@ def main():
             print("3. Angular")
             print("4. Svelte / SvelteKit")
             print("5. Tauri (desktop app — Rust backend + web frontend)")
-            print("6. Other (manual setup)")
+            print("6. SwiftUI (macOS native app)")
+            print("7. Other (manual setup)")
             frontend_choice = prompt("Frontend choice", "1")
 
             if frontend_choice == "1":
@@ -627,6 +637,10 @@ def main():
                 frontend_framework = prompt("Frontend framework", "Tauri")
                 frontend_language = prompt("Frontend language", "TypeScript + Rust")
                 frontend_folder = prompt("Frontend code folder", "src")
+            elif frontend_choice == "6":
+                frontend_framework = prompt("Frontend framework", "SwiftUI")
+                frontend_language = prompt("Frontend language", "Swift 5.9")
+                frontend_folder = prompt("Frontend code folder", "Sources")
             else:
                 print("  Manual frontend setup selected - no frontend workflow will be downloaded")
                 has_frontend = False
@@ -752,6 +766,7 @@ def main():
         "go":      ["go-developer.md", "go-test-specialist.md", "backend-code-reviewer.md"],
         "rust":    ["rust-developer.md", "rust-test-specialist.md", "backend-code-reviewer.md"],
         "ruby":    ["ruby-developer.md", "ruby-test-specialist.md", "backend-code-reviewer.md"],
+        "swift":   ["swift-developer.md", "swift-test-specialist.md", "backend-code-reviewer.md"],
     }
     if backend_lang and backend_lang in backend_agent_map:
         for agent in backend_agent_map[backend_lang]:
@@ -765,6 +780,7 @@ def main():
         "angular": ["angular-developer.md", "angular-test-specialist.md", "frontend-code-reviewer.md"],
         "svelte":  ["svelte-developer.md", "svelte-test-specialist.md", "frontend-code-reviewer.md"],
         "tauri":   ["rust-developer.md", "rust-test-specialist.md", "frontend-code-reviewer.md"],
+        "swiftui": ["swiftui-developer.md", "swiftui-test-specialist.md", "frontend-code-reviewer.md"],
     }
     if frontend_lang and frontend_lang in frontend_agent_map:
         for agent in frontend_agent_map[frontend_lang]:
