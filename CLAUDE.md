@@ -26,7 +26,9 @@
 {{#if BACKEND_LANGUAGE includes "Go"}}- Go 1.21+{{/if}}
 {{#if BACKEND_LANGUAGE includes "Ruby"}}- Ruby 3.1+{{/if}}
 {{#if BACKEND_LANGUAGE includes "Rust"}}- Rust 1.75+ (via rustup){{/if}}
+{{#if BACKEND_LANGUAGE includes "Swift"}}- Swift 5.9+ (via Xcode or swiftly){{/if}}
 {{#if FRONTEND_FRAMEWORK includes "Tauri"}}- Rust 1.75+ (via rustup), Node.js 20+{{/if}}
+{{#if FRONTEND_FRAMEWORK includes "SwiftUI"}}- Swift 5.9+ and Xcode 15+{{/if}}
 
 ### Installation
 
@@ -84,6 +86,10 @@ docker-compose ps
 - **[Rust Workflow](docs/WORKFLOW_BACKEND_RUST.md)** - 14-step workflow for Rust backend
 - **[Rust Guide](.claude/RUST_GUIDE.md)** - Rust coding standards
 {{/if}}
+{{#if BACKEND_LANGUAGE includes "Swift"}}
+- **[Swift Workflow](docs/WORKFLOW_BACKEND_SWIFT.md)** - 14-step workflow for Swift backend
+- **[Swift Guide](.claude/SWIFT_GUIDE.md)** - Swift coding standards
+{{/if}}
 
 {{#if HAS_FRONTEND}}#### Frontend Workflow
 {{#if FRONTEND_FRAMEWORK includes "React" or FRONTEND_FRAMEWORK includes "Next"}}
@@ -102,6 +108,10 @@ docker-compose ps
 - **[Tauri Workflow](docs/WORKFLOW_FRONTEND_TAURI.md)** - 14-step workflow for Tauri desktop apps
 - **[Tauri Guide](.claude/TAURI_GUIDE.md)** - Tauri development standards
 - **[Rust Guide](.claude/RUST_GUIDE.md)** - Rust coding standards (Tauri backend)
+{{/if}}
+{{#if FRONTEND_FRAMEWORK includes "SwiftUI"}}
+- **[SwiftUI Workflow](docs/WORKFLOW_FRONTEND_SWIFTUI.md)** - 14-step workflow for SwiftUI macOS apps
+- **[SwiftUI Guide](.claude/SWIFTUI_GUIDE.md)** - SwiftUI development standards
 {{/if}}
 {{/if}}
 

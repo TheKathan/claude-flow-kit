@@ -94,6 +94,8 @@ KNOWN_TEMPLATE_AGENT_KEYS: frozenset = frozenset({
     "vue-developer", "vue-test-specialist",
     "angular-developer", "angular-test-specialist",
     "svelte-developer", "svelte-test-specialist",
+    "swiftui-developer", "swiftui-test-specialist",
+    "swift-developer", "swift-test-specialist",
     "frontend-code-reviewer",
     "terraform-developer", "terraform-test-specialist", "infrastructure-code-reviewer",
 })

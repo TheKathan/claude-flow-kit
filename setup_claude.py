@@ -59,6 +59,8 @@ def detect_language(backend_language: str) -> str:
         return "rust"
     elif "ruby" in language_lower or "rails" in language_lower:
         return "ruby"
+    elif "swift" in language_lower:
+        return "swift"
     return "python"  # default fallback
 
 def detect_frontend_framework(frontend_framework: str) -> str:
@@ -72,6 +74,8 @@ def detect_frontend_framework(frontend_framework: str) -> str:
         return "vue"
     elif "angular" in framework_lower:
         return "angular"
+    elif "swiftui" in framework_lower or "swift" in framework_lower:
+        return "swiftui"
     return "react"  # default
 
 def merge_agent_configs(backend_language: str, frontend_framework: str, has_frontend: bool, template_dir: Path) -> bool:
@@ -191,7 +195,8 @@ def main():
     print("4. Go (Gin, Echo, Fiber)")
     print("5. Rust (Axum, Actix-web)")
     print("6. Ruby (Rails, Sinatra)")
-    print("7. Other")
+    print("7. Swift (Vapor, Hummingbird)")
+    print("8. Other")
     backend_choice = prompt("Backend choice", "1")
 
     # Set defaults based on choice
@@ -219,6 +224,10 @@ def main():
         backend_framework = prompt("Backend framework", "Rails")
         backend_language = prompt("Backend language", "Ruby 3.3")
         backend_folder = prompt("Backend code folder", "app")
+    elif backend_choice == "7":
+        backend_framework = prompt("Backend framework", "Vapor")
+        backend_language = prompt("Backend language", "Swift 5.9")
+        backend_folder = prompt("Backend code folder", "Sources")
     else:
         backend_framework = prompt("Backend framework", "FastAPI")
         backend_language = prompt("Backend language", "Python 3.11")
@@ -232,7 +241,8 @@ def main():
         print("2. Vue / Nuxt")
         print("3. Angular")
         print("4. Tauri (desktop app with Rust backend)")
-        print("5. Other")
+        print("5. SwiftUI (macOS native app)")
+        print("6. Other")
         frontend_choice = prompt("Frontend choice", "1")
         if frontend_choice == "1":
             frontend_framework = prompt("Frontend framework", "Next.js 14")
@@ -250,6 +260,10 @@ def main():
             frontend_framework = prompt("Frontend framework", "Tauri")
             frontend_language = prompt("Frontend language", "TypeScript + Rust")
             frontend_folder = prompt("Frontend code folder", "src")
+        elif frontend_choice == "5":
+            frontend_framework = prompt("Frontend framework", "SwiftUI")
+            frontend_language = prompt("Frontend language", "Swift 5.9")
+            frontend_folder = prompt("Frontend code folder", "Sources")
         else:
             frontend_framework = prompt("Frontend framework", "Next.js 14")
             frontend_language = prompt("Frontend language", "TypeScript")

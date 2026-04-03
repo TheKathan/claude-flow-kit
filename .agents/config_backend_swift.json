@@ -1,0 +1,60 @@
+{
+  "agents": {
+    "swift-developer": {
+      "type": "backend-developer",
+      "description": "Swift backend developer using Vapor or Hummingbird with async/await and protocol-driven architecture",
+      "model": "sonnet",
+      "file_patterns": [
+        "**/*.swift"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ],
+      "preferences": {
+        "formatter": "swift-format",
+        "linter": "swiftlint",
+        "test_command": "swift test --enable-code-coverage",
+        "build_command": "swift build"
+      }
+    },
+    "swift-test-specialist": {
+      "type": "test-specialist",
+      "description": "Swift backend test specialist using XCTest, XCTVapor, and Swift Testing framework",
+      "model": "sonnet",
+      "file_patterns": [
+        "**/*Tests.swift"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ]
+    },
+    "backend-code-reviewer": {
+      "type": "code-reviewer",
+      "description": "Backend code reviewer for Swift concurrency safety, error handling, and Vapor best practices",
+      "model": "sonnet",
+      "tools": [
+        "Read",
+        "Grep"
+      ]
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "description": "Execute Swift tests and builds, enforce quality gates",
+      "model": "sonnet",
+      "tools": [
+        "Bash",
+        "Read"
+      ],
+      "preferences": {
+        "test_command": "swift test --enable-code-coverage",
+        "build_command": "swift build -c release"
+      }
+    }
+  }
+}

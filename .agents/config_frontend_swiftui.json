@@ -1,0 +1,61 @@
+{
+  "agents": {
+    "swiftui-developer": {
+      "type": "frontend-developer",
+      "description": "SwiftUI macOS developer using MVVM, @Observable, and Swift structured concurrency",
+      "model": "sonnet",
+      "file_patterns": [
+        "**/*.swift"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ],
+      "preferences": {
+        "formatter": "swift-format",
+        "linter": "swiftlint",
+        "test_command": "swift test --enable-code-coverage",
+        "build_command": "swift build"
+      }
+    },
+    "swiftui-test-specialist": {
+      "type": "test-specialist",
+      "description": "SwiftUI test specialist using XCTest and Swift Testing framework",
+      "model": "sonnet",
+      "file_patterns": [
+        "**/*Tests.swift",
+        "**/*UITests.swift"
+      ],
+      "tools": [
+        "Read",
+        "Edit",
+        "Write",
+        "Bash"
+      ]
+    },
+    "frontend-code-reviewer": {
+      "type": "code-reviewer",
+      "description": "Code reviewer for SwiftUI conventions, MVVM correctness, and Swift best practices",
+      "model": "sonnet",
+      "tools": [
+        "Read",
+        "Grep"
+      ]
+    },
+    "integration-tester": {
+      "type": "integration-tester",
+      "description": "Execute Swift tests and Xcode builds, enforce quality gates",
+      "model": "sonnet",
+      "tools": [
+        "Bash",
+        "Read"
+      ],
+      "preferences": {
+        "test_command": "swift test --enable-code-coverage",
+        "build_command": "swift build -c release"
+      }
+    }
+  }
+}
